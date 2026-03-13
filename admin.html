@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>チームデータ管理 — 埼玉県野球マップ</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+:root{--ink:#1a1a1a;--ink-2:#555;--ink-3:#999;--surface:#f6f5f3;--surface-1:#fff;--surface-2:#eeedeb;--border:#ddd;--border-2:#c8c8c8;--action:#2563eb;--action-h:#1d4ed8;--action-bg:#eff6ff;--caution:#b45309;--caution-bg:#fffbeb;--danger:#dc2626;--danger-bg:#fef2f2}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--surface);color:var(--ink);font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.shell{max-width:820px;margin:0 auto;padding:32px 24px 80px}
+.site-id{display:flex;align-items:baseline;gap:8px;padding-bottom:20px;margin-bottom:24px;border-bottom:1px solid var(--border)}
+.site-id h1{font-size:15px;font-weight:600;letter-spacing:-.02em}.site-id span{font-size:12px;color:var(--ink-3)}
+nav{display:flex;gap:0;margin-bottom:32px;border-bottom:1px solid var(--border)}
+nav button{padding:10px 20px;background:none;border:none;border-bottom:2px solid transparent;font:inherit;font-size:13px;font-weight:500;color:var(--ink-3);cursor:pointer;transition:.15s;margin-bottom:-1px}
+nav button:hover{color:var(--ink-2)}nav button.on{color:var(--ink);border-bottom-color:var(--ink)}
+.stepper{display:flex;align-items:center;gap:0;margin-bottom:28px}
+.stepper-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-3);padding:6px 14px;white-space:nowrap}
+.stepper-item.current{color:var(--ink);font-weight:600}.stepper-item.done{color:var(--action)}
+.stepper-n{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--ink-3);flex-shrink:0}
+.stepper-item.current .stepper-n{border-color:var(--ink);background:var(--ink);color:#fff}
+.stepper-item.done .stepper-n{border-color:var(--action);color:var(--action)}
+.stepper-sep{width:24px;height:1px;background:var(--border);flex-shrink:0}
+.view{display:none}.view.show{display:block}
+section{display:none}section.show{display:block}
+.sec-title{font-size:18px;font-weight:700;margin-bottom:4px;letter-spacing:-.02em}
+.sec-lead{font-size:13px;color:var(--ink-2);margin-bottom:20px;line-height:1.7}
+.sec-lead code{font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--surface-2);padding:1px 5px;border-radius:2px}
+.drop{border:1.5px dashed var(--border-2);border-radius:6px;padding:36px 20px;text-align:center;cursor:pointer;transition:.2s;background:var(--surface-1)}
+.drop:hover,.drop.drag{border-color:var(--action);background:var(--action-bg)}
+.drop-main{font-size:14px;font-weight:500;margin-bottom:4px}.drop-sub{font-size:12px;color:var(--ink-3)}
+input[type=file]{display:none}
+.msg{font-size:13px;margin-top:12px;padding:10px 14px;border-radius:4px;line-height:1.6}
+.msg-ok{background:var(--action-bg);color:var(--action)}.msg-warn{background:var(--caution-bg);color:var(--caution)}.msg-err{background:var(--danger-bg);color:var(--danger)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:4px;font:inherit;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:.15s}
+.btn:hover{transform:translateY(-1px)}.btn:disabled{opacity:.35;pointer-events:none;transform:none}
+.btn-p{background:var(--action);color:#fff}.btn-p:hover{background:var(--action-h)}
+.btn-s{background:var(--surface-2);color:var(--ink-2)}.btn-s:hover{background:var(--border);color:var(--ink)}
+.btn-lg{padding:11px 28px;font-size:14px;font-weight:600}
+.btns{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap}
+.map-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:6px}
+.map-row{display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--border);border-radius:4px;background:var(--surface-1)}
+.map-label{font-size:12px;font-weight:500;width:72px;flex-shrink:0;color:var(--ink-2)}
+.map-label .req{color:var(--danger);font-size:10px;margin-left:2px}
+.map-row select{flex:1;padding:4px 6px;border:1px solid var(--border);border-radius:3px;font:inherit;font-size:12px;background:var(--surface);color:var(--ink)}
+.tbl-wrap{border:1px solid var(--border);border-radius:4px;overflow:auto;max-height:360px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{position:sticky;top:0;z-index:2;padding:8px;text-align:left;font-weight:600;font-size:11px;color:var(--ink-2);background:var(--surface-2);border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.04em}
+td{padding:6px 8px;border-bottom:1px solid #f0f0f0;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+tr:hover td{background:#fafaf8}td.cw{background:var(--caution-bg);color:var(--caution)}
+.counts{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.count-item{font-size:13px;color:var(--ink-2)}.count-item strong{font-size:18px;font-weight:700;color:var(--ink);display:block;font-variant-numeric:tabular-nums}
+.log-box{background:var(--surface-2);border-radius:4px;padding:12px 14px;max-height:160px;overflow-y:auto;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.7;margin-top:16px}
+.log-box .ok{color:var(--action)}.log-box .warn{color:var(--caution)}.log-box .err{color:var(--danger)}.log-box .info{color:var(--ink-3)}
+.guide-section{margin-bottom:32px}.guide-section h2{font-size:15px;font-weight:700;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.guide-section h3{font-size:13px;font-weight:600;color:var(--ink-2);margin:16px 0 6px}
+.guide-section p{font-size:13px;color:var(--ink-2);line-height:1.8;margin-bottom:6px}
+.guide-section code{font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--surface-2);padding:1px 5px;border-radius:2px;color:var(--ink)}
+.step-list{counter-reset:step;list-style:none;padding:0}
+.step-list li{counter-increment:step;padding:12px 0 12px 40px;border-bottom:1px solid #f0f0f0;font-size:13px;color:var(--ink-2);line-height:1.7;position:relative}
+.step-list li::before{content:counter(step);position:absolute;left:0;top:12px;width:24px;height:24px;border-radius:50%;background:var(--surface-2);font-size:11px;font-weight:600;color:var(--ink-2);display:flex;align-items:center;justify-content:center}
+.step-list li strong{color:var(--ink)}
+.guide-table{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0}
+.guide-table th{text-align:left;padding:6px 8px;background:var(--surface-2);font-weight:600;color:var(--ink-2);border-bottom:1px solid var(--border)}
+.guide-table td{padding:5px 8px;border-bottom:1px solid #f0f0f0;color:var(--ink-2)}
+@media(max-width:640px){.shell{padding:20px 16px 60px}.stepper{flex-wrap:wrap;gap:4px}.stepper-sep{width:12px}.map-grid{grid-template-columns:1fr}nav button{padding:8px 12px;font-size:12px}}
+/* ── QUICK EDIT ── */
+#qe-search{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:4px;font:inherit;font-size:13px;background:var(--surface-1);color:var(--ink);margin-bottom:12px}
+#qe-search:focus{border-color:var(--action);outline:none}
+#qe-list{max-height:320px;overflow-y:auto;border:1px solid var(--border);border-radius:4px;background:var(--surface-1)}
+.qe-row{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #f0f0f0;cursor:pointer;transition:background .1s;font-size:12px}
+.qe-row:last-child{border-bottom:none}
+.qe-row:hover{background:var(--surface-2)}
+.qe-row.selected{background:var(--action-bg);border-left:3px solid var(--action)}
+.qe-row-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.qe-row-name{font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.qe-row-city{color:var(--ink-3);font-size:11px;flex-shrink:0}
+.qe-row-cat{font-size:10px;color:#fff;padding:1px 6px;border-radius:3px;flex-shrink:0}
+.qe-empty{padding:20px;text-align:center;color:var(--ink-3);font-size:13px}
+.qe-count{font-size:11px;color:var(--ink-3);margin-bottom:8px}
+#qe-editor{margin-top:16px;display:none;border:1px solid var(--border);border-radius:4px;background:var(--surface-1);padding:16px}
+#qe-editor.show{display:block}
+.qe-editor-title{font-size:14px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.qe-editor-title .badge{font-size:10px;color:#fff;padding:2px 7px;border-radius:3px}
+.qe-fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px}
+.qe-field{display:flex;flex-direction:column;gap:2px}
+.qe-field label{font-size:11px;font-weight:500;color:var(--ink-3)}
+.qe-field input,.qe-field select{padding:6px 8px;border:1px solid var(--border);border-radius:3px;font:inherit;font-size:12px;background:var(--surface);color:var(--ink)}
+.qe-field input:focus,.qe-field select:focus{border-color:var(--action);outline:none;background:var(--surface-1)}
+.qe-changed{border-color:var(--caution)!important;background:var(--caution-bg)!important}
+.qe-actions{display:flex;gap:8px;margin-top:16px;padding-top:12px;border-top:1px solid var(--border)}
+#qe-change-count{font-size:12px;color:var(--caution);padding:6px 0}
+/* category tabs */
+.qe-cat-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:10px;overflow-x:auto;scrollbar-width:none}
+.qe-cat-tabs::-webkit-scrollbar{display:none}
+.qe-cat-tab{padding:6px 12px;font:inherit;font-size:11px;font-weight:500;color:var(--ink-3);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:.15s;margin-bottom:-1px}
+.qe-cat-tab.on{color:var(--ink);border-bottom-color:var(--ink)}
+.qe-cat-tab .cnt{font-size:9px;color:var(--ink-3);margin-left:2px}
+/* city filter */
+#qe-city-select{padding:5px 8px;border:1px solid var(--border);border-radius:3px;font:inherit;font-size:12px;background:var(--surface-1);color:var(--ink);margin-bottom:10px;max-width:240px}
+#qe-city-select:focus{border-color:var(--action);outline:none}
+/* filter bar */
+.qe-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.qe-toolbar .btn{font-size:11px;padding:5px 12px}
+/* delete */
+.btn-danger{background:var(--danger);color:#fff}
+.btn-danger:hover{background:#b91c1c}
+.qe-del-confirm{font-size:12px;color:var(--danger);margin-top:8px;padding:8px 12px;background:var(--danger-bg);border-radius:4px;display:none}
+.qe-del-confirm.show{display:block}
+/* save feedback */
+.qe-toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-60px);background:var(--ink);color:#fff;padding:8px 20px;border-radius:4px;font-size:13px;font-weight:500;z-index:9000;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none}
+.qe-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* reload link */
+.qe-reload{font-size:12px;color:var(--action);cursor:pointer;text-decoration:underline;margin-bottom:12px;display:inline-block}
+.qe-reload:hover{color:var(--action-h)}
+/* city mismatch warning */
+.qe-field-warn{font-size:10px;color:var(--caution);margin-top:2px;display:none}
+.qe-field-warn.show{display:block}
+.qe-field input.warn-border{border-color:var(--caution)}
+</style>
+</head>
+<body>
+<div class="shell">
+<div class="site-id"><h1>チームデータ管理</h1><span>埼玉県野球競技者人口マップ</span></div>
+<nav><button class="on" data-t="edit" onclick="tab('edit')">簡易編集</button><button data-t="update" onclick="tab('update')">CSV一括更新</button><button data-t="export" onclick="tab('export')">データ書き出し</button><button data-t="manual" onclick="tab('manual')">マニュアル</button></nav>
+
+<!-- 簡易編集 -->
+<div id="v-edit" class="view show">
+  <div class="sec-title">簡易編集</div>
+  <div class="sec-lead">チーム名の修正、SNSの追加など、個別のチームをすばやく編集できます。<br>大量の変更がある場合は「CSV一括更新」タブを使ってください。</div>
+
+  <div id="qe-upload">
+    <div class="drop" id="drop-qe" onclick="$('qe-file').click()">
+      <div class="drop-main">index.html を選択、またはここにドロップ</div>
+      <div class="drop-sub">チームデータを読み込んで編集できるようにします</div>
+    </div>
+    <input type="file" id="qe-file" accept=".html,.htm" onchange="qeLoad(this.files[0])">
+    <div id="qe-load-msg"></div>
+  </div>
+
+  <div id="qe-main" style="display:none">
+    <span class="qe-reload" onclick="qeReset()">別のファイルを読み込む</span>
+    <input type="text" id="qe-search" placeholder="チーム名、市区町村で検索..." oninput="qeFilter()" onkeydown="if(event.key==='Escape'){this.value='';qeFilter();}">
+    <div class="qe-cat-tabs" id="qe-cat-tabs"></div>
+    <div class="qe-toolbar">
+      <select id="qe-city-select" onchange="qeFilter()"><option value="">全市区町村</option></select>
+      <button class="btn btn-p" onclick="qeAdd()">+ チーム追加</button>
+    </div>
+    <div id="qe-change-count"></div>
+    <div class="qe-count" id="qe-count"></div>
+    <div id="qe-list"></div>
+
+    <div id="qe-editor" onkeydown="if(event.key==='Enter'&&event.target.tagName!=='TEXTAREA'){event.preventDefault();qeSave();}">
+      <div class="qe-editor-title" id="qe-editor-title"></div>
+      <div class="qe-fields" id="qe-fields"></div>
+      <div class="qe-actions">
+        <button class="btn btn-p" onclick="qeSave()">変更を保存</button>
+        <button class="btn btn-s" onclick="qeCancel()">キャンセル</button>
+        <div style="flex:1"></div>
+        <button class="btn btn-danger" id="qe-del-btn" onclick="qeDeleteAsk()">削除</button>
+      </div>
+      <div class="qe-del-confirm" id="qe-del-confirm">
+        このチームを削除します。この操作は取り消せません。
+        <div class="btns" style="margin-top:8px">
+          <button class="btn btn-danger" onclick="qeDeleteDo()">削除する</button>
+          <button class="btn btn-s" onclick="$('qe-del-confirm').classList.remove('show')">やめる</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="btns" style="margin-top:20px">
+      <button class="btn btn-p btn-lg" id="qe-dl-btn" onclick="qeDownload()" disabled>更新済み index.html をダウンロード</button>
+    </div>
+    <div id="qe-dl-msg"></div>
+  </div>
+</div>
+
+<div id="v-update" class="view">
+  <div class="stepper" id="stepper">
+    <div class="stepper-item current" data-s="1"><span class="stepper-n">1</span>読み込み</div><div class="stepper-sep"></div>
+    <div class="stepper-item" data-s="2"><span class="stepper-n">2</span>対応付け</div><div class="stepper-sep"></div>
+    <div class="stepper-item" data-s="3"><span class="stepper-n">3</span>確認</div><div class="stepper-sep"></div>
+    <div class="stepper-item" data-s="4"><span class="stepper-n">4</span>出力</div>
+  </div>
+  <section id="s1" class="show">
+    <div class="sec-title">CSVファイルを読み込む</div>
+    <div class="sec-lead">更新するチームデータのCSVを選択してください。<br>初めての場合は「データ書き出し」タブで現在のデータをCSVに変換してから編集してください。</div>
+    <div class="drop" id="drop-csv" onclick="$('csv-file').click()"><div class="drop-main">ファイルを選択、またはここにドロップ</div><div class="drop-sub">CSV（UTF-8 / Shift_JIS 自動判定）</div></div>
+    <input type="file" id="csv-file" accept=".csv,.tsv,.txt" onchange="loadCSV(this.files[0])">
+    <div id="csv-msg"></div>
+    <div class="btns"><button class="btn btn-s" onclick="dlTemplate()">テンプレートを取得</button></div>
+  </section>
+  <section id="s2">
+    <div class="sec-title">列の対応付け</div>
+    <div class="sec-lead">CSVヘッダーから自動推測しました。赤い「必須」の項目が正しいことを確認してください。</div>
+    <div class="map-grid" id="map-grid"></div>
+    <div class="btns"><button class="btn btn-p" onclick="applyMap()">確定して次へ</button><button class="btn btn-s" onclick="goStep(1)">戻る</button></div>
+  </section>
+  <section id="s3">
+    <div class="sec-title">プレビューと検証</div>
+    <div class="counts" id="counts"></div>
+    <div class="tbl-wrap" id="ptbl"></div>
+    <div class="log-box" id="log"></div>
+    <div class="btns"><button class="btn btn-p" onclick="goStep(4)">問題なければ次へ</button><button class="btn btn-s" onclick="goStep(2)">対応付けを修正</button></div>
+  </section>
+  <section id="s4">
+    <div class="sec-title">更新済みHTMLの生成</div>
+    <div class="sec-lead">サーバーで使用中の <code>index.html</code> をアップロードしてください。チームデータ部分だけを差し替えた新しいファイルを生成します。</div>
+    <div class="drop" id="drop-html" onclick="$('html-file').click()"><div class="drop-main">index.html を選択、またはここにドロップ</div><div class="drop-sub">チームデータ領域を自動検出して差し替えます</div></div>
+    <input type="file" id="html-file" accept=".html,.htm" onchange="loadHTML(this.files[0])">
+    <div id="html-msg"></div>
+    <div class="btns"><button class="btn btn-p btn-lg" id="btn-gen" onclick="generate()" disabled>更新済み index.html をダウンロード</button></div>
+    <div id="gen-done" class="msg msg-ok" style="display:none">ダウンロード完了。このファイルでサーバー上の index.html を上書きすれば更新完了です。</div>
+    <div class="btns"><button class="btn btn-s" onclick="goStep(3)">戻る</button></div>
+  </section>
+</div>
+
+<div id="v-export" class="view">
+  <div class="sec-title">現在のデータをCSVに変換</div>
+  <div class="sec-lead">サーバーの index.html をアップロードすると、チームデータをCSVとしてダウンロードできます。<br>ダウンロードしたCSVをExcelやGoogleスプレッドシートで編集し、「データ更新」タブで読み込んでください。</div>
+  <div class="drop" id="drop-exp" onclick="$('exp-file').click()"><div class="drop-main">index.html を選択、またはここにドロップ</div><div class="drop-sub">チームデータを抽出してCSV形式に変換します</div></div>
+  <input type="file" id="exp-file" accept=".html,.htm" onchange="doExport(this.files[0])">
+  <div id="exp-msg"></div>
+  <div id="exp-result" style="display:none">
+    <div class="counts" id="exp-counts" style="margin-top:20px"></div>
+    <div class="tbl-wrap" id="exp-tbl"></div>
+    <div class="btns"><button class="btn btn-p btn-lg" onclick="dlExportCSV()">CSVをダウンロード</button></div>
+  </div>
+</div>
+
+<div id="v-manual" class="view">
+  <div class="guide-section"><h2>データ更新の手順</h2>
+    <p style="margin-bottom:12px">この作業に特別なツールは不要です。admin.html をブラウザで開くだけで完結します。</p>
+    <ol class="step-list">
+      <li><strong>現在のデータをCSVで取得する。</strong><br>「データ書き出し」タブでサーバーの index.html からチームデータをCSVに変換します。</li>
+      <li><strong>CSVを編集する。</strong><br>Excel または Google スプレッドシートで開き、チームの追加・削除・変更を行います。保存時は CSV UTF-8 形式を選択。</li>
+      <li><strong>編集済みCSVを読み込む。</strong><br>「データ更新」タブで CSV をドロップします。列の対応は自動推測されます。</li>
+      <li><strong>プレビューで確認する。</strong><br>件数・カテゴリ内訳・検証ログを確認します。</li>
+      <li><strong>更新済みHTMLを生成する。</strong><br>元の index.html をアップロードすると、チームデータだけが差し替わった新ファイルが生成されます。</li>
+      <li><strong>サーバーにアップロードする。</strong><br>ダウンロードした index.html でサーバー上のファイルを上書きします。上書き前のバックアップを推奨。</li>
+    </ol>
+  </div>
+  <div class="guide-section"><h2>CSVフォーマット</h2>
+    <p>1行目はヘッダー。必須は name（チーム名）、cat（カテゴリ）、city（市区町村）の3項目です。</p>
+    <h3>カテゴリの値</h3>
+    <table class="guide-table">
+      <tr><th>値</th><th>意味</th><th>日本語入力でもOK</th></tr>
+      <tr><td><code>elem</code></td><td>小学生</td><td>小学生 / 小</td></tr>
+      <tr><td><code>jhs</code></td><td>中学生</td><td>中学生 / 中</td></tr>
+      <tr><td><code>hs</code></td><td>高校生</td><td>高校生 / 高</td></tr>
+      <tr><td><code>univ</code></td><td>大学生</td><td>大学生 / 大</td></tr>
+      <tr><td><code>club</code></td><td>企業・クラブ</td><td>企業 / クラブ</td></tr>
+      <tr><td><code>independent</code></td><td>独立リーグ</td><td>独立</td></tr>
+    </table>
+    <h3>その他のフィールド</h3>
+    <p>gender, male, female, total, lat, lng, ball, league, place, hp, x_url, ig, other_url, days, address, contact, note — すべて省略可。緯度・経度が空の場合は市区町村の座標が自動で使われます。</p>
+  </div>
+  <div class="guide-section"><h2>よくある質問</h2>
+    <p><strong>CSVが文字化けする</strong> — 保存時に「CSV UTF-8」を選んでください。Google スプレッドシートは自動でUTF-8です。</p>
+    <p><strong>チームを追加したい</strong> — CSVの末尾に行を追加。name, cat, city は必ず入力。</p>
+    <p><strong>チームを削除したい</strong> — CSVから該当行を削除するだけです。</p>
+    <p><strong>admin.html はどこに置く？</strong> — PCのどこでもOK。ダブルクリックで開けます。サーバー不要。</p>
+    <p><strong>見た目や機能を変えたい</strong> — HTML/CSS/JS の知識が必要です。開発者に依頼してください。</p>
+  </div>
+  <div class="guide-section"><h2>ファイル構成</h2>
+    <table class="guide-table">
+      <tr><th>ファイル</th><th>役割</th><th>配置場所</th></tr>
+      <tr><td><code>index.html</code></td><td>マップ本体（表示＋データ）</td><td>ウェブサーバー</td></tr>
+      <tr><td><code>admin.html</code></td><td>管理ツール（このページ）</td><td>ローカルPC</td></tr>
+    </table>
+    <p style="margin-top:8px">データベースもバックエンドも不要。HTMLファイル2つだけで運用できます。</p>
+  </div>
+</div>
+</div>
+
+<script>
+/* teamData抽出ヘルパー: マーカー優先、フォールバックは中身のある代入のみ */
+function _extractTeamData(html){
+  // 1) マーカーがあればその中身を使う
+  if(html.includes('__TEAM_DATA_START__')&&html.includes('__TEAM_DATA_END__')){
+    const lines=html.split('\n');let sl=-1,el=-1;
+    lines.forEach((l,i)=>{if(l.includes('__TEAM_DATA_START__'))sl=i;if(l.includes('__TEAM_DATA_END__'))el=i;});
+    if(sl>=0&&el>=0){
+      const block=lines.slice(sl+1,el).join('\n');
+      const m2=block.match(/teamData\s*=\s*\[([\s\S]*)\]/);
+      if(m2)return m2[1];
+    }
+  }
+  // 2) フォールバック: {name: で始まるデータ行を含むtreamData代入を探す
+  const m=html.match(/teamData\s*=\s*\[\s*\n(\s*\{name:[\s\S]*?)\n\s*\];/);
+  if(m)return m[1];
+  return null;
+}
+function _parseTeamData(html){
+  const raw=_extractTeamData(html);
+  if(!raw)return null;
+  return new Function('return ['+raw+']')();
+}
+const $=id=>document.getElementById(id);
+let csvRaw=[],csvH=[],mp={},parsed=[],srcHTML='',exported=[];
+const F=[{k:'name',l:'チーム名',r:1},{k:'cat',l:'カテゴリ',r:1},{k:'city',l:'市区町村',r:1},{k:'gender',l:'性別'},{k:'male',l:'男子数'},{k:'female',l:'女子数'},{k:'total',l:'合計'},{k:'lat',l:'緯度'},{k:'lng',l:'経度'},{k:'ball',l:'硬式/軟式'},{k:'league',l:'所属'},{k:'place',l:'活動場所'},{k:'days',l:'活動日'},{k:'hp',l:'HP'},{k:'x_url',l:'X'},{k:'ig',l:'Instagram'},{k:'other_url',l:'他URL'},{k:'address',l:'住所'},{k:'contact',l:'連絡先'},{k:'note',l:'備考'}];
+const CM={'小学生':'elem','中学生':'jhs','高校生':'hs','大学生':'univ','企業':'club','クラブ':'club','企業・クラブ':'club','独立':'independent','小':'elem','中':'jhs','高':'hs','大':'univ','企':'club','独':'independent'};
+const CJ={elem:'小学生',jhs:'中学生',hs:'高校生',univ:'大学生',club:'企業・クラブ',independent:'独立'};
+
+function tab(t){document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));document.querySelectorAll('.view').forEach(v=>v.classList.remove('show'));$('v-'+t).classList.add('show');}
+function goStep(n){for(let i=1;i<=4;i++)$('s'+i).classList.toggle('show',i===n);document.querySelectorAll('.stepper-item').forEach(s=>{const sn=+s.dataset.s;s.classList.remove('current','done');if(sn===n)s.classList.add('current');if(sn<n)s.classList.add('done');});}
+
+function parseCSV(t){if(t.charCodeAt(0)===0xFEFF)t=t.slice(1);const R=[];let c='',q=false,r=[];for(let i=0;i<t.length;i++){const ch=t[i];if(q){if(ch==='"'&&t[i+1]==='"'){c+='"';i++;}else if(ch==='"')q=false;else c+=ch;}else{if(ch==='"')q=true;else if(ch===','){r.push(c.trim());c='';}else if(ch==='\n'||ch==='\r'){if(ch==='\r'&&t[i+1]==='\n')i++;r.push(c.trim());c='';if(r.some(x=>x))R.push(r);r=[];}else c+=ch;}}r.push(c.trim());if(r.some(x=>x))R.push(r);return R;}
+
+async function loadCSV(file){if(!file)return;const msg=$('csv-msg');msg.innerHTML='';let txt;try{txt=await file.text();if(/[\x80-\xff]/.test(txt.substring(0,500))&&!txt.substring(0,100).includes('UTF'))txt=new TextDecoder('shift_jis').decode(await file.arrayBuffer());}catch(e){txt=new TextDecoder('shift_jis').decode(await file.arrayBuffer());}const lines=parseCSV(txt);if(lines.length<2){msg.innerHTML='<div class="msg msg-err">データが不足しています（ヘッダー＋1行以上必要）</div>';return;}csvH=lines[0];csvRaw=lines.slice(1);msg.innerHTML='<div class="msg msg-ok">'+file.name+' — '+csvH.length+'列 × '+csvRaw.length+'行</div>';autoMap();goStep(2);}
+
+function autoMap(){mp={};const grid=$('map-grid');grid.innerHTML='';const H={name:['チーム','name','名前'],cat:['カテゴリ','category','区分'],city:['市','city','市区町村'],gender:['性別','gender'],male:['男子','male'],female:['女子','female'],total:['合計','total','部員','人数'],lat:['緯度','lat'],lng:['経度','lng','lon'],ball:['硬式','軟式','ball','球種'],league:['リーグ','所属','league','連盟'],place:['活動場所','place','場所'],days:['活動日','days','曜日'],hp:['hp','ホームページ','website','url'],x_url:['twitter','xurl'],ig:['instagram','insta'],address:['住所','address'],contact:['連絡','contact','電話'],note:['備考','note','メモ']};F.forEach(f=>{let best=-1;csvH.forEach((h,i)=>{const hl=h.toLowerCase().replace(/[\s_-]/g,'');if(hl===f.k.toLowerCase()||hl===f.l.replace(/[\s/]/g,''))best=i;if(best===-1&&H[f.k])H[f.k].forEach(k=>{if(hl.includes(k))best=i;});});mp[f.k]=best;const d=document.createElement('div');d.className='map-row';d.innerHTML='<span class="map-label">'+f.l+(f.r?'<span class="req">必須</span>':'')+'</span><select onchange="mp[\''+f.k+'\']=+this.value"><option value="-1">\u2014</option>'+csvH.map((h,i)=>'<option value="'+i+'"'+(i===best?' selected':'')+'>'+h+'</option>').join('')+'</select>';grid.appendChild(d);});}
+
+function applyMap(){const miss=F.filter(f=>f.r&&mp[f.k]===-1);if(miss.length){alert('必須フィールド未設定: '+miss.map(f=>f.l).join(', '));return;}parsed=[];const log=[];const g=(r,k)=>{const i=mp[k];return(i===-1||i>=r.length)?'':(r[i]||'').trim();};csvRaw.forEach((r,ri)=>{const nm=g(r,'name');if(!nm){log.push({t:'warn',m:'行'+(ri+2)+': チーム名空 → スキップ'});return;}let cat=g(r,'cat');if(CM[cat])cat=CM[cat];if(!['elem','jhs','hs','univ','club','independent'].includes(cat)){log.push({t:'warn',m:'行'+(ri+2)+' ['+nm+']: カテゴリ不明 → club'});cat='club';}const city=g(r,'city');if(!city){log.push({t:'warn',m:'行'+(ri+2)+' ['+nm+']: 市区町村空 → スキップ'});return;}const ml=parseInt(g(r,'male'))||0,fl=parseInt(g(r,'female'))||0;let tot=parseInt(g(r,'total'))||0;if(!tot&&(ml||fl))tot=ml+fl;let gn=g(r,'gender')||'male';if(['男','男子','male','m'].includes(gn.toLowerCase()))gn='male';else if(['女','女子','female','f'].includes(gn.toLowerCase()))gn='female';else if(['混','混合','mixed','mix'].includes(gn.toLowerCase()))gn='mixed';else{gn=fl>0&&ml>0?'mixed':fl>0?'female':'male';}const lat=parseFloat(g(r,'lat'))||0,lng=parseFloat(g(r,'lng'))||0;if(!lat||!lng)log.push({t:'info',m:'行'+(ri+2)+' ['+nm+']: 座標なし → 市区町村座標使用'});const o={name:nm,cat,gender:gn,male:ml,female:fl,total:tot,city,lat,lng,ball:g(r,'ball')||'-',league:g(r,'league')||'-',place:g(r,'place')||'-',hp:g(r,'hp')||'-',x_url:g(r,'x_url')||'-',ig:g(r,'ig')||'-',other_url:g(r,'other_url')||'-'};['days','address','contact','note'].forEach(k=>{const v=g(r,k);if(v)o[k]=v;});parsed.push(o);});log.push({t:'ok',m:parsed.length+' チーム変換完了'});const cats={};parsed.forEach(o=>{cats[o.cat]=(cats[o.cat]||0)+1;});const nc=parsed.filter(o=>!o.lat||!o.lng).length;if(nc)log.push({t:'warn',m:nc+' チーム座標なし'});$('counts').innerHTML='<div class="count-item"><strong>'+parsed.length+'</strong>総チーム数</div>'+Object.entries(cats).map(([c,n])=>'<div class="count-item"><strong>'+n+'</strong>'+(CJ[c]||c)+'</div>').join('')+(nc?'<div class="count-item"><strong style="color:var(--caution)">'+nc+'</strong>座標なし</div>':'');const cols=['name','cat','city','gender','total','ball','league','lat','lng'];$('ptbl').innerHTML='<table><thead><tr>'+cols.map(c=>'<th>'+c+'</th>').join('')+'</tr></thead><tbody>'+parsed.slice(0,200).map(o=>'<tr>'+cols.map(c=>{const v=o[c]??'';const w=(c==='lat'&&!o.lat)||(c==='lng'&&!o.lng);return'<td'+(w?' class="cw"':'')+'>'+v+'</td>';}).join('')+'</tr>').join('')+(parsed.length>200?'<tr><td colspan="'+cols.length+'" style="text-align:center;color:var(--ink-3);padding:12px">以下 '+(parsed.length-200)+' 件省略</td></tr>':'')+'</tbody></table>';$('log').innerHTML=log.map(l=>'<div class="'+l.t+'">'+l.m+'</div>').join('');goStep(3);}
+
+function genBlock(){const e=s=>String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'");return'    teamData = [\n'+parsed.map(o=>{let p=["name:'"+e(o.name)+"'","cat:'"+o.cat+"'","gender:'"+o.gender+"'",'male:'+o.male,'female:'+o.female,'total:'+o.total,"city:'"+e(o.city)+"'",'lat:'+o.lat,'lng:'+o.lng,"ball:'"+e(o.ball)+"'","league:'"+e(o.league)+"'","hp:'"+e(o.hp)+"'","x_url:'"+e(o.x_url)+"'","ig:'"+e(o.ig)+"'","other_url:'"+e(o.other_url)+"'","place:'"+e(o.place)+"'"];['days','address','contact','note'].forEach(k=>{if(o[k])p.push(k+":'"+e(o[k])+"'");});return'    {'+p.join(',')+'}';}).join(',\n')+'\n    ];';}
+
+async function loadHTML(file){if(!file)return;const msg=$('html-msg');msg.innerHTML='';srcHTML=await file.text();const ok=!!_extractTeamData(srcHTML);msg.innerHTML='<div class="msg '+(ok?'msg-ok':'msg-err')+'">'+(ok?file.name+' — チームデータを検出しました':'teamDataが見つかりません。正しいファイルを選んでください')+'</div>';$('btn-gen').disabled=!ok;}
+
+function generate(){if(!srcHTML||!parsed.length)return;const blk=genBlock();let out;if(srcHTML.includes('__TEAM_DATA_START__')&&srcHTML.includes('__TEAM_DATA_END__')){const ls=srcHTML.split('\n');let sl=-1,el=-1;ls.forEach((l,i)=>{if(l.includes('__TEAM_DATA_START__'))sl=i;if(l.includes('__TEAM_DATA_END__'))el=i;});if(sl>=0&&el>=0)out=[...ls.slice(0,sl),'  // /* __TEAM_DATA_START__ */',blk,'  // /* __TEAM_DATA_END__ */',...ls.slice(el+1)].join('\n');}if(!out)out=srcHTML.replace(/teamData\s*=\s*\[\s*\n\s*\{name:[\s\S]*?\n\s*\];/,'\n  // /* __TEAM_DATA_START__ */\n'+blk+'\n  // /* __TEAM_DATA_END__ */');dlFile('index.html',out,'text/html');$('gen-done').style.display='';}
+
+async function doExport(file){if(!file)return;const msg=$('exp-msg');msg.innerHTML='';const html=await file.text();try{exported=_parseTeamData(html);if(!exported){msg.innerHTML='<div class="msg msg-err">teamDataが見つかりませんでした</div>';return;}msg.innerHTML='<div class="msg msg-ok">'+file.name+' から '+exported.length+' チームを抽出</div>';const cats={};exported.forEach(t=>{cats[t.cat]=(cats[t.cat]||0)+1;});$('exp-counts').innerHTML='<div class="count-item"><strong>'+exported.length+'</strong>総チーム数</div>'+Object.entries(cats).map(([c,n])=>'<div class="count-item"><strong>'+n+'</strong>'+(CJ[c]||c)+'</div>').join('');const cols=['name','cat','city','gender','total','ball','league'];$('exp-tbl').innerHTML='<table><thead><tr>'+cols.map(c=>'<th>'+c+'</th>').join('')+'</tr></thead><tbody>'+exported.slice(0,80).map(t=>'<tr>'+cols.map(c=>'<td>'+(t[c]??'')+'</td>').join('')+'</tr>').join('')+(exported.length>80?'<tr><td colspan="'+cols.length+'" style="text-align:center;color:var(--ink-3);padding:12px">以下 '+(exported.length-80)+' 件省略</td></tr>':'')+'</tbody></table>';$('exp-result').style.display='';}catch(e){msg.innerHTML='<div class="msg msg-err">解析失敗: '+e.message+'</div>';}}
+
+function dlExportCSV(){if(!exported.length)return;const hd=F.map(f=>f.k);const csv=[hd.join(',')];exported.forEach(t=>{csv.push(hd.map(h=>{let v=String(t[h]??'');if(v.includes(',')||v.includes('"')||v.includes('\n'))v='"'+v.replace(/"/g,'""')+'"';return v;}).join(','));});dlFile('teams_export.csv','\uFEFF'+csv.join('\n'),'text/csv');}
+function dlTemplate(){dlFile('template.csv','\uFEFF'+F.map(f=>f.k).join(',')+'\nサンプルチーム,elem,さいたま市大宮区,male,15,2,17,35.908,139.624,軟式,埼玉県野球連盟,-,-,-,-,-,-,土日,-,-,-\n','text/csv');}
+function dlFile(n,c,t){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([c],{type:t+';charset=utf-8'}));a.download=n;a.click();URL.revokeObjectURL(a.href);}
+[['drop-csv','loadCSV'],['drop-html','loadHTML'],['drop-exp','doExport'],['drop-qe','qeLoad']].forEach(([id,fn])=>{const el=$(id);if(!el)return;el.addEventListener('dragover',e=>{e.preventDefault();el.classList.add('drag');});el.addEventListener('dragleave',()=>el.classList.remove('drag'));el.addEventListener('drop',e=>{e.preventDefault();el.classList.remove('drag');window[fn](e.dataTransfer.files[0]);});});
+
+/* ═══ QUICK EDIT ═══ */
+let qeData=[],qeSrcHTML='',qeIdx=-1,qeChanges=0,qeCat='all',qeIsNew=false;
+const QE_COLORS={elem:'#3b82f6',jhs:'#059669',hs:'#d97706',univ:'#7c3aed',club:'#dc2626',independent:'#64748b'};
+const QE_DASH=new Set(['ball','league','place','hp','x_url','ig','other_url']); // '-'をデフォルトとするフィールド
+const QE_FIELDS=[
+  {k:'name',l:'チーム名',type:'text'},
+  {k:'city',l:'市区町村',type:'datalist'},
+  {k:'cat',l:'カテゴリ',type:'select',opts:[['elem','小学生'],['jhs','中学生'],['hs','高校生'],['univ','大学生'],['club','企業・クラブ'],['independent','独立']]},
+  {k:'ball',l:'硬式/軟式',type:'select',opts:[['-','—'],['軟式','軟式'],['硬式','硬式']]},
+  {k:'gender',l:'性別',type:'select',opts:[['male','男子'],['female','女子'],['mixed','混合']]},
+  {k:'male',l:'男子数',type:'number'},{k:'female',l:'女子数',type:'number'},{k:'total',l:'合計',type:'number'},
+  {k:'league',l:'所属リーグ',type:'text'},
+  {k:'place',l:'活動場所',type:'text'},
+  {k:'days',l:'活動日',type:'text'},
+  {k:'hp',l:'HP URL',type:'url'},
+  {k:'x_url',l:'X (Twitter)',type:'url'},
+  {k:'ig',l:'Instagram',type:'url'},
+  {k:'other_url',l:'その他URL',type:'url'},
+  {k:'lat',l:'緯度',type:'number'},{k:'lng',l:'経度',type:'number'},
+  {k:'address',l:'住所',type:'text'},
+  {k:'contact',l:'連絡先',type:'text'},
+  {k:'note',l:'備考',type:'text'},
+];
+
+function _qeToast(msg){
+  const el=$('qe-toast');el.textContent=msg;el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2000);
+}
+
+// '-'はフォーム上では空欄として表示
+function _qeDisplayVal(k,v){
+  if(QE_DASH.has(k)&&v==='-')return '';
+  if((k==='lat'||k==='lng')&&v===0)return '';
+  return v??'';
+}
+// フォーム値を保存用に変換（空→'-'または0）
+function _qeStoreVal(k,raw){
+  const v=raw.trim();
+  if(k==='male'||k==='female'||k==='total')return parseInt(v)||0;
+  if(k==='lat'||k==='lng')return parseFloat(v)||0;
+  if(QE_DASH.has(k)&&!v)return '-';
+  return v;
+}
+
+async function qeLoad(file){
+  if(!file)return;
+  const msg=$('qe-load-msg');msg.innerHTML='';
+  qeSrcHTML=await file.text();
+  const data=_parseTeamData(qeSrcHTML);
+  if(!data){msg.innerHTML='<div class="msg msg-err">teamDataが見つかりませんでした</div>';return;}
+  qeData=data;qeChanges=0;qeIdx=-1;qeCat='all';qeIsNew=false;
+  msg.innerHTML='<div class="msg msg-ok">'+file.name+' — '+qeData.length+' チームを読み込みました</div>';
+  $('qe-upload').style.display='none';
+  $('qe-main').style.display='';
+  $('qe-editor').classList.remove('show');
+  $('qe-dl-btn').disabled=true;
+  $('qe-change-count').textContent='';
+  $('qe-dl-msg').innerHTML='';
+  $('qe-search').value='';
+  _qeRebuildFilters();
+  qeFilter();
+}
+
+function qeReset(){
+  if(qeChanges&&!confirm('未保存の変更が '+qeChanges+' 件あります。破棄しますか？'))return;
+  qeData=[];qeSrcHTML='';qeIdx=-1;qeChanges=0;qeCat='all';qeIsNew=false;
+  $('qe-main').style.display='none';
+  $('qe-upload').style.display='';
+  $('qe-load-msg').innerHTML='';
+  $('qe-file').value='';
+}
+
+function qeSetCat(c){
+  qeCat=c;
+  document.querySelectorAll('.qe-cat-tab').forEach(b=>{
+    b.classList.toggle('on',b.getAttribute('data-cat')===c);
+  });
+  qeFilter();
+}
+
+function qeFilter(){
+  const q=($('qe-search').value||'').trim().toLowerCase();
+  const city=$('qe-city-select').value;
+  const matched=qeData.map((t,i)=>({t,i})).filter(({t})=>{
+    if(qeCat!=='all'&&t.cat!==qeCat)return false;
+    if(city&&t.city!==city)return false;
+    if(!q)return true;
+    return t.name.toLowerCase().includes(q)||t.city.toLowerCase().includes(q)||(t.league||'').toLowerCase().includes(q);
+  });
+  $('qe-count').textContent=matched.length+' 件'+(matched.length!==qeData.length?' / 全 '+qeData.length+' 件':'');
+  const list=$('qe-list');
+  if(matched.length===0){
+    list.innerHTML='<div class="qe-empty">該当するチームがありません</div>';return;
+  }
+  const show=matched.slice(0,150);
+  list.innerHTML=show.map(({t,i})=>{
+    const col=QE_COLORS[t.cat]||'#999';
+    return '<div class="qe-row'+(i===qeIdx?' selected':'')+'" onclick="qeSelect('+i+')">'+
+      '<span class="qe-row-dot" style="background:'+col+'"></span>'+
+      '<span class="qe-row-name">'+t.name+'</span>'+
+      '<span class="qe-row-city">'+t.city+'</span>'+
+      '<span class="qe-row-cat" style="background:'+col+'">'+(CJ[t.cat]||t.cat)+'</span>'+
+      '</div>';
+  }).join('')+(matched.length>150?'<div class="qe-empty">以下 '+(matched.length-150)+' 件省略。検索で絞り込んでください</div>':'');
+}
+
+function qeSelect(i){
+  qeIdx=i;qeIsNew=false;
+  _qeOpenEditor(qeData[i]);
+}
+
+function _qeOpenEditor(t){
+  const col=QE_COLORS[t.cat]||'#999';
+  $('qe-editor-title').innerHTML='<span class="badge" style="background:'+col+'">'+(CJ[t.cat]||t.cat)+'</span> '+(t.name||'新規チーム');
+  // 既存市区町村リストを構築
+  const knownCities=[...new Set(qeData.map(x=>x.city))].sort((a,b)=>a.localeCompare(b,'ja'));
+  const fields=$('qe-fields');
+  fields.innerHTML='';
+  QE_FIELDS.forEach(f=>{
+    const displayVal=_qeDisplayVal(f.k,t[f.k]);
+    const div=document.createElement('div');div.className='qe-field';
+    let input;
+    const live=(f.k==='cat'||f.k==='name')?' onchange="_qeUpdateBadge()" oninput="_qeUpdateBadge()"':'';
+    if(f.type==='datalist'){
+      // datalist付きinput（市区町村用）
+      input='<input type="text" data-k="'+f.k+'" list="qe-dl-'+f.k+'" value="'+(String(displayVal).replace(/"/g,'&quot;'))+'" autocomplete="off" oninput="_qeCityCheck(this)">'+
+        '<datalist id="qe-dl-'+f.k+'">'+knownCities.map(c=>'<option value="'+c+'">').join('')+'</datalist>'+
+        '<div class="qe-field-warn" id="qe-city-warn">既存データにない市区町村名です</div>';
+    } else if(f.type==='select'){
+      const sv=String(t[f.k]??'');
+      input='<select data-k="'+f.k+'"'+live+'>'+f.opts.map(([v,l])=>'<option value="'+v+'"'+(sv===v?' selected':'')+'>'+l+'</option>').join('')+'</select>';
+    } else {
+      const tp=f.type==='url'?'text':f.type;
+      const ph=QE_DASH.has(f.k)?'placeholder="未入力"':'';
+      input='<input type="'+tp+'" data-k="'+f.k+'"'+live+' value="'+(String(displayVal).replace(/"/g,'&quot;'))+'" '+(f.type==='number'?' step="any"':'')+' '+ph+'>';
+    }
+    div.innerHTML='<label>'+f.l+'</label>'+input;
+    fields.appendChild(div);
+  });
+  $('qe-del-btn').style.display=qeIsNew?'none':'';
+  $('qe-del-confirm').classList.remove('show');
+  $('qe-editor').classList.add('show');
+  $('qe-editor').scrollIntoView({behavior:'smooth',block:'nearest'});
+  const first=fields.querySelector('input,select');
+  if(first)setTimeout(()=>first.focus(),100);
+  qeFilter();
+}
+
+function _qeUpdateBadge(){
+  const catEl=$('qe-fields').querySelector('[data-k="cat"]');
+  const nameEl=$('qe-fields').querySelector('[data-k="name"]');
+  const cat=catEl?catEl.value:'elem';
+  const name=nameEl?nameEl.value:'';
+  const col=QE_COLORS[cat]||'#999';
+  $('qe-editor-title').innerHTML='<span class="badge" style="background:'+col+'">'+(CJ[cat]||cat)+'</span> '+(name||'新規チーム');
+}
+
+function _qeCityCheck(el){
+  const v=el.value.trim();
+  const warn=$('qe-city-warn');
+  if(!warn)return;
+  if(!v){warn.classList.remove('show');el.classList.remove('warn-border');return;}
+  const known=new Set(qeData.map(x=>x.city));
+  if(known.has(v)){
+    warn.classList.remove('show');el.classList.remove('warn-border');
+  } else {
+    const similar=[...known].filter(c=>c.includes(v)||v.includes(c));
+    warn.textContent=similar.length?'もしかして: '+similar.slice(0,3).join('、'):'既存データにない市区町村名です';
+    warn.classList.add('show');el.classList.add('warn-border');
+  }
+}
+
+function qeSave(){
+  if(qeIdx<0&&!qeIsNew)return;
+  // まずフィールド値を収集
+  const vals={};
+  $('qe-fields').querySelectorAll('[data-k]').forEach(el=>{
+    vals[el.dataset.k]=_qeStoreVal(el.dataset.k,el.value);
+  });
+
+  // 市区町村の表記揺れチェック
+  const cityVal=String(vals.city||'').trim();
+  if(cityVal){
+    const knownCities=new Set(qeData.map(x=>x.city));
+    if(!knownCities.has(cityVal)){
+      // 類似候補を探す（部分一致）
+      const similar=[...knownCities].filter(c=>c.includes(cityVal)||cityVal.includes(c));
+      let msg='「'+cityVal+'」は既存データにない市区町村名です。';
+      if(similar.length)msg+='\n\nもしかして: '+similar.slice(0,5).join('、');
+      msg+='\n\nこのまま保存しますか？';
+      if(!confirm(msg))return;
+    }
+  }
+
+  const t=qeIsNew?{}:qeData[qeIdx];
+  let changed=false;
+  Object.entries(vals).forEach(([k,v])=>{
+    if(String(t[k]??'')!==String(v)){t[k]=v;changed=true;}
+  });
+  if(qeIsNew){
+    if(!t.name){alert('チーム名を入力してください');return;}
+    if(!t.city){alert('市区町村を入力してください');return;}
+    if(!t.cat)t.cat='elem';
+    if(!t.gender)t.gender='male';
+    QE_DASH.forEach(k=>{if(!t[k])t[k]='-';});
+    ['male','female','total','lat','lng'].forEach(k=>{if(t[k]===undefined)t[k]=0;});
+    qeData.push(t);
+    qeChanges++;
+    qeIsNew=false;
+    qeIdx=qeData.length-1;
+    _qeToast('チームを追加しました');
+  } else if(changed){
+    qeChanges++;
+    _qeToast('変更を保存しました');
+  } else {
+    _qeToast('変更はありません');
+  }
+  _qeUpdateStatus();
+  $('qe-editor').classList.remove('show');
+  qeIdx=-1;
+  _qeRebuildFilters();
+  qeFilter();
+}
+
+function qeCancel(){
+  $('qe-editor').classList.remove('show');
+  qeIdx=-1;qeIsNew=false;
+  qeFilter();
+}
+
+function qeAdd(){
+  qeIsNew=true;qeIdx=-1;
+  _qeOpenEditor({name:'',cat:'elem',city:'',gender:'male',male:0,female:0,total:0,lat:0,lng:0,ball:'-',league:'-',place:'-',hp:'-',x_url:'-',ig:'-',other_url:'-'});
+}
+
+function qeDeleteAsk(){
+  $('qe-del-confirm').classList.add('show');
+}
+
+function qeDeleteDo(){
+  if(qeIdx<0||qeIdx>=qeData.length)return;
+  const name=qeData[qeIdx].name;
+  qeData.splice(qeIdx,1);
+  qeChanges++;
+  _qeUpdateStatus();
+  $('qe-editor').classList.remove('show');
+  $('qe-del-confirm').classList.remove('show');
+  qeIdx=-1;
+  _qeRebuildFilters();
+  qeFilter();
+  _qeToast(name+' を削除しました');
+}
+
+function _qeUpdateStatus(){
+  $('qe-change-count').textContent=qeChanges?qeChanges+' 件の変更があります':'';
+  $('qe-dl-btn').disabled=!qeChanges;
+}
+
+function _qeRebuildFilters(){
+  const cats={};qeData.forEach(t=>{cats[t.cat]=(cats[t.cat]||0)+1;});
+  $('qe-cat-tabs').innerHTML='<button class="qe-cat-tab'+(qeCat==='all'?' on':'')+'" data-cat="all" onclick="qeSetCat(\'all\')">全て<span class="cnt">'+qeData.length+'</span></button>'+
+    Object.entries(cats).sort((a,b)=>(b[1]-a[1])).map(([c,n])=>
+      '<button class="qe-cat-tab'+(qeCat===c?' on':'')+'" data-cat="'+c+'" onclick="qeSetCat(\''+c+'\')">'+(CJ[c]||c)+'<span class="cnt">'+n+'</span></button>'
+    ).join('');
+  const curCity=$('qe-city-select').value;
+  const cities=[...new Set(qeData.map(t=>t.city))].sort((a,b)=>a.localeCompare(b,'ja'));
+  $('qe-city-select').innerHTML='<option value="">全市区町村 ('+cities.length+')</option>'+
+    cities.map(c=>'<option value="'+c+'"'+(c===curCity?' selected':'')+'>'+c+'</option>').join('');
+}
+
+function qeDownload(){
+  if(!qeSrcHTML||!qeData.length)return;
+  const blk=_genBlockFrom(qeData);
+  let out;
+  if(qeSrcHTML.includes('__TEAM_DATA_START__')&&qeSrcHTML.includes('__TEAM_DATA_END__')){
+    const ls=qeSrcHTML.split('\n');let sl=-1,el=-1;
+    ls.forEach((l,i)=>{if(l.includes('__TEAM_DATA_START__'))sl=i;if(l.includes('__TEAM_DATA_END__'))el=i;});
+    if(sl>=0&&el>=0)out=[...ls.slice(0,sl),'  // /* __TEAM_DATA_START__ */',blk,'  // /* __TEAM_DATA_END__ */',...ls.slice(el+1)].join('\n');
+  }
+  if(!out)out=qeSrcHTML.replace(/teamData\s*=\s*\[\s*\n\s*\{name:[\s\S]*?\n\s*\];/,'\n  // /* __TEAM_DATA_START__ */\n'+blk+'\n  // /* __TEAM_DATA_END__ */');
+  dlFile('index.html',out,'text/html');
+  $('qe-dl-msg').innerHTML='<div class="msg msg-ok" style="margin-top:12px">ダウンロード完了。サーバーの index.html を上書きしてください。</div>';
+  qeChanges=0;_qeUpdateStatus();
+}
+
+// genBlockの任意データ配列対応版（グローバル変数に依存しない）
+function _genBlockFrom(data){
+  const e=s=>String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+  return '    teamData = [\n'+data.map(o=>{
+    let p=["name:'"+e(o.name)+"'","cat:'"+o.cat+"'","gender:'"+o.gender+"'",'male:'+o.male,'female:'+o.female,'total:'+o.total,"city:'"+e(o.city)+"'",'lat:'+o.lat,'lng:'+o.lng,"ball:'"+e(o.ball)+"'","league:'"+e(o.league)+"'","hp:'"+e(o.hp)+"'","x_url:'"+e(o.x_url)+"'","ig:'"+e(o.ig)+"'","other_url:'"+e(o.other_url)+"'","place:'"+e(o.place)+"'"];
+    ['days','address','contact','note'].forEach(k=>{if(o[k])p.push(k+":'"+e(o[k])+"'");});
+    return '    {'+p.join(',')+'}';
+  }).join(',\n')+'\n    ];';
+}
+
+// ページ離脱時の警告
+window.addEventListener('beforeunload',function(e){
+  if(qeChanges>0){e.preventDefault();e.returnValue='';}
+});
+</script>
+<div class="qe-toast" id="qe-toast"></div>
+</body>
+</html>
