@@ -401,9 +401,9 @@ path.leaflet-interactive:focus{outline:none!important}
 .nbp-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .nbp-name{font-size:12px;font-weight:600;color:var(--ink)}
 .nbp-meta{font-size:10px;color:var(--ink-3)}
-.nbp-info{display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--surface);border-radius:4px;margin-bottom:4px;cursor:pointer}
+.nbp-info{flex:1;min-width:0}
 .nbp-km{font-size:11px;font-weight:600;color:var(--ink-2);flex-shrink:0}
-.nbp-item{padding:6px 8px;border-bottom:1px solid var(--border);cursor:pointer;border-radius:0;transition:background .1s}
+.nbp-item{display:flex;align-items:center;gap:6px;padding:6px 8px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
 .nbp-item:hover{background:var(--surface-2)}
 .nbp-empty{font-size:11px;color:var(--ink-3);text-align:center;padding:16px 8px;line-height:1.6}
 
@@ -5440,8 +5440,8 @@ document.addEventListener('DOMContentLoaded',()=>{
     const body = document.getElementById('nbp-body');
     body.innerHTML = '';
     const headerNote = usedFallback
-      ? '<div style="font-size:10px;color:#e07020;padding:4px 8px 0;text-align:center;">📌 地図の中心から近い順に表示しています</div>'
-      : '<div style="font-size:10px;color:#059669;padding:4px 8px 0;text-align:center;">📍 指定地点から近い順に表示<br><span style="color:#8a9ab0;font-size:9px;">（再タップで地点を変更できます）</span></div>';
+      ? '<div style="font-size:10px;color:var(--caution);padding:4px 8px 0;text-align:center;">📌 地図の中心から近い順に表示しています</div>'
+      : '<div style="font-size:10px;color:#059669;padding:4px 8px 0;text-align:center;">📍 指定地点から近い順に表示<br><span style="color:var(--ink-3);font-size:9px;">（再タップで地点を変更できます）</span></div>';
     if (!withDist.length) {
       body.innerHTML = headerNote + '<div class="nbp-empty">表示中のチームがありません。</div>';
     } else {
