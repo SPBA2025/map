@@ -18,449 +18,445 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.min.css" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js" crossorigin="anonymous"></script>
 <style>
-:root{--gold:#c8860a;--navy:#1a3a6a;--blue:#1a88c8;--red:#c8305a;--green:#2ea84a;--orange:#d97000;--purple:#8a44b8;--gray:#5a7080}
+/* ═══ COLOR SYSTEM ═══
+  Data identity (categories):
+    elem=#3b82f6  jhs=#059669  hs=#d97706  univ=#7c3aed  club=#dc2626  ind=#64748b
+  UI roles:
+    action=#2563eb  caution=#b45309  danger=#dc2626  (danger overlaps club by design—both are "red domain")
+    surface=#f8f8f6  surface-1=#fff  surface-2=#f0efed  border=#e0e0de
+    ink=#1a1a1a  ink-2=#555  ink-3=#999
+*/
+:root{--elem:#3b82f6;--jhs:#059669;--hs:#d97706;--univ:#7c3aed;--club:#dc2626;--ind:#64748b;--action:#2563eb;--action-h:#1d4ed8;--caution:#b45309;--danger:#dc2626;--green:#059669;--surface:#f8f8f6;--surface-1:#fff;--surface-2:#f0efed;--border:#e0e0de;--border-2:#ccc;--ink:#1a1a1a;--ink-2:#555;--ink-3:#999}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Noto Sans JP',sans-serif;background:#0f1e35;color:#e0eaf8;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);color:var(--ink);height:100vh;display:flex;flex-direction:column;overflow:hidden;-webkit-font-smoothing:antialiased}
+
 /* ── HEADER ── */
-#header{background:linear-gradient(90deg,#1a3a6a,#1e4880);padding:6px 12px;display:flex;align-items:center;gap:8px;border-bottom:2px solid #f5c842;flex-shrink:0;z-index:1100;min-height:44px}
+#header{background:var(--surface-1);padding:0 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);flex-shrink:0;z-index:1100;min-height:48px}
 #hbg{display:none;flex-direction:column;justify-content:center;gap:4px;width:32px;height:32px;cursor:pointer;padding:4px}
-#hbg span{display:block;height:2px;background:#f5c842;border-radius:2px;transition:.3s}
+#hbg span{display:block;height:2px;background:var(--ink);border-radius:1px;transition:.3s}
 #hbg.open span:nth-child(1){transform:rotate(45deg) translate(4px,4px)}
 #hbg.open span:nth-child(2){opacity:0}
 #hbg.open span:nth-child(3){transform:rotate(-45deg) translate(4px,-4px)}
-.hdr-logo{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--gold);letter-spacing:1px;white-space:nowrap}
-.hdr-sub{font-size:10px;color:#a0bcd8;margin-left:4px;white-space:nowrap}
-.hdr-stat{margin-left:auto;display:flex;align-items:center;gap:10px}
-.hdr-val{font-size:18px;font-weight:700;color:var(--gold);font-family:'Bebas Neue',sans-serif}
-.hdr-lbl{font-size:9px;color:#a0bcd8}
+.hdr-brand{display:flex;flex-direction:column;gap:0;min-width:120px}
+.hdr-logo{font-size:13px;font-weight:700;color:var(--ink);letter-spacing:-.01em;white-space:nowrap}
+.hdr-sub{font-size:10px;color:var(--ink-3);white-space:nowrap}
+.hdr-stat{display:flex;align-items:center;gap:0;margin-left:auto}
+.hdr-kpi{text-align:center;padding:0 14px}
+.hdr-kpi-val{font-size:18px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1;letter-spacing:-.02em}
+.hdr-kpi-lbl{font-size:9px;color:var(--ink-3);margin-top:2px;letter-spacing:.04em;text-transform:uppercase}
+.hdr-kpi-sep{width:1px;height:24px;background:var(--border);flex-shrink:0}
+.hdr-cats{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+.hdr-cat-badge{display:inline-flex;align-items:baseline;gap:1px;font-size:11px;font-weight:600;padding:2px 7px;border-radius:3px;color:#fff;line-height:1;white-space:nowrap}
+.hdr-cat-lbl{font-size:8px;font-weight:400;opacity:.85;margin-left:1px}
+.hdr-cat-badge.cat-elem{background:var(--elem)}
+.hdr-cat-badge.cat-jhs{background:var(--jhs)}
+.hdr-cat-badge.cat-hs{background:var(--hs)}
+.hdr-cat-badge.cat-univ{background:var(--univ)}
+.hdr-cat-badge.cat-club{background:var(--club)}
+.hdr-cat-badge.cat-ind{background:var(--ind)}
+
 /* ── LAYOUT ── */
 #app{display:flex;flex:1;overflow:hidden;position:relative}
 #map{flex:1;z-index:1}
-#map-container{flex:1;position:relative;display:flex;min-width:0;}
+#map-container{flex:1;position:relative;display:flex;min-width:0}
+
 /* ── SIDEBAR ── */
-#sidebar{width:280px;background:#ffffff;border-left:1px solid #dde5ef;overflow-y:auto;flex-shrink:0;z-index:1000;transition:transform .3s}
-#sidebar::-webkit-scrollbar{width:4px}
-#sidebar::-webkit-scrollbar-thumb{background:#c8d8e8;border-radius:2px}
-.s-section{padding:12px;border-bottom:1px solid #eaeff6}
-.s-title{font-size:11px;font-weight:700;color:#c8860a;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
-/* ── VIEW BUTTONS ── */
-.view-btns{display:flex;gap:4px}
-.vbtn{flex:1;padding:5px 4px;background:#f0f4f8;border:1px solid #c8d8e8;border-radius:4px;color:#5a7090;font-size:11px;cursor:pointer;text-align:center;transition:.2s}
-.vbtn.on{background:var(--blue);border-color:var(--blue);color:#fff}
-/* ── INDEX BUTTONS ── */
-.idx-btns{display:flex;gap:4px;margin-top:6px}
-.ibtn{flex:1;padding:4px 2px;background:#f0f4f8;border:1px solid #c8d8e8;border-radius:4px;color:#5a7090;font-size:11px;cursor:pointer;text-align:center;transition:.2s;line-height:1.3}
-.ibtn.on{background:#1a78c8;border-color:#1a78c8;color:#fff}
+#sidebar{width:272px;background:var(--surface-1);border-left:1px solid var(--border);overflow-y:auto;flex-shrink:0;z-index:1000;transition:transform .3s}
+#sidebar::-webkit-scrollbar{width:3px}
+#sidebar::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:2px}
+.s-section{padding:12px 14px;border-bottom:1px solid var(--border)}
+.s-title{font-size:10px;font-weight:600;color:var(--ink-3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
 
-/* ── CAT FILTER ── */
+/* ── VIEW/INDEX BUTTONS ── */
+.view-btns{display:flex;gap:3px}
+.vbtn{flex:1;padding:5px 4px;background:var(--surface-2);border:1px solid var(--border);border-radius:3px;color:var(--ink-2);font-size:11px;cursor:pointer;text-align:center;transition:.15s;font-family:inherit}
+.vbtn.on{background:var(--action);border-color:var(--action);color:#fff}
+.idx-btns{display:flex;gap:3px;margin-top:6px}
+.ibtn{flex:1;padding:4px 2px;background:var(--surface-2);border:1px solid var(--border);border-radius:3px;color:var(--ink-2);font-size:11px;cursor:pointer;text-align:center;transition:.15s;line-height:1.3;font-family:inherit}
+.ibtn.on{background:var(--action);border-color:var(--action);color:#fff}
+
+/* ── CATEGORY FILTER ── */
 .cat-btns{display:flex;flex-wrap:wrap;gap:3px}
-.cat-btn{padding:3px 7px;border-radius:12px;font-size:10px;cursor:pointer;border:1px solid;opacity:.45;transition:.2s;font-weight:600;color:#fff}
+.cat-btn{padding:3px 7px;border-radius:3px;font-size:10px;cursor:pointer;border:1px solid;opacity:.4;transition:.15s;font-weight:600;color:#fff}
 .cat-btn.on{opacity:1}
-.cb-elem{border-color:#1a88c8;background:#1a88c8}.cb-elem.on{background:#1a88c8;color:#fff}
-.cb-jhs{border-color:#2ea84a;background:#2ea84a}.cb-jhs.on{background:#2ea84a;color:#fff}
-.cb-hs{border-color:#d97000;background:#d97000}.cb-hs.on{background:#d97000;color:#fff}
-.cb-univ{border-color:#8a44b8;background:#8a44b8}.cb-univ.on{background:#8a44b8;color:#fff}
-.cb-club{border-color:#c8305a;background:#c8305a}.cb-club.on{background:#c8305a;color:#fff}
-.cb-ind{border-color:#5a7080;background:#5a7080}.cb-ind.on{background:#5a7080;color:#fff}
-/* ── REGION FILTER ── */
-/* ── WARD TOGGLE ── */
-.ward-row{display:flex;align-items:center;gap:6px;font-size:11px;color:#4a6080;margin-top:6px}
-.ward-row input{accent-color:var(--blue);cursor:pointer}
-/* ── CITY FILTER ── */
-#city-filter-bar{display:none;background:#e8f0f8;border-radius:6px;padding:8px 12px;margin-top:6px;align-items:center;gap:6px}
-#city-filter-bar.show{display:flex}
-#city-filter-name{font-size:11px;color:#1a3a6a;flex:1}
-#city-filter-count{font-size:10px;color:#c8860a}
-.cfbar-close{background:none;border:none;color:#5a7090;cursor:pointer;font-size:14px;padding:0 2px}
-#city-select{width:100%;padding:5px 8px;background:#fff;border:1px solid #c8d8e8;border-radius:4px;color:#1a2a3a;font-size:11px;margin-top:6px;cursor:pointer}
-/* ── RANKING ── */
-#rank-cat-select{width:100%;padding:4px 6px;background:#fff;border:1px solid #c8d8e8;border-radius:4px;color:#1a2a3a;font-size:11px;margin-bottom:6px;cursor:pointer}
-#rank-list{display:flex;flex-direction:column;gap:0;list-style:none;margin:0;padding:0}
-.rank-item{display:flex;flex-direction:column;gap:3px;padding:7px 8px;border-bottom:1px solid #eef2f6;cursor:pointer;transition:background .15s;border-radius:4px;margin-bottom:1px}
-.rank-item:last-child{border-bottom:none}
-.rank-item:hover{background:#f0f6ff}
-.rank-item.top3-item{background:#f5f9ff}
-.rank-item.top3-item:hover{background:#e8f2ff}
-.rank-row{display:flex;align-items:center;gap:8px}
-.rank-num{width:26px;text-align:center;font-size:13px;font-weight:800;color:#b0bcc8;flex-shrink:0}
-.rank-num.top3{color:#1a78c8}
-.rank-medal{width:26px;text-align:center;font-size:16px;flex-shrink:0}
-.rank-city{flex:1;font-size:12px;font-weight:600;color:#1a2a3a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rank-val{font-size:13px;font-weight:700;color:#1a4a8a;flex-shrink:0;font-variant-numeric:tabular-nums}
-.rank-val span{font-size:10px;font-weight:400;color:#8090a0;margin-left:1px}
-.rank-bar-wrap{padding:0 4px 0 34px}
-.rank-bar-track{height:4px;background:#e8eff8;border-radius:2px;overflow:hidden}
-.rank-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#4a9ae0,#1a5cb8);transition:width .3s}
-.rank-item.top3-item .rank-bar-fill{background:linear-gradient(90deg,#60b0f0,#1a78c8)}
-.rank-cmp-btn{background:none;border:none;font-size:13px;cursor:pointer;padding:0 2px;opacity:.5;transition:.2s;flex-shrink:0}
-.rank-cmp-btn:hover{opacity:1;transform:scale(1.2)}
-/* ── TEAM FILTER ── */
-.team-filter-row{display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:11px;color:#4a6080}
-.team-filter-row input[type=checkbox]{accent-color:var(--blue)}
-.search-wrap{position:relative;display:flex;align-items:center}
-.search-wrap #team-search{width:100%;padding:5px 28px 5px 8px;background:#fff;border:1px solid #c8d8e8;border-radius:4px;color:#1a2a3a;font-size:11px}
-#search-clear{display:none;position:absolute;right:6px;background:none;border:none;color:#9ab0c8;cursor:pointer;font-size:14px;line-height:1;padding:0}
-#search-clear.show{display:block}
-/* ── LEGEND ── */
-.leg-section{padding:10px 12px;border-bottom:1px solid #eaeff6}
-.leg-title{font-size:10px;color:#5a7090;margin-bottom:6px}
-#rate-note{font-size:9px;color:#7090a0;margin-top:4px;line-height:1.4}
+.cb-elem{border-color:var(--elem);background:var(--elem)}.cb-elem.on{background:var(--elem)}
+.cb-jhs{border-color:var(--jhs);background:var(--jhs)}.cb-jhs.on{background:var(--jhs)}
+.cb-hs{border-color:var(--hs);background:var(--hs)}.cb-hs.on{background:var(--hs)}
+.cb-univ{border-color:var(--univ);background:var(--univ)}.cb-univ.on{background:var(--univ)}
+.cb-club{border-color:var(--club);background:var(--club)}.cb-club.on{background:var(--club)}
+.cb-ind{border-color:var(--ind);background:var(--ind)}.cb-ind.on{background:var(--ind)}
 
-/* ── TEAM LIST CATEGORY TABS ── */
-#tlp-filter-bar{display:none;padding:5px 12px;background:#f0f6ff;border-bottom:1px solid #dde8f5;flex-shrink:0;flex-wrap:wrap;gap:4px;align-items:center}
+/* ── WARD/CITY ── */
+.ward-row{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink-2);margin-top:6px}
+.ward-row input{accent-color:var(--action);cursor:pointer}
+#city-filter-bar{display:none;background:var(--surface-2);border-radius:4px;padding:8px 12px;margin-top:6px;align-items:center;gap:6px}
+#city-filter-bar.show{display:flex}
+#city-filter-name{font-size:11px;color:var(--ink);flex:1;font-weight:500}
+#city-filter-count{font-size:10px;color:var(--ink-2)}
+.cfbar-close{background:none;border:none;color:var(--ink-3);cursor:pointer;font-size:14px;padding:0 2px}
+#city-select{width:100%;padding:5px 8px;background:var(--surface-1);border:1px solid var(--border);border-radius:3px;color:var(--ink);font-size:11px;margin-top:6px;cursor:pointer;font-family:inherit}
+
+/* ── RANKING ── */
+#rank-cat-select{width:100%;padding:4px 6px;background:var(--surface-1);border:1px solid var(--border);border-radius:3px;color:var(--ink);font-size:11px;margin-bottom:6px;cursor:pointer;font-family:inherit}
+#rank-list{display:flex;flex-direction:column;gap:0;list-style:none;margin:0;padding:0}
+.rank-item{display:flex;flex-direction:column;gap:3px;padding:7px 8px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;border-radius:0;margin-bottom:0}
+.rank-item:last-child{border-bottom:none}
+.rank-item:hover{background:var(--surface-2)}
+.rank-item.top3-item{background:transparent}
+.rank-item.top3-item:hover{background:var(--surface-2)}
+.rank-row{display:flex;align-items:center;gap:8px}
+.rank-num{width:22px;text-align:center;font-size:12px;font-weight:700;color:var(--ink-3);flex-shrink:0;font-variant-numeric:tabular-nums}
+.rank-num.top3{color:var(--action)}
+.rank-medal{width:22px;text-align:center;font-size:14px;flex-shrink:0}
+.rank-city{flex:1;font-size:12px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rank-val{font-size:13px;font-weight:700;color:var(--ink);flex-shrink:0;font-variant-numeric:tabular-nums}
+.rank-val span{font-size:10px;font-weight:400;color:var(--ink-3);margin-left:1px}
+.rank-bar-wrap{padding:0 4px 0 30px}
+.rank-bar-track{height:3px;background:var(--surface-2);border-radius:2px;overflow:hidden}
+.rank-bar-fill{height:100%;border-radius:2px;background:var(--action);transition:width .3s}
+.rank-item.top3-item .rank-bar-fill{background:var(--action)}
+.rank-cmp-btn{background:none;border:none;font-size:13px;cursor:pointer;padding:0 2px;opacity:.4;transition:.15s;flex-shrink:0}
+.rank-cmp-btn:hover{opacity:1}
+
+/* ── TEAM FILTER ── */
+.team-filter-row{display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:11px;color:var(--ink-2)}
+.team-filter-row input[type=checkbox]{accent-color:var(--action)}
+.search-wrap{position:relative;display:flex;align-items:center}
+.search-wrap #team-search{width:100%;padding:6px 28px 6px 10px;background:var(--surface-1);border:1px solid var(--border);border-radius:3px;color:var(--ink);font-size:12px;font-family:inherit}
+.search-wrap #team-search:focus{border-color:var(--action);outline:none}
+#search-clear{display:none;position:absolute;right:6px;background:none;border:none;color:var(--ink-3);cursor:pointer;font-size:14px;line-height:1;padding:0}
+#search-clear.show{display:block}
+
+/* ── LEGEND ── */
+.leg-section{padding:10px 14px;border-bottom:1px solid var(--border)}
+.leg-title{font-size:10px;color:var(--ink-3);margin-bottom:6px}
+#rate-note{font-size:9px;color:var(--ink-3);margin-top:4px;line-height:1.4}
+
+/* ── TEAM LIST TABS ── */
+#tlp-filter-bar{display:none;padding:5px 12px;background:var(--surface-2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;gap:4px;align-items:center}
 #tlp-filter-bar.show{display:flex}
-.tlp-chip{display:inline-flex;align-items:center;gap:4px;padding:2px 8px 2px 8px;background:#fff;border:1px solid #b8d0ea;border-radius:10px;font-size:10px;color:#2a5090;font-weight:500}
-.tlp-chip-x{background:none;border:none;color:#8aa0c0;cursor:pointer;font-size:11px;padding:0;margin-left:2px;line-height:1}
-#tlp-filter-label{font-size:9px;color:#8090a0;flex-shrink:0}
-#tlp-tabs{display:flex;gap:0;border-bottom:1px solid #eaeff6;flex-shrink:0;overflow-x:auto;scrollbar-width:none}
+.tlp-chip{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:var(--surface-1);border:1px solid var(--border);border-radius:3px;font-size:10px;color:var(--ink-2);font-weight:500}
+.tlp-chip-x{background:none;border:none;color:var(--ink-3);cursor:pointer;font-size:11px;padding:0;margin-left:2px}
+#tlp-filter-label{font-size:9px;color:var(--ink-3);flex-shrink:0}
+#tlp-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;scrollbar-width:none}
 #tlp-tabs::-webkit-scrollbar{display:none}
-.tlp-tab{flex-shrink:0;padding:7px 14px;font-size:11px;font-weight:600;color:#7090b0;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;transition:.15s;white-space:nowrap}
-.tlp-tab.on{color:var(--blue);border-bottom-color:var(--blue)}
-.tlp-tab-count{font-size:9px;font-weight:400;color:#a0b0c0;margin-left:3px}
+.tlp-tab{flex-shrink:0;padding:7px 14px;font-size:11px;font-weight:500;color:var(--ink-3);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;transition:.15s;white-space:nowrap;font-family:inherit}
+.tlp-tab.on{color:var(--ink);border-bottom-color:var(--ink)}
+.tlp-tab-count{font-size:9px;font-weight:400;color:var(--ink-3);margin-left:3px}
 
 /* ── TEAM LIST PANEL ── */
-#team-list-panel{position:fixed;bottom:0;left:0;right:280px;height:40vh;background:#fff;border-top:2px solid var(--blue);z-index:2000;transform:translateY(100%);transition:transform .3s;display:flex;flex-direction:column}
+#team-list-panel{position:fixed;bottom:0;left:0;right:272px;height:40vh;background:var(--surface-1);border-top:1px solid var(--border);z-index:2000;transform:translateY(100%);transition:transform .3s;display:flex;flex-direction:column}
 #team-list-panel.open{transform:translateY(0)}
-.tlp-header{padding:10px 12px;border-bottom:1px solid #eaeff6;display:flex;align-items:center;gap:8px;flex-shrink:0}
-.tlp-header h3{font-size:13px;flex:1}
-#tlp-count{font-size:11px;color:#c8860a}
-.tlp-close{background:#f0f4f8;border:1px solid #d0dce8;color:#3a5070;cursor:pointer;font-size:16px;font-weight:700;border-radius:6px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-#tlp-sort{padding:3px 6px;background:#f0f4f8;border:1px solid #c8d8e8;border-radius:4px;color:#3a5070;font-size:10px;cursor:pointer;flex-shrink:0}
-.tlp-close:hover{background:#dde8f5;color:#1a3a6a}
-#tlp-body{overflow-y:auto;flex:1;padding:8px}
-#tlp-search-row{padding:6px 10px;border-bottom:1px solid #eaeff6;position:relative;flex-shrink:0}
+.tlp-header{padding:8px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0}
+.tlp-header h3{font-size:13px;font-weight:600;flex:1}
+#tlp-count{font-size:11px;color:var(--ink-3)}
+.tlp-close{background:var(--surface-2);border:1px solid var(--border);color:var(--ink-2);cursor:pointer;font-size:14px;font-weight:700;border-radius:4px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tlp-close:hover{background:var(--border);color:var(--ink)}
+#tlp-sort{padding:3px 6px;background:var(--surface-2);border:1px solid var(--border);border-radius:3px;color:var(--ink-2);font-size:10px;cursor:pointer;flex-shrink:0;font-family:inherit}
+#tlp-body{overflow-y:auto;flex:1;padding:4px 8px}
+#tlp-search-row{padding:6px 10px;border-bottom:1px solid var(--border);position:relative;flex-shrink:0}
 .tlp-search-wrap{position:relative;display:flex;align-items:center}
-#tlp-search-input{width:100%;padding:5px 26px 5px 10px;border:1px solid #c8d8e8;border-radius:16px;font-size:11px;color:#1a2a3a;outline:none;background:#f8fafc}
-#tlp-search-input:focus{border-color:#7ab0e0;background:#fff}
-#tlp-search-clear-btn{position:absolute;right:8px;background:none;border:none;color:#9ab0c8;cursor:pointer;font-size:12px;display:none;padding:0}
+#tlp-search-input{width:100%;padding:6px 26px 6px 10px;border:1px solid var(--border);border-radius:3px;font-size:11px;color:var(--ink);outline:none;background:var(--surface);font-family:inherit}
+#tlp-search-input:focus{border-color:var(--action);background:var(--surface-1)}
+#tlp-search-clear-btn{position:absolute;right:8px;background:none;border:none;color:var(--ink-3);cursor:pointer;font-size:12px;display:none;padding:0}
 #tlp-search-clear-btn.show{display:block}
-#tlp-search-dd{position:absolute;left:10px;right:10px;top:100%;background:#fff;border:1px solid #c8d8e8;border-radius:8px;box-shadow:0 4px 12px #0002;z-index:3500;max-height:240px;overflow-y:auto;display:none}
+#tlp-search-dd{position:absolute;left:10px;right:10px;top:100%;background:var(--surface-1);border:1px solid var(--border);border-radius:4px;box-shadow:0 4px 12px rgba(0,0,0,.08);z-index:3500;max-height:240px;overflow-y:auto;display:none}
 #tlp-search-dd.show{display:block}
-.tlp-sd-item{padding:7px 10px;cursor:pointer;border-bottom:1px solid #eef2f6;font-size:11px;color:#1a2a3a;display:flex;align-items:center;gap:6px}
-.tlp-sd-item:hover{background:#f0f6ff}
+.tlp-sd-item{padding:7px 10px;cursor:pointer;border-bottom:1px solid var(--border);font-size:11px;color:var(--ink);display:flex;align-items:center;gap:6px}
+.tlp-sd-item:hover{background:var(--surface-2)}
 .tlp-sd-item:last-child{border-bottom:none}
-.tlp-sd-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.tlp-sd-name{font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tlp-sd-meta{font-size:10px;color:#7a9ab0;flex-shrink:0}
-.team-card{padding:8px 10px;background:#f0f4f8;border-radius:6px;margin-bottom:6px;cursor:pointer;border-left:3px solid transparent;transition:.2s}
-.team-card:hover{background:#dde8f5}
+.tlp-sd-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.tlp-sd-name{font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tlp-sd-meta{font-size:10px;color:var(--ink-3);flex-shrink:0}
+
 /* ── NEARBY PANEL ── */
-#nearby-panel{position:fixed;bottom:0;right:280px;width:300px;max-height:50vh;background:#fff;border-top:2px solid var(--green);border-left:1px solid #dde5ef;z-index:2000;transform:translateY(100%);transition:transform .3s;display:flex;flex-direction:column;border-radius:8px 0 0 8px}
+#nearby-panel{position:fixed;bottom:0;right:272px;width:300px;max-height:50vh;background:var(--surface-1);border-top:1px solid var(--border);border-left:1px solid var(--border);z-index:2000;transform:translateY(100%);transition:transform .3s;display:flex;flex-direction:column;border-radius:0}
 #nearby-panel.open{transform:translateY(0)}
-.nbp-header{padding:10px 12px;border-bottom:1px solid #eaeff6;display:flex;align-items:center;gap:8px;flex-shrink:0}
-.nbp-header h3{font-size:13px;flex:1}
-.nbp-close{background:none;border:none;color:#5a7090;cursor:pointer;font-size:18px}
-#nbp-dist{font-size:10px;color:var(--green)}
-#nbp-body{overflow-y:auto;flex:1;padding:8px}
-/* ── CHART MODAL ── */
-#chart-modal{display:none;position:fixed;inset:0;z-index:3000;background:#0004}
+.nbp-header{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0}
+.nbp-header h3{font-size:13px;font-weight:600;flex:1}
+#nbp-dist{font-size:10px;color:var(--ink-2)}
+#nbp-body{overflow-y:auto;flex:1;padding:4px 8px}
+
+/* ── MODALS ── */
+#chart-modal{display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.25)}
 #chart-modal.open{display:flex;align-items:center;justify-content:center}
-.chart-box{background:#fff;border:1px solid #dde5ef;border-radius:10px;padding:16px;width:90%;max-width:480px;max-height:80vh;overflow-y:auto}
-/* ── COMPARE MODAL ── */
-#cmp-modal{display:none;position:fixed;inset:0;z-index:3000;background:#0006}
+.chart-box{background:var(--surface-1);border:1px solid var(--border);border-radius:6px;padding:16px;width:90%;max-width:480px;max-height:80vh;overflow-y:auto}
+#cmp-modal{display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.3)}
 #cmp-modal.open{display:flex;align-items:center;justify-content:center}
-.cmp-box{background:#fff;border-radius:12px;padding:18px;width:96%;max-width:780px;max-height:88vh;overflow-y:auto;box-shadow:0 8px 32px #0003}
+.cmp-box{background:var(--surface-1);border-radius:6px;padding:18px;width:96%;max-width:780px;max-height:88vh;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.1)}
 .cmp-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.cmp-title{font-size:15px;font-weight:700;color:#1a3a6a}
-.cmp-close{background:none;border:none;font-size:20px;cursor:pointer;color:#5a7090;padding:2px 6px}
+.cmp-title{font-size:15px;font-weight:700;color:var(--ink)}
+.cmp-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink-3);padding:2px 6px}
 .cmp-selectors{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
 .cmp-sel-wrap{display:flex;flex-direction:column;gap:4px}
-.cmp-sel-label{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;color:#fff;align-self:flex-start}
-.cmp-sel-label.a{background:#1a78c8}.cmp-sel-label.b{background:#e05a2b}
-.cmp-select{width:100%;padding:6px 8px;border:1px solid #c8d8e8;border-radius:6px;font-size:12px;color:#1a2a3a}
+.cmp-sel-label{font-size:10px;font-weight:700;padding:2px 8px;border-radius:3px;color:#fff;align-self:flex-start}
+.cmp-sel-label.a{background:var(--action)}.cmp-sel-label.b{background:var(--hs)}
+.cmp-select{width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;color:var(--ink);font-family:inherit}
 .cmp-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .cmp-col{display:flex;flex-direction:column;gap:8px}
-.cmp-col-title{font-size:13px;font-weight:700;color:#1a2a3a;padding:6px 10px;border-radius:6px;text-align:center}
-.cmp-col-title.a{background:#e8f2ff;color:#1a78c8}.cmp-col-title.b{background:#fff0eb;color:#e05a2b}
+.cmp-col-title{font-size:13px;font-weight:600;color:var(--ink);padding:6px 10px;border-radius:4px;text-align:center}
+.cmp-col-title.a{background:#eff6ff;color:var(--action)}.cmp-col-title.b{background:#fff7ed;color:var(--hs)}
 .cmp-kpi-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px}
-.cmp-kpi{background:#f5f8fb;border-radius:6px;padding:8px;text-align:center}
-.cmp-kpi-val{font-size:18px;font-weight:900;color:#1a2a4a}
-.cmp-kpi-lbl{font-size:9px;color:#5a7090;margin-top:1px}
-.cmp-bar-section{font-size:10px;font-weight:700;color:#5a7090;letter-spacing:.05em;margin:6px 0 4px;border-top:1px solid #eaeff6;padding-top:6px}
+.cmp-kpi{background:var(--surface);border-radius:4px;padding:8px;text-align:center}
+.cmp-kpi-val{font-size:18px;font-weight:700;color:var(--ink)}
+.cmp-kpi-lbl{font-size:9px;color:var(--ink-3);margin-top:1px}
+.cmp-bar-section{font-size:10px;font-weight:600;color:var(--ink-3);letter-spacing:.04em;margin:6px 0 4px;border-top:1px solid var(--border);padding-top:6px}
 .cmp-bar-wrap{margin-bottom:5px}
-.cmp-bar-label{display:flex;justify-content:space-between;font-size:10px;color:#3a5070;margin-bottom:2px}
-.cmp-bar-track{height:10px;background:#eef2f6;border-radius:5px;overflow:hidden}
-.cmp-bar-fill{height:100%;border-radius:5px;transition:width .4s}
-.cmp-winner{font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;margin-left:4px}
-.cmp-winner.a{background:#e8f2ff;color:#1a78c8}.cmp-winner.b{background:#fff0eb;color:#e05a2b}
-#chart-title{font-size:14px;font-weight:700;color:#1a3a6a;margin-bottom:4px}
-#chart-sub{font-size:11px;color:#5a7090;margin-bottom:12px}
-#chart-bars{display:flex;flex-direction:column;gap:6px}
-#chart-rate-area{margin-top:12px;padding:10px;background:#f0f4f8;border-radius:6px}
-.chart-close{float:right;background:none;border:none;color:#5a7090;cursor:pointer;font-size:18px;margin-top:-4px}
-/* ── BOTTOM NAV (mobile) ── */
-#bnav{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #dde5ef;z-index:1500;height:56px;display:none;align-items:stretch}
-.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:none;border:none;color:#5a7090;font-size:9px;cursor:pointer;position:relative;padding:4px 0}
-.bnav-btn:active{background:#f0f4f8}
-.bnav-btn.active{color:var(--blue)}
-.bnav-btn.active .bnav-icon{filter:none}
+.cmp-bar-label{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-2);margin-bottom:2px}
+.cmp-bar-track{height:8px;background:var(--surface-2);border-radius:4px;overflow:hidden}
+.cmp-bar-fill{height:100%;border-radius:4px;transition:width .4s}
+.cmp-winner{font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;margin-left:4px}
+.cmp-winner.a{background:#eff6ff;color:var(--action)}.cmp-winner.b{background:#fff7ed;color:var(--hs)}
+
+/* ── BOTTOM NAV ── */
+#bnav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface-1);border-top:1px solid var(--border);z-index:1500;height:52px;display:none;align-items:stretch}
+.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;background:none;border:none;color:var(--ink-3);font-size:9px;cursor:pointer;position:relative;padding:4px 0;font-family:inherit}
+.bnav-btn:active{background:var(--surface-2)}
+.bnav-btn.active{color:var(--action)}
 .bnav-icon{font-size:18px}
-.bnav-badge{position:absolute;top:4px;right:calc(50% - 16px);background:var(--red);color:#fff;border-radius:8px;font-size:9px;font-weight:700;padding:1px 4px;display:none}
+.bnav-badge{position:absolute;top:4px;right:calc(50% - 16px);background:var(--danger);color:#fff;border-radius:8px;font-size:9px;font-weight:700;padding:1px 4px;display:none}
 .bnav-badge.show{display:block}
-/* ── POPUPS ── */
-.leaflet-popup-content-wrapper{background:#fff;border:1px solid #c8d8e8;color:#1a2a3a;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.12)}
-.leaflet-popup-tip{background:#fff}
-.leaflet-popup-pane{z-index:2500 !important}
-.leaflet-tooltip-pane{z-index:2600 !important}
-.leaflet-interactive:focus{outline:none !important}
+
+/* ── LEAFLET OVERRIDES ── */
+.leaflet-popup-content-wrapper{background:var(--surface-1);border:1px solid var(--border);color:var(--ink);border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,.1)}
+.leaflet-popup-tip{background:var(--surface-1)}
+.leaflet-popup-pane{z-index:2500!important}
+.leaflet-tooltip-pane{z-index:2600!important}
+.leaflet-interactive:focus{outline:none!important}
+path.leaflet-interactive:focus{outline:none!important}
+
 /* ── HEADER SEARCH ── */
 #hdr-search-wrap{position:relative;display:flex;align-items:center;margin-left:8px;flex-shrink:0}
-#hdr-search-input{padding:4px 26px 4px 10px;border:1px solid rgba(255,255,255,0.3);border-radius:16px;background:rgba(255,255,255,0.12);color:#fff;font-size:11px;width:160px;outline:none;transition:.2s}
-#hdr-search-input::placeholder{color:rgba(255,255,255,0.5)}
-#hdr-search-input:focus{background:rgba(255,255,255,0.2);border-color:rgba(255,255,255,0.6);width:200px}
-#hdr-search-clear{position:absolute;right:6px;background:none;border:none;color:rgba(255,255,255,0.6);cursor:pointer;font-size:13px;display:none;padding:0;line-height:1}
+#hdr-search-input{padding:5px 26px 5px 10px;border:1px solid var(--border);border-radius:3px;background:var(--surface);color:var(--ink);font-size:12px;width:180px;outline:none;transition:.15s;font-family:inherit}
+#hdr-search-input::placeholder{color:var(--ink-3)}
+#hdr-search-input:focus{border-color:var(--action);width:220px;background:var(--surface-1)}
+#hdr-search-clear{position:absolute;right:6px;background:none;border:none;color:var(--ink-3);cursor:pointer;font-size:13px;display:none;padding:0;line-height:1}
 #hdr-search-clear.show{display:block}
-#hdr-search-dropdown{position:absolute;top:calc(100% + 6px);left:0;right:0;background:#fff;border:1px solid #c8d8e8;border-radius:8px;box-shadow:0 4px 16px #0003;z-index:9000;max-height:320px;overflow-y:auto;display:none}
+#hdr-search-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface-1);border:1px solid var(--border);border-radius:4px;box-shadow:0 4px 16px rgba(0,0,0,.08);z-index:9000;max-height:320px;overflow-y:auto;display:none}
 #hdr-search-dropdown.show{display:block}
-.hdr-sd-item{padding:7px 10px;cursor:pointer;border-bottom:1px solid #eef2f6;font-size:11px;color:#1a2a3a;display:flex;align-items:center;gap:6px;transition:.15s}
-.hdr-sd-item:hover{background:#f0f6ff}
+.hdr-sd-item{padding:7px 10px;cursor:pointer;border-bottom:1px solid var(--border);font-size:11px;color:var(--ink);display:flex;align-items:center;gap:6px;transition:.1s}
+.hdr-sd-item:hover{background:var(--surface-2)}
 .hdr-sd-item:last-child{border-bottom:none}
-.hdr-sd-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.hdr-sd-name{font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hdr-sd-city{font-size:10px;color:#7a9ab0;flex-shrink:0}
-.hdr-sd-empty{padding:12px;text-align:center;color:#9ab0c8;font-size:11px}
+.hdr-sd-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.hdr-sd-name{font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hdr-sd-city{font-size:10px;color:var(--ink-3);flex-shrink:0}
+.hdr-sd-empty{padding:12px;text-align:center;color:var(--ink-3);font-size:11px}
+.hdr-sd-addr{padding:9px 10px;cursor:pointer;border-top:1px solid var(--border);font-size:11px;color:var(--action);display:flex;align-items:center;gap:6px;transition:.1s;background:var(--surface)}
+.hdr-sd-addr:hover{background:#eff6ff}
+.hdr-sd-addr.loading{opacity:.5;pointer-events:none}
+.hdr-sd-addr .addr-icon{font-size:14px;flex-shrink:0}
+.hdr-sd-addr .addr-text{flex:1}
+.hdr-sd-addr .addr-sub{font-size:9px;color:var(--ink-3);display:block;margin-top:1px}
 @media(max-width:768px){#hdr-search-wrap{display:none}}
-path.leaflet-interactive:focus{outline:none !important}
-.pu-city{font-size:13px;font-weight:700;color:#1a2a3a;margin-bottom:8px}
-.pu-rate-chip{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;margin-left:6px}
-.pu-cell{text-align:center;padding:3px;background:#f0f4f8;border-radius:4px}
-.pu-cell-num{font-size:12px;font-weight:700;color:#c8860a}
-.pu-cell-lbl{font-size:9px;color:#6080a0}
-.pu-cat-badge{display:inline-block;padding:3px 8px;border-radius:10px;font-size:10px;font-weight:700;color:#fff;margin:2px;cursor:pointer;white-space:nowrap}
+
+/* ── POPUP: city ── */
+.pu-city{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:8px}
+.pu-rate-chip{display:inline-block;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:700;margin-left:6px}
+.pu-cell{text-align:center;padding:3px;background:var(--surface-2);border-radius:3px}
+.pu-cell-num{font-size:12px;font-weight:700;color:var(--ink)}
+.pu-cell-lbl{font-size:9px;color:var(--ink-3)}
+.pu-cat-badge{display:inline-block;padding:3px 8px;border-radius:3px;font-size:10px;font-weight:600;color:#fff;margin:2px;cursor:pointer;white-space:nowrap}
 .pu-gauge-wrap{margin-top:6px;margin-bottom:4px}
 .pu-gauge-fill{height:100%;border-radius:3px;transition:width .4s}
-/* team popup */
-.pu-sns-link{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#f0f4f8;border-radius:4px;color:#4a6080;text-decoration:none;font-size:11px;margin:2px;border:1px solid #c8d8e8;transition:.2s}
-.pu-sns-link:hover{background:#dde8f5;color:#1a2a3a}
+.pu-header{padding:10px 12px 6px;border-bottom:1px solid var(--border)}
+.pu-body{padding:8px 12px 12px}
+.pu-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:2px 0;color:var(--ink-2)}
+.pu-row-total{font-weight:700;color:var(--ink);font-size:13px;padding-bottom:4px;border-bottom:1px solid var(--border);margin-bottom:2px}
+.pu-row-sub{color:var(--ink-2);font-size:11px}
+.pu-btns{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.pu-btn{flex:1;padding:6px 8px;border:none;border-radius:3px;font-size:11px;cursor:pointer;font-weight:500;min-width:100px;white-space:nowrap;font-family:inherit}
+.pu-btn-chart{background:var(--surface-2);color:var(--ink-2);border:1px solid var(--border)}
+.pu-btn-chart:hover{background:var(--border);color:var(--ink)}
+.pu-btn-team{background:var(--surface-2);color:var(--ink-2);border:1px solid var(--border)}
+.pu-btn-team:hover{background:var(--border);color:var(--ink)}
+.pu-cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin:8px 0}
+.pu-cat-cell{background:var(--surface-2);border-radius:3px;padding:5px 4px;text-align:center;cursor:pointer;transition:.15s;border:1px solid transparent}
+.pu-cat-cell:hover{border-color:var(--border-2);background:var(--surface)}
+.pu-cat-cell-num{font-size:14px;font-weight:700}
+.pu-cat-cell-lbl{font-size:9px;color:var(--ink-3);margin-top:1px}
+.pu-cat-row{display:flex;flex-wrap:wrap;gap:3px;margin:6px 0}
+.pu-cat-badge-tip{font-size:9px;color:var(--ink-3);margin-left:2px}
+.pu-rate-cmp{background:var(--surface-2);border-radius:4px;padding:8px 10px;margin:6px 0}
+.pu-rate-cmp-title{font-size:10px;color:var(--ink-3);margin-bottom:6px;font-weight:600}
+.pu-rate-cmp-row{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.pu-rate-cmp-lbl{font-size:10px;color:var(--ink-2);width:64px;flex-shrink:0}
+.pu-rate-cmp-bar{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.pu-rate-cmp-fill{height:100%;border-radius:3px;transition:width .4s}
+.pu-rate-cmp-val{font-size:11px;font-weight:700;width:36px;text-align:right;flex-shrink:0}
+.pu-rate-diff{font-size:11px;font-weight:600;text-align:center;margin-top:4px}
+.pu-rate-chip-label{font-size:10px;color:var(--ink-3);margin-right:4px}
+.pu-rate-chip-val{font-size:12px;font-weight:700;color:var(--ink)}
+.pu-teams-section{margin-top:8px;border-top:1px solid var(--border);padding-top:6px}
+.pu-teams-title{font-size:10px;color:var(--ink-3);margin-bottom:4px;font-weight:600}
+
+/* ── POPUP: team ── */
+.team-popup-wrap{padding:6px 4px;min-width:190px;max-width:250px}
+.pu-team-name{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:6px;line-height:1.3}
+.team-popup-tags{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px}
+.pu-tag{display:inline-block;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:600;color:#fff}
+.pu-tag.tag-f,.tag-f{background:#d946a8}
+.tag-elem{background:var(--elem)}
+.tag-jhs{background:var(--jhs)}
+.tag-hs{background:var(--hs)}
+.tag-univ{background:var(--univ)}
+.tag-club{background:var(--club)}
+.tag-independent{background:var(--ind)}
+.pu-sns-link{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:var(--surface-2);border-radius:3px;color:var(--ink-2);text-decoration:none;font-size:11px;margin:2px;border:1px solid var(--border);transition:.15s}
+.pu-sns-link:hover{background:var(--border);color:var(--ink)}
+.pu-sns-link.pu-sns-hp{border-left:2px solid var(--action)}
+.pu-sns-link.pu-sns-x{border-left:2px solid var(--ink-3)}
+.pu-sns-link.pu-sns-ig{border-left:2px solid #e1306c}
+.pu-sns-link.pu-sns-other{border-left:2px solid var(--ink-3)}
+.pu-sns-row{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.team-popup-rows{display:flex;flex-direction:column;gap:3px;margin-bottom:6px}
+.team-popup-row{display:flex;gap:6px;font-size:11px;color:var(--ink-2)}
+.team-popup-row span:first-child{color:var(--ink-3);font-weight:500;flex-shrink:0;width:52px}
+.team-popup-row span:last-child{flex:1;word-break:break-all;color:var(--ink)}
+.team-popup-note{font-size:10px;color:var(--ink-3);margin-top:4px;padding-top:4px;border-top:1px solid var(--border)}
+
 /* ── BACKDROP ── */
-#backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1040}
+#backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:1040}
 #backdrop.show{display:block}
-/* ── NEARBY BTN ── */
-#btn-nearby{position:absolute;bottom:80px;right:10px;z-index:800;background:#fff;border:1.5px solid var(--green);color:var(--green);border-radius:50%;width:40px;height:40px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.18)}
-#btn-area-filter{position:absolute;bottom:230px;right:10px;z-index:800;background:#fff;border:1px solid #7a6ad8;color:#7a6ad8;border-radius:50%;width:40px;height:40px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.15);transition:.2s}
-#btn-area-filter.active{background:#7a6ad8;color:#fff}
-#btn-area-filter-clear{position:absolute;bottom:280px;right:10px;z-index:800;background:#fff;border:1px solid #aaa;color:#666;border-radius:50%;width:40px;height:40px;font-size:16px;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+
+/* ── MAP FLOAT BUTTONS ── */
+#btn-nearby{position:absolute;bottom:80px;right:10px;z-index:800;background:var(--surface-1);border:1px solid var(--border);color:var(--ink-2);border-radius:4px;width:36px;height:36px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+#btn-nearby:hover{border-color:var(--ink-3);color:var(--ink)}
+#btn-area-filter{position:absolute;bottom:216px;right:10px;z-index:800;background:var(--surface-1);border:1px solid var(--border);color:var(--ink-2);border-radius:4px;width:36px;height:36px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.1);transition:.15s}
+#btn-area-filter.active{background:var(--action);border-color:var(--action);color:#fff}
+#btn-area-filter-clear{position:absolute;bottom:258px;right:10px;z-index:800;background:var(--surface-1);border:1px solid var(--border);color:var(--ink-3);border-radius:4px;width:36px;height:36px;font-size:14px;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.1)}
 #btn-area-filter-clear.show{display:flex}
-#btn-nearby.locating{opacity:.7;pointer-events:none}
-#btn-show-list{position:absolute;bottom:130px;right:10px;z-index:800;background:#fff;border:1.5px solid var(--blue);color:var(--blue);border-radius:50%;width:40px;height:40px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.18)}
-#btn-reset-view{position:absolute;bottom:180px;right:10px;z-index:800;background:#fff;border:1.5px solid #aab8c8;color:#5a7090;border-radius:50%;width:40px;height:40px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.12)}
-#btn-reset-view:hover{border-color:var(--blue);color:var(--blue)}
+#btn-nearby.locating{opacity:.5;pointer-events:none}
+#loc-tap-banner{display:none;position:absolute;top:50px;left:50%;transform:translateX(-50%);z-index:1200;background:rgba(0,0,0,.8);color:#fff;padding:10px 20px;border-radius:4px;font-size:13px;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.2);pointer-events:auto;max-width:90%}
+#loc-tap-banner.show{display:block}
+#loc-tap-banner small{display:block;margin-top:4px;font-size:10px;color:rgba(255,255,255,.6)}
+#loc-tap-cancel{margin-top:8px;padding:4px 14px;border:1px solid rgba(255,255,255,.4);background:transparent;color:#fff;border-radius:3px;font-size:11px;cursor:pointer;font-family:inherit}
+#loc-tap-cancel:hover{background:rgba(255,255,255,.1)}
+@keyframes fadePulse{0%,100%{opacity:1}50%{opacity:.85}}
+#map-container.tap-mode{cursor:crosshair}
+#btn-show-list{position:absolute;bottom:122px;right:10px;z-index:800;background:var(--surface-1);border:1px solid var(--border);color:var(--ink-2);border-radius:4px;width:36px;height:36px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+#btn-show-list:hover{border-color:var(--ink-3);color:var(--ink)}
+#btn-reset-view{position:absolute;bottom:168px;right:10px;z-index:800;background:var(--surface-1);border:1px solid var(--border);color:var(--ink-3);border-radius:4px;width:36px;height:36px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+#btn-reset-view:hover{border-color:var(--ink-3);color:var(--ink)}
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
 /* ── MOBILE ── */
 @media(max-width:768px){
-  /* ── ハンバーガー ── */
   #hbg{display:flex}
-
-  /* ── ヘッダー: モバイル圧縮 ── */
-  #header{padding:4px 8px;min-height:44px;flex-wrap:wrap;gap:4px}
+  #header{padding:0 10px;min-height:44px;gap:6px}
   .hdr-brand{min-width:unset;max-width:90px}
   .hdr-logo{font-size:11px;line-height:1.2}
   .hdr-sub{display:none}
   .hdr-stat{gap:0;flex-wrap:nowrap}
   .hdr-kpi{padding:0 8px}
-  .hdr-kpi-val{font-size:16px}
+  .hdr-kpi-val{font-size:15px}
   .hdr-kpi-lbl{font-size:8px}
-  .hdr-kpi-sep{height:20px}
+  .hdr-kpi-sep{height:18px}
   .hdr-cats{gap:2px}
   .hdr-cat-badge{font-size:10px;padding:1px 5px}
   .hdr-cat-lbl{font-size:7px}
-
-  /* ── サイドバー: 全画面オーバーレイ ── */
-  #sidebar{position:fixed;top:44px;left:0;bottom:56px;width:100% !important;z-index:1050;transform:translateX(-100%);transition:transform .3s;box-shadow:4px 0 16px rgba(0,0,0,.2)}
+  #sidebar{position:fixed;top:44px;left:0;bottom:52px;width:100%!important;z-index:1050;transform:translateX(-100%);transition:transform .3s;box-shadow:2px 0 12px rgba(0,0,0,.1)}
   #sidebar.hidden{transform:translateX(-100%)}
   #sidebar:not(.hidden){transform:translateX(0)}
-
-  /* ── ボトムナビ ── */
   #bnav{display:flex}
-  .bnav-btn{font-size:10px;padding:6px 0}
-  .bnav-icon{font-size:20px}
-
-  /* ── フローティングボタン ── */
-  #btn-nearby,#btn-show-list,#btn-reset-view{width:44px;height:44px;font-size:22px}
-  #btn-nearby{bottom:70px}
-  #btn-show-list{bottom:122px}
-  #btn-reset-view{bottom:174px}
-  #btn-area-filter{bottom:226px;width:44px;height:44px;font-size:20px;border-radius:50%;padding:0}
-  #btn-area-filter-clear{bottom:278px;width:44px;height:44px;font-size:18px;border-radius:50%;padding:0}
+  .bnav-btn{font-size:9px;padding:4px 0}
+  .bnav-icon{font-size:18px}
+  #btn-nearby,#btn-show-list,#btn-reset-view{width:40px;height:40px;font-size:18px}
+  #btn-nearby{bottom:64px}
+  #btn-show-list{bottom:110px}
+  #btn-reset-view{bottom:156px}
+  #btn-area-filter{bottom:202px;width:40px;height:40px;font-size:16px;border-radius:4px;padding:0}
+  #btn-area-filter-clear{bottom:248px;width:40px;height:40px;font-size:14px;border-radius:4px;padding:0}
   #map-float-btns{display:none}
-
-  /* ── チームリストパネル ── */
-  #team-list-panel{bottom:56px;right:0;height:45vh;border-radius:12px 12px 0 0}
-  .tlp-header{padding:12px 14px}
+  #team-list-panel{bottom:52px;right:0;height:45vh;border-radius:0}
+  .tlp-header{padding:10px 14px}
   .tlp-header h3{font-size:14px}
-  .tlp-tab{padding:9px 12px;font-size:12px}
-  #tlp-body{padding:10px}
-  .tlp-close{width:40px;height:40px;font-size:17px}
-
-  /* ── 近くのチームパネル ── */
-  #nearby-panel{width:100%;right:0;border-radius:12px 12px 0 0;border-left:none;bottom:56px}
-
-  /* ── ポップアップ ── */
-  .leaflet-popup-content-wrapper{max-width:calc(100vw - 40px) !important}
+  .tlp-tab{padding:8px 12px;font-size:12px}
+  #tlp-body{padding:6px}
+  .tlp-close{width:36px;height:36px;font-size:15px}
+  #nearby-panel{width:100%;right:0;border-radius:0;border-left:none;bottom:52px}
+  .leaflet-popup-content-wrapper{max-width:calc(100vw - 40px)!important}
   .team-popup-wrap{max-width:calc(100vw - 60px)}
-
-  /* ── チャートモーダル ── */
   .chart-box{width:95%;max-height:85vh;padding:12px}
-
-  /* ── 凡例・ランキング ── */
   .rank-city{font-size:11px}
   .rank-val{font-size:12px}
 }
-/* ── TAG COLORS ── */
-/* Tooltip */
-.tt{background:#fff;border:1px solid #c8d8e8;color:#1a2a3a;font-size:11px}
-/* ── POPUP: city ── */
-.pu-header{padding:10px 12px 6px;border-bottom:1px solid #eaeff6}
-.pu-body{padding:8px 12px 12px}
-.pu-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:2px 0;color:#3a5070}
-.pu-row-total{font-weight:700;color:#1a2a3a;font-size:13px;padding-bottom:4px;border-bottom:1px solid #eaeff6;margin-bottom:2px}
-.pu-row-sub{color:#5a7090;font-size:11px}
-.pu-btns{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
-.pu-btn{flex:1;padding:6px 8px;border:none;border-radius:5px;font-size:11px;cursor:pointer;font-weight:600;min-width:100px;white-space:nowrap}
-.pu-btn-chart{background:#e8f3ff;color:#1a6aaa;border:1px solid #aaccee}
-.pu-btn-chart:hover{background:#d5eaff}
-.pu-btn-team{background:#eaf7ea;color:#1a8a3a;border:1px solid #99cc99}
-.pu-btn-team:hover{background:#d5f0d5}
-/* category grid in city popup */
-.pu-cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin:8px 0}
-.pu-cat-cell{background:#f0f4f8;border-radius:5px;padding:5px 4px;text-align:center;cursor:pointer;transition:.2s;border:1px solid transparent}
-.pu-cat-cell:hover{border-color:#aaccee;background:#dde8f5}
-.pu-cat-cell-num{font-size:14px;font-weight:700}
-.pu-cat-cell-lbl{font-size:9px;color:#5a7090;margin-top:1px}
-.pu-cat-row{display:flex;flex-wrap:wrap;gap:3px;margin:6px 0}
-.pu-cat-badge-tip{font-size:9px;color:#8090a0;margin-left:2px}
-/* rate comparison */
-.pu-rate-cmp{background:#f0f4f8;border-radius:6px;padding:8px 10px;margin:6px 0}
-.pu-rate-cmp-title{font-size:10px;color:#5a7090;margin-bottom:6px;font-weight:600}
-.pu-rate-cmp-row{display:flex;align-items:center;gap:6px;margin-bottom:4px}
-.pu-rate-cmp-lbl{font-size:10px;color:#5a7090;width:64px;flex-shrink:0}
-.pu-rate-cmp-bar{flex:1;height:8px;background:#d8e4f0;border-radius:4px;overflow:hidden}
-.pu-rate-cmp-fill{height:100%;border-radius:4px;transition:width .4s}
-.pu-rate-cmp-val{font-size:11px;font-weight:700;width:36px;text-align:right;flex-shrink:0}
-.pu-rate-diff{font-size:11px;font-weight:700;text-align:center;margin-top:4px}
-.pu-rate-chip-label{font-size:10px;color:#5a7090;margin-right:4px}
-.pu-rate-chip-val{font-size:12px;font-weight:700;color:#c8860a}
-/* teams section in popup */
-.pu-teams-section{margin-top:8px;border-top:1px solid #eaeff6;padding-top:6px}
-.pu-teams-title{font-size:10px;color:#5a7090;margin-bottom:4px;font-weight:600}
-/* ── POPUP: team ── */
-.team-popup-wrap{padding:6px 4px;min-width:190px;max-width:250px}
-.pu-team-name{font-size:13px;font-weight:700;color:#1a2a3a;margin-bottom:6px;line-height:1.3}
-.team-popup-tags{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px}
-.pu-tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;color:#fff}
-.pu-tag.tag-f,.tag-f{background:#d05080}
-.tag-elem{background:#1a88e8}
-.tag-jhs{background:#2eb86a}
-.tag-hs{background:#e84040}
-.tag-univ{background:#9b59b6}
-.tag-club{background:#e67e22}
-.tag-independent{background:#7f8c8d}
-.pu-sns-link.pu-sns-hp{border-left:3px solid #1a88c8}
-.pu-sns-link.pu-sns-x{border-left:3px solid #aaa}
-.pu-sns-link.pu-sns-ig{border-left:3px solid #e1306c}
-.pu-sns-link.pu-sns-other{border-left:3px solid #888}
-.pu-sns-row{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
-.team-popup-rows{display:flex;flex-direction:column;gap:3px;margin-bottom:6px}
-.team-popup-row{display:flex;gap:6px;font-size:11px;color:#2a3a4a}
-.team-popup-row span:first-child{color:#5a7090;font-weight:600;flex-shrink:0;width:52px}
-.team-popup-row span:last-child{flex:1;word-break:break-all}
-.team-popup-note{font-size:10px;color:#7090a0;margin-top:4px;padding-top:4px;border-top:1px solid #eaeff6;font-style:italic}
+
+/* ── TOOLTIP ── */
+.tt{background:var(--surface-1);border:1px solid var(--border);color:var(--ink);font-size:11px;border-radius:3px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+
 /* ── TEAM LIST ── */
 .tlp-tags{display:flex;flex-wrap:wrap;gap:3px;margin-top:3px}
-.tlp-tag{display:inline-block;padding:1px 6px;border-radius:8px;font-size:9px;font-weight:700;color:#fff}
-.tlp-name{font-size:12px;font-weight:700;color:#1a2a3a;margin-bottom:2px}
-.tlp-city{font-size:10px;color:#5a7090}
-.tlp-item{display:flex;flex-wrap:wrap;align-items:flex-start;gap:0 8px;padding:10px 12px;border-bottom:1px solid #eef2f6;cursor:pointer;transition:background .15s;-webkit-tap-highlight-color:transparent}
-.tlp-item:hover{background:#f5f8fb}
+.tlp-tag{display:inline-block;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:600;color:#fff}
+.tlp-name{font-size:12px;font-weight:600;color:var(--ink);margin-bottom:2px}
+.tlp-city{font-size:10px;color:var(--ink-3)}
+.tlp-item{display:flex;flex-wrap:wrap;align-items:flex-start;gap:0 8px;padding:8px 10px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;-webkit-tap-highlight-color:transparent}
+.tlp-item:hover{background:var(--surface-2)}
 .tlp-item:last-child{border-bottom:none}
-.tlp-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
-/* ── NEARBY PANEL ── */
-.nbp-rank{width:20px;height:20px;border-radius:50%;background:#e0eaf8;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#3a5070;flex-shrink:0}
-.nbp-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-.nbp-name{font-size:12px;font-weight:700;color:#1a2a3a}
-.nbp-meta{font-size:10px;color:#5a7090}
-.nbp-info{display:flex;align-items:center;gap:8px;padding:6px 8px;background:#f0f4f8;border-radius:6px;margin-bottom:4px;cursor:pointer}
-.nbp-km{font-size:11px;font-weight:700;color:#1a8a3a;flex-shrink:0}
-.nbp-item{padding:6px 8px;border-bottom:1px solid #edf2f7;cursor:pointer;border-radius:4px;transition:background .15s}
-.nbp-item:hover{background:#f5f8fb}
-.nbp-empty{font-size:11px;color:#7090a0;text-align:center;padding:16px 8px;line-height:1.6}
-/* ── CHART MODAL ── */
-.chart-section{font-size:10px;color:#5a7090;margin:8px 0 4px;font-weight:700;letter-spacing:.5px}
+.tlp-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.team-card{padding:8px 10px;background:var(--surface);border-radius:4px;margin-bottom:4px;cursor:pointer;border-left:2px solid transparent;transition:.15s}
+.team-card:hover{background:var(--surface-2)}
+
+/* ── NEARBY ── */
+.nbp-rank{width:18px;height:18px;border-radius:50%;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--ink-2);flex-shrink:0}
+.nbp-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.nbp-name{font-size:12px;font-weight:600;color:var(--ink)}
+.nbp-meta{font-size:10px;color:var(--ink-3)}
+.nbp-info{display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--surface);border-radius:4px;margin-bottom:4px;cursor:pointer}
+.nbp-km{font-size:11px;font-weight:600;color:var(--ink-2);flex-shrink:0}
+.nbp-item{padding:6px 8px;border-bottom:1px solid var(--border);cursor:pointer;border-radius:0;transition:background .1s}
+.nbp-item:hover{background:var(--surface-2)}
+.nbp-empty{font-size:11px;color:var(--ink-3);text-align:center;padding:16px 8px;line-height:1.6}
+
+/* ── CHART ── */
+.chart-section{font-size:10px;color:var(--ink-3);margin:8px 0 4px;font-weight:600;letter-spacing:.04em}
 .chart-bar-wrap{margin-bottom:6px}
-.chart-bar-label{display:flex;justify-content:space-between;font-size:10px;color:#5a7090;margin-bottom:2px}
-.chart-bar-track{height:12px;background:#d8e4f0;border-radius:6px;overflow:hidden}
-.chart-bar-fill{height:100%;border-radius:6px;position:relative;transition:width .4s}
+.chart-bar-label{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-2);margin-bottom:2px}
+.chart-bar-track{height:10px;background:var(--surface-2);border-radius:4px;overflow:hidden}
+.chart-bar-fill{height:100%;border-radius:4px;position:relative;transition:width .4s}
 .chart-bar-val{position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:9px;color:#fff;font-weight:700}
-.chart-rate-box{background:#f0f4f8;border-radius:8px;padding:10px;text-align:center}
-.chart-rate-num{font-size:28px;font-weight:700;color:#c8860a;font-family:'Bebas Neue',sans-serif;line-height:1}
-.chart-rate-label{font-size:10px;color:#5a7090;margin-top:4px;line-height:1.5}
-/* ── RANKING ── */
-/* ── HEADER BADGE ── */
-.badge-count{font-size:13px;font-weight:700;color:#fff;line-height:1}
-.badge-label{font-size:9px;color:rgba(255,255,255,.85);line-height:1}
+.chart-rate-box{background:var(--surface-2);border-radius:4px;padding:10px;text-align:center}
+.chart-rate-num{font-size:24px;font-weight:700;color:var(--ink);line-height:1}
+.chart-rate-label{font-size:10px;color:var(--ink-3);margin-top:4px;line-height:1.5}
+#chart-title{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:4px}
+#chart-sub{font-size:11px;color:var(--ink-2);margin-bottom:12px}
+#chart-bars{display:flex;flex-direction:column;gap:6px}
+#chart-rate-area{margin-top:12px;padding:10px;background:var(--surface-2);border-radius:4px}
+.chart-close{float:right;background:none;border:none;color:var(--ink-3);cursor:pointer;font-size:18px;margin-top:-4px}
+.badge-count{font-size:13px;font-weight:700;color:var(--ink);line-height:1}
+.badge-label{font-size:9px;color:var(--ink-3);line-height:1}
+
 /* ── CURRENT LOCATION ── */
-.loc-pulse{
-  width:18px;height:18px;border-radius:50%;
-  background:rgba(74,200,255,.9);
-  border:2px solid #fff;
-  box-shadow:0 0 0 4px rgba(74,200,255,.3);
-  animation:locAnim 1.5s ease-in-out infinite;
-}
-@keyframes locAnim{
-  0%,100%{box-shadow:0 0 0 4px rgba(74,200,255,.3)}
-  50%{box-shadow:0 0 0 10px rgba(74,200,255,.05)}
-}
-/* ─── ヘッダー強化 ─── */
-.hdr-brand{display:flex;flex-direction:column;gap:1px;min-width:140px}
-.hdr-logo{font-size:12px;font-weight:700;color:var(--gold);letter-spacing:.03em;white-space:nowrap}
-.hdr-sub{font-size:10px;color:#8aa0c0;white-space:nowrap}
-.hdr-stat{display:flex;align-items:center;gap:0;margin-left:auto}
-.hdr-kpi-val{font-size:20px;font-weight:800;color:#f0c040;font-variant-numeric:tabular-nums;line-height:1;letter-spacing:-.02em}
-.hdr-kpi-lbl{font-size:9px;color:#7090b0;margin-top:3px;letter-spacing:.06em;text-transform:uppercase}
-.hdr-kpi-sep{width:1px;height:28px;background:rgba(255,255,255,.12);flex-shrink:0}
-.hdr-cats{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
-.hdr-cat-badge{display:inline-flex;align-items:baseline;gap:1px;font-size:12px;font-weight:700;padding:2px 7px;border-radius:10px;color:#fff;line-height:1;white-space:nowrap}
-.hdr-cat-lbl{font-size:8px;font-weight:400;opacity:.85;margin-left:1px}
-.hdr-cat-badge.cat-elem{background:#1a88e8}
-.hdr-cat-badge.cat-jhs{background:#2eb86a}
-.hdr-cat-badge.cat-hs{background:#e84040}
-.hdr-cat-badge.cat-univ{background:#9b59b6}
-.hdr-cat-badge.cat-club{background:#e67e22}
-.hdr-cat-badge.cat-ind{background:#7f8c8d}
-.hdr-kpi{text-align:center;padding:0 16px}
-/* カテゴリバッジ列 */
-/* ─── 地図上フローティングボタン ─── */
+.loc-pulse{width:16px;height:16px;border-radius:50%;background:var(--action);border:2px solid #fff;box-shadow:0 0 0 4px rgba(37,99,235,.25);animation:locAnim 1.5s ease-in-out infinite}
+@keyframes locAnim{0%,100%{box-shadow:0 0 0 4px rgba(37,99,235,.25)}50%{box-shadow:0 0 0 10px rgba(37,99,235,.05)}}
+
+/* ── HEADER EXTENDED ── */
 #map-float-btns{position:absolute;left:12px;bottom:28px;z-index:900;display:flex;flex-direction:column;gap:6px;pointer-events:none}
-.map-float-btn{pointer-events:all;display:flex;align-items:center;gap:8px;background:rgba(10,22,40,.88);border:1px solid #1e3a5a;border-radius:22px;color:#c8d8f0;font-size:12px;padding:6px 14px 6px 10px;cursor:pointer;white-space:nowrap;backdrop-filter:blur(4px);box-shadow:0 2px 8px rgba(0,0,0,.5);transition:.15s}
-.map-float-btn:hover{background:rgba(20,60,120,.9);border-color:#2a88c8;color:#fff}
-.mfb-icon{font-size:14px;color:#3a98d8;font-family:monospace}
+.map-float-btn{pointer-events:all;display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.92);border:1px solid var(--border);border-radius:4px;color:var(--ink-2);font-size:12px;padding:6px 14px 6px 10px;cursor:pointer;white-space:nowrap;backdrop-filter:blur(4px);box-shadow:0 1px 4px rgba(0,0,0,.08);transition:.15s}
+.map-float-btn:hover{background:var(--surface-1);border-color:var(--ink-3);color:var(--ink)}
+.mfb-icon{font-size:14px;color:var(--action);font-family:monospace}
 .mfb-label{line-height:1.3}
-.mfb-label small{font-size:10px;color:#7090a8}
-.skip-link{position:absolute;top:-40px;left:8px;background:#1a3a6a;color:#fff;padding:6px 12px;border-radius:4px;font-size:12px;z-index:99999;text-decoration:none;transition:top .2s}
+.mfb-label small{font-size:10px;color:var(--ink-3)}
+.skip-link{position:absolute;top:-40px;left:8px;background:var(--action);color:#fff;padding:6px 12px;border-radius:3px;font-size:12px;z-index:99999;text-decoration:none;transition:top .2s}
 .skip-link:focus{top:8px}
 
-/* ── ローディングスピナー ── */
-#loading-overlay{position:fixed;inset:0;z-index:9999;background:#0d2040;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .5s ease}
+/* ── LOADING ── */
+#loading-overlay{position:fixed;inset:0;z-index:9999;background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;transition:opacity .4s}
 #loading-overlay.fade-out{opacity:0;pointer-events:none}
 #loading-overlay.hidden{display:none}
-.loading-ball{width:48px;height:48px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff 0%,#e8e8e8 30%,#c8c8c8 60%,#a0a0a0 100%);box-shadow:0 4px 12px rgba(0,0,0,.4);animation:spin-bounce .8s ease-in-out infinite alternate}
-@keyframes spin-bounce{from{transform:translateY(-8px)}to{transform:translateY(8px)}}
-.loading-text{color:#a0bcd8;font-size:13px;letter-spacing:.1em;animation:ld-pulse 1.2s ease-in-out infinite}
-.loading-sub{color:#607090;font-size:11px}
+.loading-ball{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--action);border-radius:50%;animation:spin .8s linear infinite}
+.loading-text{color:var(--ink-2);font-size:13px}
+.loading-sub{color:var(--ink-3);font-size:11px}
 @keyframes ld-pulse{0%,100%{opacity:.5}50%{opacity:1}}
-
-/* ── タイルエラー通知 ── */
-#tile-error-toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%) translateY(20px);background:#c0392b;color:#fff;padding:8px 16px;border-radius:20px;font-size:12px;z-index:9000;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;white-space:nowrap}
+#tile-error-toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--danger);color:#fff;padding:8px 16px;border-radius:3px;font-size:12px;z-index:9000;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;white-space:nowrap}
 #tile-error-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* ── GENDER BUTTONS ── */
-.gender-btns{display:flex;gap:4px;margin-top:6px}
-.gbtn{flex:1;padding:4px;background:#f0f4f8;border:1px solid #c8d8e8;border-radius:4px;color:#5a7090;font-size:11px;cursor:pointer;text-align:center;transition:.2s}
-.gbtn.on{background:#1a78c8;border-color:#1a78c8;color:#fff}
-/* ── GENDER COLOR OVERRIDE ── */
-.cat-btn-male{background:linear-gradient(135deg,#1a78c8,#1a55a0)!important}
-.cat-btn-female{background:linear-gradient(135deg,#e0448a,#b02070)!important}
-.cat-btn-mixed{background:linear-gradient(135deg,#8844cc,#5522aa)!important}
+/* ── GENDER / GEO STATUS ── */
+.gender-btns{display:flex;gap:3px;margin-top:6px}
+.gbtn{flex:1;padding:4px;background:var(--surface-2);border:1px solid var(--border);border-radius:3px;color:var(--ink-2);font-size:11px;cursor:pointer;text-align:center;transition:.15s;font-family:inherit}
+.gbtn.on{background:var(--action);border-color:var(--action);color:#fff}
+.cat-btn-male{background:var(--action)!important}
+.cat-btn-female{background:#d946a8!important}
+.cat-btn-mixed{background:var(--univ)!important}
 </style>
 </head>
 <body>
@@ -471,7 +467,7 @@ path.leaflet-interactive:focus{outline:none !important}
 <div id="tile-error-toast">🌐 地図タイルを読み込めませんでした</div>
 <div id="loading-overlay">
   <div class="loading-ball"></div>
-  <div class="loading-text">⚾ 読み込み中…</div>
+  <div class="loading-text">読み込み中…</div>
   <div class="loading-sub">地図データを準備しています</div>
 </div>
 <div id="header">
@@ -503,8 +499,8 @@ path.leaflet-interactive:focus{outline:none !important}
   </div>
   <!-- ヘッダー検索 -->
   <div id="hdr-search-wrap">
-    <input type="text" id="hdr-search-input" placeholder="チーム名を検索…" aria-label="チーム名を検索" autocomplete="off"
-      oninput="window.onHdrSearch(this.value)" onkeydown="if(event.key==='Enter')window.hdrSearchJump(0)">
+    <input type="text" id="hdr-search-input" placeholder="チーム名・住所で検索…" aria-label="チーム名・住所で検索" autocomplete="off"
+      oninput="window.onHdrSearch(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();window.hdrSearchEnter();}">
     <button id="hdr-search-clear" onclick="window.clearHdrSearch()" title="クリア">✕</button>
     <div id="hdr-search-dropdown"></div>
   </div>
@@ -513,6 +509,12 @@ path.leaflet-interactive:focus{outline:none !important}
 <div id="app">
   <div id="map-container" style="position:relative;flex:1;display:flex;">
     <div id="map" style="flex:1;z-index:1;" role="application" aria-label="埼玉県野球競技者人口地図"></div>
+    <!-- 現在地タップモード案内 -->
+    <div id="loc-tap-banner">
+      📍 地図をタップして現在地を設定してください
+      <small>位置情報の取得ができなかったため、地図上で位置を指定できます</small>
+      <div><button id="loc-tap-cancel" onclick="window.cancelTapMode()">キャンセル</button></div>
+    </div>
     <!-- 近傍ボタン -->
     <button id="btn-nearby" onclick="searchNearby()" title="近くのチームを探す" aria-label="近くのチームを探す">📍</button>
     <button id="btn-show-list" onclick="toggleTeamList()" title="チーム一覧を開く" aria-label="チーム一覧を開く">📋</button>
@@ -585,7 +587,7 @@ path.leaflet-interactive:focus{outline:none !important}
       <div class="leg-title">▍ピン色（性別）</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">
         <div style="display:flex;align-items:center;gap:4px;">
-          <div style="width:12px;height:12px;border-radius:50%;background:#1a88c8;"></div>
+          <div style="width:12px;height:12px;border-radius:50%;background:#3b82f6;"></div>
           <span style="font-size:10px;color:#4a6080;">男子</span>
         </div>
         <div style="display:flex;align-items:center;gap:4px;">
@@ -609,7 +611,7 @@ path.leaflet-interactive:focus{outline:none !important}
       <div style="width:100%;height:18px;border-radius:6px;background:linear-gradient(90deg,rgb(240,248,255),rgb(80,170,230),rgb(40,160,100),rgb(200,230,60),rgb(255,180,0),rgb(255,80,0),rgb(160,0,0));margin-bottom:4px"></div>
       <div style="display:flex;justify-content:space-between;font-size:9px;color:#7090a0"><span>低</span><span>高</span></div>
       <div id="rate-note" style="display:none;font-size:9px;color:#7090a0;margin-top:4px;line-height:1.6;">
-        📌 <strong style="color:#1a78c8;">小学生</strong>カテゴリのみ対応<br>
+        📌 <strong style="color:#2563eb;">小学生</strong>カテゴリのみ対応<br>
         小学生競技者数 ÷ 児童数（公立小学校在籍）<br>
         <span style="color:#aaa;">出典：令和7年度埼玉県学校便覧</span>
       </div>
@@ -629,15 +631,15 @@ path.leaflet-interactive:focus{outline:none !important}
         <label for="chk-pins">少年野球チームのピンを表示（小学生のみ）</label>
       </div>
       <div class="search-wrap">
-        <input type="text" id="team-search" placeholder="チーム名・市町村で検索..." oninput="onSearchInput()">
+        <input type="text" id="team-search" placeholder="チーム名・住所で検索..." oninput="onSearchInput()" onkeydown="if(event.key==='Enter'){event.preventDefault();onSearchInputJump();}">
         <button id="search-clear" onclick="clearSearch()" title="検索をクリア">✕</button>
       </div>
-      <div style="display:flex;gap:12px;margin-top:6px;font-size:10px;color:#5a7090;align-items:center;">
+      <div style="display:flex;gap:12px;margin-top:6px;font-size:10px;color:#555;align-items:center;">
         <span style="display:flex;align-items:center;gap:4px;">
-          <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#1a88c8;border:1.5px solid rgba(255,255,255,0.9);"></span>軟式
+          <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#3b82f6;border:1.5px solid #fff;"></span>軟式
         </span>
         <span style="display:flex;align-items:center;gap:4px;">
-          <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#1a88c8;border:1.5px solid #f5c842;"></span>硬式（金枠）
+          <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#3b82f6;border:1.5px solid #1a1a1a;"></span>硬式（金枠）
         </span>
       </div>
     </div>
@@ -657,11 +659,11 @@ path.leaflet-interactive:focus{outline:none !important}
     <div class="s-section">
       <div class="s-title" style="display:flex;align-items:center;justify-content:space-between;">
         ランキング TOP10
-        <button onclick="window.openCmpModal()" style="font-size:10px;padding:2px 8px;background:#fff0eb;color:#e05a2b;border:1px solid #f4b89a;border-radius:10px;cursor:pointer;font-weight:700;">⚖️ 市町村比較</button>
+        <button onclick="window.openCmpModal()" style="font-size:10px;padding:2px 8px;background:#fff7ed;color:#d97706;border:1px solid #e5c9a0;border-radius:10px;cursor:pointer;font-weight:700;">⚖️ 市町村比較</button>
       </div>
       <div id="rank-cat-wrap">
         <!-- カテゴリ選択（プルダウン） -->
-        <select id="rank-cat-select" onchange="_onRankCatChange(this.value)" style="width:100%;margin-bottom:5px;font-size:11px;padding:3px 4px;border:1px solid #c8d8e8;border-radius:4px;color:#2a4060;background:#f8fafc;">
+        <select id="rank-cat-select" onchange="_onRankCatChange(this.value)" style="width:100%;margin-bottom:5px;font-size:11px;padding:3px 4px;border:1px solid #e0e0de;border-radius:4px;color:#555;background:#f8f8f6;">
           <option value="all">全カテゴリ</option>
           <option value="elem">小学生</option>
           <option value="jhs">中学生</option>
@@ -672,13 +674,13 @@ path.leaflet-interactive:focus{outline:none !important}
         </select>
         <!-- 男女ボタン -->
         <div id="rank-gender-btns" style="display:flex;gap:4px;">
-          <button id="rgb-all"  onclick="_onRankGender('all')"    style="flex:1;padding:3px 2px;font-size:11px;border-radius:4px;border:1px solid #c8d8e8;background:#1a78c8;color:#fff;cursor:pointer;font-weight:700;">全体</button>
-          <button id="rgb-male" onclick="_onRankGender('male')"   style="flex:1;padding:3px 2px;font-size:11px;border-radius:4px;border:1px solid #c8d8e8;background:#f0f4f8;color:#5a7090;cursor:pointer;">男子</button>
-          <button id="rgb-fem"  onclick="_onRankGender('female')" style="flex:1;padding:3px 2px;font-size:11px;border-radius:4px;border:1px solid #c8d8e8;background:#f0f4f8;color:#5a7090;cursor:pointer;">女子</button>
+          <button id="rgb-all"  onclick="_onRankGender('all')"    style="flex:1;padding:3px 2px;font-size:11px;border-radius:4px;border:1px solid #e0e0de;background:#2563eb;color:#fff;cursor:pointer;font-weight:700;">全体</button>
+          <button id="rgb-male" onclick="_onRankGender('male')"   style="flex:1;padding:3px 2px;font-size:11px;border-radius:4px;border:1px solid #e0e0de;background:#f0efed;color:#555;cursor:pointer;">男子</button>
+          <button id="rgb-fem"  onclick="_onRankGender('female')" style="flex:1;padding:3px 2px;font-size:11px;border-radius:4px;border:1px solid #e0e0de;background:#f0efed;color:#555;cursor:pointer;">女子</button>
         </div>
       </div>
       <!-- 参加率モード時の注記 -->
-      <div id="rank-rate-note" style="display:none;font-size:10px;color:#5a7090;margin-bottom:4px;">
+      <div id="rank-rate-note" style="display:none;font-size:10px;color:#555;margin-bottom:4px;">
         小学生参加率（児童数比）で順位付け
         <div style="color:#c07030;font-size:9px;margin-top:2px;">⚠️ 参加率は小学生カテゴリ・全体のみ（男女別の児童数データが必要なため非対応）</div>
       </div>
@@ -686,15 +688,15 @@ path.leaflet-interactive:focus{outline:none !important}
     </div>
     <!-- データ注記 -->
     <div class="s-section" style="font-size:9px;color:#4a6080;line-height:1.6">
-      <div style="font-size:10px;color:#1a78c8;font-weight:700;margin-bottom:4px;">📅 データ更新: 2025年度（令和7年度）</div>
+      <div style="font-size:10px;color:#2563eb;font-weight:700;margin-bottom:4px;">📅 データ更新: 2025年度（令和7年度）</div>
       競技者数: 埼玉県野球協議会（2024年度）<br>
       チームデータ: 埼玉県野球協議会（2024年度）<br>
       児童数: 令和7年度埼玉県学校便覧（公立小学校）
     </div>
-    <div id="geo-status" style="display:none;margin-top:6px;padding:5px 8px;background:#e8f4fd;border-radius:6px;font-size:9px;color:#1a78c8;text-align:center;">
+    <div id="geo-status" style="display:none;margin-top:6px;padding:5px 8px;background:#eff6ff;border-radius:6px;font-size:9px;color:#2563eb;text-align:center;">
       <span id="geo-status-text">📍 活動場所を更新中...</span>
       <div style="margin-top:3px;background:#c5dff0;border-radius:4px;height:4px;overflow:hidden;">
-        <div id="geo-status-fill" style="height:100%;background:#1a78c8;width:0%;transition:width .3s;"></div>
+        <div id="geo-status-fill" style="height:100%;background:#2563eb;width:0%;transition:width .3s;"></div>
       </div>
     </div>
     <div id="sidebar-copyright" style="margin-top:8px;padding-top:8px;border-top:1px solid #dde5ef;font-size:9px;color:#8090a0;text-align:center;line-height:1.8;">
@@ -735,7 +737,7 @@ path.leaflet-interactive:focus{outline:none !important}
   <div id="tlp-filter-bar">
     <span id="tlp-filter-label">絞り込み中：</span>
   </div>
-  <div id="team-count" style="padding:4px 12px;font-size:10px;color:#5a7090"></div>
+  <div id="team-count" style="padding:4px 12px;font-size:10px;color:#555"></div>
   <div id="tlp-body"></div>
 </div>
 <!-- 近傍パネル -->
@@ -745,7 +747,7 @@ path.leaflet-interactive:focus{outline:none !important}
       <h3 style="margin:0 0 1px">📍</h3>
       <div id="nbp-dist" style="font-size:10px;color:var(--green)"></div>
     </div>
-    <button class="nbp-close" aria-label="近くのチームパネルを閉じる" onclick="closeNearby()" style="width:28px;height:28px;border-radius:50%;background:#f0f4f8;border:1px solid #d0dce8;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
+    <button class="nbp-close" aria-label="近くのチームパネルを閉じる" onclick="closeNearby()" style="width:28px;height:28px;border-radius:50%;background:#f0efed;border:1px solid #d0dce8;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
   </div>
   <div id="nbp-body"></div>
 </div>
@@ -1068,7 +1070,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     const diff    = thisRate !== null ? (thisRate - avgRate) : null;
     const diffStr = diff !== null
       ? (diff>=0?'▲ +':'▼ ')+Math.abs(diff).toFixed(1)+'%（県平均比）' : '';
-    const diffColor = diff===null?'#888':diff>=0?'#2ea84a':'#c8305a';
+    const diffColor = diff===null?'#888':diff>=0?'#059669':'#dc2626';
     // フィルター連動・県内順位
     const _filtered = getFiltered();
     const _sortedForRank = [..._filtered].sort((a,b)=>getDisplayVal(b)-getDisplayVal(a));
@@ -1079,7 +1081,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     const _rankLabel = _rank ? `第${_rank}位` : '－';
     const _rankMedal = _rank===1?'🥇':_rank===2?'🥈':_rank===3?'🥉':'';
     // チームバッジ
-    const CAT_COLORS2={elem:'#1a88c8',jhs:'#2ea84a',hs:'#d97000',univ:'#8a44b8',club:'#c8305a',independent:'#5a7080'};
+    const CAT_COLORS2={elem:'#3b82f6',jhs:'#059669',hs:'#d97706',univ:'#7c3aed',club:'#dc2626',independent:'#64748b'};
     const CAT_JP3={elem:'小学生',jhs:'中学生',hs:'高校生',univ:'大学生',club:'企業・クラブ',independent:'独立'};
     const cityTeams=teamData.filter(t=>t.city===d.city);
     let teamSection='';
@@ -1097,7 +1099,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       </div>`;
     }
     // カテゴリ別グリッド
-    const CAT_COLORS3={elem:'#1a88c8',jhs:'#2ea84a',hs:'#d97000',univ:'#8a44b8',club:'#c8305a',independent:'#5a7080'};
+    const CAT_COLORS3={elem:'#3b82f6',jhs:'#059669',hs:'#d97706',univ:'#7c3aed',club:'#dc2626',independent:'#64748b'};
     const catGrid=[...activeCats].map(c=>{
       const n=calcSingle(d,c);
       return `<div class="pu-cat-cell" onclick="window.applyCityFilterByCat('${d.city}','${c}')" title="${CAT_JP[c]}チームを一覧表示">
@@ -1132,9 +1134,9 @@ document.addEventListener('DOMContentLoaded',()=>{
           <div class="pu-rate-cmp-row">
             <span class="pu-rate-cmp-lbl">この市町村</span>
             <div class="pu-rate-cmp-bar">
-              <div class="pu-rate-cmp-fill" style="width:${thisW}%;background:linear-gradient(90deg,#1a88c8,#4ac8f7);"></div>
+              <div class="pu-rate-cmp-fill" style="width:${thisW}%;background:var(--action);"></div>
             </div>
-            <span class="pu-rate-cmp-val" style="color:#1a88c8;">${thisRate.toFixed(1)}%</span>
+            <span class="pu-rate-cmp-val" style="color:#3b82f6;">${thisRate.toFixed(1)}%</span>
           </div>
           <div class="pu-rate-cmp-row">
             <span class="pu-rate-cmp-lbl">県平均</span>
@@ -1148,7 +1150,7 @@ document.addEventListener('DOMContentLoaded',()=>{
         ${teamSection}
         <div class="pu-btns">
           <button class="pu-btn pu-btn-chart" onclick="window.openChartModal('${d.city}')">📊 詳細グラフ</button>
-          <button class="pu-btn" style="background:#fff0eb;color:#e05a2b;border:1px solid #f4b89a" onclick="window.openCmpModal('${d.city}')">⚖️ 比較</button>
+          <button class="pu-btn" style="background:#fff7ed;color:#d97706;border:1px solid #e5c9a0" onclick="window.openCmpModal('${d.city}')">⚖️ 比較</button>
         </div>
       </div>`;
   }
@@ -1257,10 +1259,10 @@ document.addEventListener('DOMContentLoaded',()=>{
       style(feat){
         const name=feat.properties.name||'';
         const d=cityMap[name];
-        if(!d||!activeRegions.has(d.region)) return{fillColor:'#f5f5f5',color:'#c8d8e8',weight:.8,fillOpacity:.5};
+        if(!d||!activeRegions.has(d.region)) return{fillColor:'#f5f5f5',color:'#e0e0de',weight:.8,fillOpacity:.5};
         // エリアフィルター: 範囲外はグレーアウト
         if(areaFilterActive && d.lat && d.lng && !map.getBounds().contains([d.lat,d.lng]))
-          return{fillColor:'#e8eef4',color:'#c8d8e8',weight:.5,fillOpacity:.3};
+          return{fillColor:'#e8eef4',color:'#e0e0de',weight:.5,fillOpacity:.3};
         const dv = currentIndex==='rate'?calcRate(d):calcVal(d);
         const fc = currentIndex==='rate'?choroColorRate(dv,_choroRateMaxCache):choroColor(dv,_choroMaxCache);
         return{fillColor:fc,color:'rgba(255,255,255,0.6)',weight:1,fillOpacity:.85};
@@ -1296,7 +1298,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   }
   function removeChoro(){if(choroLayer){map.removeLayer(choroLayer);choroLayer=null;}}
   // ── UPDATE ALL ──
-  const RANK_CAT_COLORS = {all:'#3a5a80',elem:'#1a88c8',jhs:'#2ea84a',hs:'#d97000',univ:'#8a44b8',club:'#c8305a',independent:'#5a7080'};
+  const RANK_CAT_COLORS = {all:'#555',elem:'#3b82f6',jhs:'#059669',hs:'#d97706',univ:'#7c3aed',club:'#dc2626',independent:'#64748b'};
   function calcValForCat(d, cat) {
     // all_male / elem_female 等の男女別ランキングに対応
     let genderOverride = null;
@@ -1378,8 +1380,8 @@ document.addEventListener('DOMContentLoaded',()=>{
       const btn = document.getElementById('rgb-' + x);
       if (!btn) return;
       const isOn = (x === 'all' && g === 'all') || (x === 'male' && g === 'male') || (x === 'fem' && g === 'female');
-      btn.style.background = isOn ? '#1a78c8' : '#f0f4f8';
-      btn.style.color      = isOn ? '#fff'    : '#5a7090';
+      btn.style.background = isOn ? '#2563eb' : '#f0efed';
+      btn.style.color      = isOn ? '#fff'    : '#555';
       btn.style.fontWeight = isOn ? '700'     : '400';
     });
     _updateRankingFromUI();
@@ -1517,7 +1519,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   // ポップアップがパネルに隠れないよう自動パン
   // ポップアップ連動：ズーム・再表示なしで絞り込みだけ行う
   // ── ヘッダーチーム名検索 ─────────────────────────────
-  const CAT_COLOR_MAP = {elem:'#1a88c8',jhs:'#2ea84a',hs:'#d97000',univ:'#8a44b8',club:'#c8305a',independent:'#5a7080'};
+  const CAT_COLOR_MAP = {elem:'#3b82f6',jhs:'#059669',hs:'#d97706',univ:'#7c3aed',club:'#dc2626',independent:'#64748b'};
   let _hdrMatches = [];
   window.onHdrSearch = function(val) {
     const q = val.trim();
@@ -1535,10 +1537,9 @@ document.addEventListener('DOMContentLoaded',()=>{
         return aStart - bStart || a.name.localeCompare(b.name,'ja');
       })
       .slice(0, 30);
-    if (!_hdrMatches.length) {
-      dd.innerHTML = '<div class="hdr-sd-empty">見つかりません</div>';
-    } else {
-      dd.innerHTML = _hdrMatches.map((t,i) =>
+    let html = '';
+    if (_hdrMatches.length) {
+      html = _hdrMatches.map((t,i) =>
         `<div class="hdr-sd-item" onclick="window.hdrSearchJump(${i})">
           <div class="hdr-sd-dot" style="background:${CAT_COLOR_MAP[t.cat]||'#888'};"></div>
           <div class="hdr-sd-name">${t.name}</div>
@@ -1546,7 +1547,103 @@ document.addEventListener('DOMContentLoaded',()=>{
         </div>`
       ).join('');
     }
+    // 住所検索オプション（2文字以上で常に表示）
+    if (q.length >= 2) {
+      html += `<div class="hdr-sd-addr" id="hdr-addr-btn" onclick="window.searchByAddress()">
+        <span class="addr-icon">📍</span>
+        <span class="addr-text">
+          「<strong>${q}</strong>」の住所で近くのチームを検索
+          <span class="addr-sub">Enterキーでも検索できます</span>
+        </span>
+      </div>`;
+    }
+    if (!html) {
+      html = '<div class="hdr-sd-empty">見つかりません</div>';
+    }
+    dd.innerHTML = html;
     dd.classList.add('show');
+  };
+
+  // Enterキー: チームマッチがあれば最初のチームへ、なければ住所検索
+  window.hdrSearchEnter = function() {
+    if (_hdrMatches.length > 0) {
+      window.hdrSearchJump(0);
+    } else {
+      window.searchByAddress();
+    }
+  };
+
+  // ── 住所ジオコーディング（Nominatim + GSI フォールバック）──
+  const NOMINATIM_API = 'https://nominatim.openstreetmap.org/search?format=json&countrycodes=jp&limit=3&q=';
+
+  async function _geocodeAddress(query) {
+    // 1) Nominatim (OpenStreetMap) を試行
+    try {
+      const nRes = await fetch(NOMINATIM_API + encodeURIComponent(query + ' 埼玉県'), {
+        headers: { 'Accept-Language': 'ja' }
+      });
+      if (nRes.ok) {
+        const nData = await nRes.json();
+        if (nData && nData.length > 0) {
+          return [parseFloat(nData[0].lat), parseFloat(nData[0].lon)];
+        }
+      }
+      // 「埼玉県」なしで再試行
+      const nRes2 = await fetch(NOMINATIM_API + encodeURIComponent(query), {
+        headers: { 'Accept-Language': 'ja' }
+      });
+      if (nRes2.ok) {
+        const nData2 = await nRes2.json();
+        if (nData2 && nData2.length > 0) {
+          return [parseFloat(nData2[0].lat), parseFloat(nData2[0].lon)];
+        }
+      }
+    } catch(e) { console.warn('Nominatim failed:', e.message); }
+
+    // 2) GSI (国土地理院) フォールバック
+    try {
+      const gRes = await fetch('https://msearch.gsi.go.jp/address-search/AddressSearch?q=' + encodeURIComponent(query + ' 埼玉'));
+      if (gRes.ok) {
+        const gData = await gRes.json();
+        if (gData && gData.length > 0) {
+          const [lng, lat] = gData[0].geometry.coordinates;
+          return [lat, lng];
+        }
+      }
+    } catch(e) { console.warn('GSI fallback failed:', e.message); }
+
+    return null;
+  }
+
+  window.searchByAddress = async function() {
+    const q = (document.getElementById('hdr-search-input').value || '').trim();
+    if (!q) return;
+    const dd = document.getElementById('hdr-search-dropdown');
+    const addrBtn = document.getElementById('hdr-addr-btn');
+    if (addrBtn) { addrBtn.classList.add('loading'); addrBtn.querySelector('.addr-text').innerHTML = '🔄 「' + q + '」を検索中...'; }
+
+    try {
+      const coords = await _geocodeAddress(q);
+      dd.classList.remove('show');
+      if (coords) {
+        _cachedUserLoc = { lat: coords[0], lng: coords[1], _ts: Date.now() };
+        _doNearbySearch(coords[0], coords[1], false);
+      } else {
+        if (addrBtn) {
+          addrBtn.classList.remove('loading');
+          addrBtn.querySelector('.addr-text').innerHTML = '❌ 住所が見つかりませんでした。もう少し詳しく入力してください。';
+          dd.classList.add('show');
+          setTimeout(() => { dd.classList.remove('show'); }, 3000);
+        }
+      }
+    } catch(e) {
+      console.error('Address geocode error:', e);
+      if (addrBtn) {
+        addrBtn.classList.remove('loading');
+        addrBtn.querySelector('.addr-text').innerHTML = '❌ 検索に失敗しました';
+        setTimeout(() => { dd.classList.remove('show'); }, 2000);
+      }
+    }
   };
   window.hdrSearchJump = function(idx) {
     const t = _hdrMatches[idx];
@@ -1554,24 +1651,68 @@ document.addEventListener('DOMContentLoaded',()=>{
     document.getElementById('hdr-search-input').value = t.name;
     document.getElementById('hdr-search-dropdown').classList.remove('show');
     document.getElementById('hdr-search-clear').classList.add('show');
+
+    // サイドバー検索にも反映してチームリストをフィルタリング
+    const sideSearch = document.getElementById('team-search');
+    if (sideSearch) {
+      sideSearch.value = t.name;
+      const sideBtn = document.getElementById('search-clear');
+      if (sideBtn) sideBtn.classList.add('show');
+    }
+    renderTeamPins(); // フィルター適用
+
+    // チームリストパネルを開く
+    if (!teamListOpen) window.toggleTeamList();
+
     // 小学生チームはピンにジャンプ
-    if (t.cat === 'elem' && t.lat && t.lng) {
-      if (!showPins) { showPins=true; const cb=document.getElementById('chk-pins'); if(cb) cb.checked=true; renderTeamPins(); }
-      map.setView([t.lat, t.lng], 16, {animate:true});
-      setTimeout(() => {
+    if (t.cat === 'elem') {
+      // ピンのマーカーを名前で検索（座標ずれを考慮）
+      const _findAndOpenPin = () => {
+        let found = false;
         teamPinLayers.forEach(layer => {
-          const ll = layer.getLatLng();
-          if (Math.abs(ll.lat-t.lat)<0.0001 && Math.abs(ll.lng-t.lng)<0.0001) {
+          if (layer._teamName === t.name) {
             if(teamClusterGroup) teamClusterGroup.zoomToShowLayer(layer, ()=>layer.openPopup());
             else layer.openPopup();
+            found = true;
           }
         });
-      }, 400);
+        return found;
+      };
+      if (!showPins) { showPins=true; const cb=document.getElementById('chk-pins'); if(cb) cb.checked=true; renderTeamPins(); }
+      // 活動場所座標を優先
+      const _pc = (t.place && t.place!=='-') ? PLACE_COORDS[t.place] : null;
+      const _lat = _pc ? _pc[0] : t.lat;
+      const _lng = _pc ? _pc[1] : t.lng;
+      if (_lat && _lng) {
+        map.setView([_lat, _lng], 16, {animate:true});
+        setTimeout(_findAndOpenPin, 500);
+      }
     } else {
-      // その他カテゴリは市町村にズーム
+      // その他カテゴリは市町村にズーム＋ポップアップ表示
       const cityEntry = (useWardView?[...wardData,...cityData.filter(x=>x.city!=='さいたま市')]:cityData)
         .find(x=>x.city===t.city);
-      if (cityEntry) map.setView([cityEntry.lat, cityEntry.lng], 13, {animate:true});
+      if (cityEntry) {
+        map.setView([cityEntry.lat, cityEntry.lng], 13, {animate:true});
+        // チーム情報のポップアップを表示
+        setTimeout(() => {
+          const _pw = Math.min(260, window.innerWidth - 48);
+          L.popup({maxWidth:_pw, minWidth:Math.min(200,_pw)})
+            .setLatLng([cityEntry.lat, cityEntry.lng])
+            .setContent(teamPopupHTML(t))
+            .openOn(map);
+          _panForPopup();
+        }, 400);
+      }
+    }
+
+    // モバイルではサイドバーを閉じる
+    if (window.innerWidth <= 768) {
+      const sb = document.getElementById('sidebar');
+      const bd = document.getElementById('backdrop');
+      const hb = document.getElementById('hbg');
+      if (sb) sb.style.transform = 'translateX(100%)';
+      if (bd) bd.classList.remove('show');
+      if (hb) hb.classList.remove('open');
     }
   };
   window.clearHdrSearch = function() {
@@ -1579,6 +1720,14 @@ document.addEventListener('DOMContentLoaded',()=>{
     document.getElementById('hdr-search-dropdown').classList.remove('show');
     document.getElementById('hdr-search-clear').classList.remove('show');
     _hdrMatches = [];
+    // サイドバー検索もクリア
+    const sideSearch = document.getElementById('team-search');
+    if (sideSearch && sideSearch.value) {
+      sideSearch.value = '';
+      const sideBtn = document.getElementById('search-clear');
+      if (sideBtn) sideBtn.classList.remove('show');
+      filterTeamPins();
+    }
   };
   // ドロップダウン外クリックで閉じる
   document.addEventListener('click', e => {
@@ -1608,7 +1757,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     if (!_tlpMatches.length) {
       dd.innerHTML = '<div style="padding:10px;text-align:center;color:#9ab0c8;font-size:11px;">見つかりません</div>';
     } else {
-      const CAT_CM = {elem:'#1a88c8',jhs:'#2ea84a',hs:'#d97000',univ:'#8a44b8',club:'#c8305a',independent:'#5a7080'};
+      const CAT_CM = {elem:'#3b82f6',jhs:'#059669',hs:'#d97706',univ:'#7c3aed',club:'#dc2626',independent:'#64748b'};
       const CAT_JM = {elem:'小',jhs:'中',hs:'高',univ:'大',club:'企',independent:'独'};
       dd.innerHTML = _tlpMatches.map((t,i) =>
         `<div class="tlp-sd-item" onclick="window.tlpSearchJump(${i})">
@@ -1626,33 +1775,73 @@ document.addEventListener('DOMContentLoaded',()=>{
     document.getElementById('tlp-search-input').value = t.name;
     document.getElementById('tlp-search-dd').classList.remove('show');
     document.getElementById('tlp-search-clear-btn').classList.add('show');
-    if (t.cat === 'elem' && t.lat && t.lng) {
+    if (t.cat === 'elem') {
       if (!showPins) { showPins=true; const cb=document.getElementById('chk-pins'); if(cb) cb.checked=true; renderTeamPins(); }
-      map.setView([t.lat, t.lng], 16, {animate:true});
-      if (window.innerWidth <= 768) window.closeTeamList();
-      setTimeout(() => {
-        teamPinLayers.forEach(layer => {
-          const ll = layer.getLatLng();
-          if (Math.abs(ll.lat-t.lat)<0.0001 && Math.abs(ll.lng-t.lng)<0.0001) {
-            if(teamClusterGroup) teamClusterGroup.zoomToShowLayer(layer, ()=>layer.openPopup());
-            else layer.openPopup();
-          }
-        });
-      }, 400);
+      const _pc = (t.place && t.place!=='-') ? PLACE_COORDS[t.place] : null;
+      const _lat = _pc ? _pc[0] : t.lat;
+      const _lng = _pc ? _pc[1] : t.lng;
+      if (_lat && _lng) {
+        map.setView([_lat, _lng], 16, {animate:true});
+        if (window.innerWidth <= 768) window.closeTeamList();
+        setTimeout(() => {
+          teamPinLayers.forEach(layer => {
+            if (layer._teamName === t.name) {
+              if(teamClusterGroup) teamClusterGroup.zoomToShowLayer(layer, ()=>layer.openPopup());
+              else layer.openPopup();
+            }
+          });
+        }, 500);
+      }
     } else {
+      // 非小学生カテゴリ：市町村にズーム＋チーム情報ポップアップ表示
       if (choroLayer) {
+        let found = false;
         choroLayer.eachLayer(layer => {
+          if (found) return;
           const nm = layer.feature && layer.feature.properties && layer.feature.properties.name;
           const d = cityMap[nm];
           if (!d || d.city !== t.city) return;
+          found = true;
           const bounds = layer.getBounds();
+          const center = bounds.getCenter();
           map.fitBounds(bounds, { paddingTopLeft:[40,40], paddingBottomRight:[40,80], maxZoom:13, animate:true });
           if (window.innerWidth <= 768) window.closeTeamList();
-          setTimeout(() => { layer.openPopup(bounds.getCenter()); _panForPopup(); }, 400);
+          setTimeout(() => {
+            const _pw = Math.min(260, window.innerWidth - 48);
+            L.popup({maxWidth:_pw, minWidth:Math.min(200,_pw)})
+              .setLatLng(center)
+              .setContent(teamPopupHTML(t))
+              .openOn(map);
+            _panForPopup();
+          }, 400);
         });
+        if (!found) {
+          const ce = (useWardView?[...wardData,...cityData.filter(x=>x.city!=='さいたま市')]:cityData).find(x=>x.city===t.city);
+          if (ce) {
+            map.setView([ce.lat, ce.lng], 13, {animate:true});
+            setTimeout(() => {
+              const _pw = Math.min(260, window.innerWidth - 48);
+              L.popup({maxWidth:_pw, minWidth:Math.min(200,_pw)})
+                .setLatLng([ce.lat, ce.lng])
+                .setContent(teamPopupHTML(t))
+                .openOn(map);
+              _panForPopup();
+            }, 400);
+          }
+        }
       } else {
         const ce = (useWardView?[...wardData,...cityData.filter(x=>x.city!=='さいたま市')]:cityData).find(x=>x.city===t.city);
-        if (ce) map.setView([ce.lat, ce.lng], 12, {animate:true});
+        if (ce) {
+          map.setView([ce.lat, ce.lng], 13, {animate:true});
+          setTimeout(() => {
+            const _pw = Math.min(260, window.innerWidth - 48);
+            L.popup({maxWidth:_pw, minWidth:Math.min(200,_pw)})
+              .setLatLng([ce.lat, ce.lng])
+              .setContent(teamPopupHTML(t))
+              .openOn(map);
+            _panForPopup();
+          }, 400);
+        }
       }
     }
   };
@@ -1882,6 +2071,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   // cat: elem / jhs / hs / univ / club
   // gender: male / female / mixed
   // ═══════════════════════════════════════════════
+  // /* __TEAM_DATA_START__ */
     teamData = [
     {name:'HAPPINESS',cat:'club',gender:'male',male:18,female:0,total:18,city:'さいたま市岩槻区',lat:35.944104,lng:139.701349,ball:'軟式',league:'埼玉県野球連盟（一般）',hp:'-',x_url:'-',ig:'-',other_url:'-',place:'-'},
     {name:'Paradis',cat:'club',gender:'male',male:16,female:0,total:16,city:'さいたま市岩槻区',lat:35.944104,lng:139.701349,ball:'軟式',league:'埼玉県野球連盟（一般）',hp:'-',x_url:'-',ig:'-',other_url:'-',place:'-'},
@@ -4027,8 +4217,9 @@ document.addEventListener('DOMContentLoaded',()=>{
     {name:'立教新座中学校',cat:'jhs',gender:'male',male:62,female:0,total:62,city:'新座市',lat:35.793153,lng:139.56573,ball:'軟式',league:'埼玉県中学校体育連盟野球専門部',hp:'-',x_url:'-',ig:'-',other_url:'-',place:'-'},
     {name:'埼玉武蔵ヒートベアーズ',cat:'independent',gender:'male',male:40,female:0,total:40,city:'熊谷市',lat:36.147196,lng:139.38898,ball:'硬式',league:'埼玉武蔵ヒートベアーズ',hp:'https://musashibears.com/',x_url:'https://x.com/musashi_bears',ig:'https://www.instagram.com/musashi_bears/',other_url:'https://www.tiktok.com/@heatbears?lang=ja-JP',place:'-'}
     ];
+  // /* __TEAM_DATA_END__ */
   // CSVが揃ったらここを差し替えます。lat/lngがない場合は住所から変換対応。
-  const CAT_COLOR={elem:'#1a88c8',jhs:'#2ea84a',hs:'#d97000',univ:'#8a44b8',club:'#c8305a',independent:'#5a7080'};
+  const CAT_COLOR={elem:'#3b82f6',jhs:'#059669',hs:'#d97706',univ:'#7c3aed',club:'#dc2626',independent:'#64748b'};
   const CAT_JP2  ={elem:'小学生',jhs:'中学生',hs:'高校生',univ:'大学生',club:'企業・クラブ',independent:'独立'};
   const GEN_JP   ={male:'男子',female:'女子',mixed:'混合'};
   const GEN_TAG  ={male:'tag-m',female:'tag-f',mixed:'tag-mix'};
@@ -4067,7 +4258,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     }
 
     // 枠線: 硬式=金色, female=白, mixed=白, male=白
-    const border = isHard ? '2.5px solid #f5c842' : '2.5px solid rgba(255,255,255,0.95)';
+    const border = isHard ? '2.5px solid #1a1a1a' : '2.5px solid rgba(255,255,255,0.95)';
 
     const pinHtml = `<div style="
       position:relative;
@@ -4116,11 +4307,11 @@ document.addEventListener('DOMContentLoaded',()=>{
     ].filter(Boolean).join('');
     return `<div class="team-popup-wrap">
       <div class="pu-team-name">⚾ ${t.name}</div>
-      <div style="font-size:10px;color:#5a7090;margin-bottom:4px;">📍 ${t.city}</div>
+      <div style="font-size:10px;color:#555;margin-bottom:4px;">📍 ${t.city}</div>
       <div class="team-popup-tags">
         <span class="pu-tag tag-${t.cat}">${CAT_JP2[t.cat]}</span>
         ${t.gender==='female'?`<span class="pu-tag tag-f">女子</span>`:''}
-        ${hasBall?`<span class="pu-tag" style="background:#5a7090;">${t.ball}</span>`:''}
+        ${hasBall?`<span class="pu-tag" style="background:#555;">${t.ball}</span>`:''}
       </div>
       <div class="team-popup-rows">
 
@@ -4596,7 +4787,7 @@ document.addEventListener('DOMContentLoaded',()=>{
         return L.divIcon({
           html: `<div style="
             width:${size}px;height:${size}px;
-            background:linear-gradient(135deg,#1a5cb8,#1a88c8);
+            background:linear-gradient(135deg,#2563eb,#3b82f6);
             border-radius:50%;
             border:2.5px solid #fff;
             box-shadow:0 2px 8px rgba(0,0,0,.3);
@@ -4632,12 +4823,74 @@ document.addEventListener('DOMContentLoaded',()=>{
     const btn = document.getElementById('search-clear');
     if (btn) btn.classList.toggle('show', val.length > 0);
     filterTeamPins();
+    // 検索キーワードがある場合はチームリストパネルを自動的に開く
+    const kw = val.trim();
+    if (kw.length > 0) {
+      if (!teamListOpen) window.toggleTeamList();
+      // ヘッダー検索にも反映
+      const hdrInput = document.getElementById('hdr-search-input');
+      if (hdrInput) hdrInput.value = kw;
+      const hdrClear = document.getElementById('hdr-search-clear');
+      if (hdrClear) hdrClear.classList.toggle('show', kw.length > 0);
+    }
+  };
+  // サイドバー検索で1件に絞り込まれた場合にポップアップ表示
+  window.onSearchInputJump = function() {
+    const kw = (document.getElementById('team-search').value || '').trim();
+    if (!kw) return;
+    // 現在のフィルター結果からチェック
+    const matched = tlpAllFiltered.filter(t => t.name.includes(kw));
+    if (matched.length === 1) {
+      const t = matched[0];
+      if (t.cat === 'elem') {
+        const _pc = (t.place && t.place!=='-') ? PLACE_COORDS[t.place] : null;
+        const _lat = _pc ? _pc[0] : t.lat;
+        const _lng = _pc ? _pc[1] : t.lng;
+        if (_lat && _lng) {
+          if (!showPins) { showPins=true; const cb=document.getElementById('chk-pins'); if(cb) cb.checked=true; renderTeamPins(); }
+          map.setView([_lat, _lng], 16, {animate:true});
+          setTimeout(() => {
+            teamPinLayers.forEach(layer => {
+              if (layer._teamName === t.name) {
+                if(teamClusterGroup) teamClusterGroup.zoomToShowLayer(layer, ()=>layer.openPopup());
+                else layer.openPopup();
+              }
+            });
+          }, 500);
+        }
+      } else {
+        const cityEntry = (useWardView?[...wardData,...cityData.filter(x=>x.city!=='さいたま市')]:cityData)
+          .find(x=>x.city===t.city);
+        if (cityEntry) {
+          map.setView([cityEntry.lat, cityEntry.lng], 13, {animate:true});
+          setTimeout(() => {
+            const _pw = Math.min(260, window.innerWidth - 48);
+            L.popup({maxWidth:_pw, minWidth:Math.min(200,_pw)})
+              .setLatLng([cityEntry.lat, cityEntry.lng])
+              .setContent(teamPopupHTML(t))
+              .openOn(map);
+            _panForPopup();
+          }, 400);
+        }
+      }
+    } else if (matched.length === 0 || kw.length >= 2) {
+      // チームが見つからない or 2文字以上 → 住所検索を試行
+      // ヘッダー検索に転送して住所検索実行
+      const hdrInput = document.getElementById('hdr-search-input');
+      if (hdrInput) hdrInput.value = kw;
+      window.searchByAddress();
+    }
   };
   window.clearSearch = function() {
     const inp = document.getElementById('team-search');
     if (inp) { inp.value = ''; inp.focus(); }
     const btn = document.getElementById('search-clear');
     if (btn) btn.classList.remove('show');
+    // ヘッダー検索もクリア
+    const hdrInput = document.getElementById('hdr-search-input');
+    if (hdrInput) hdrInput.value = '';
+    const hdrClear = document.getElementById('hdr-search-clear');
+    if (hdrClear) hdrClear.classList.remove('show');
     filterTeamPins();
   };
 
@@ -4752,17 +5005,20 @@ document.addEventListener('DOMContentLoaded',()=>{
         </div>
         ${t.league?`<div style="font-size:9px;color:#7a9aaa;margin-top:3px;line-height:1.3;padding-left:14px;">${t.league}</div>`:''}
         ${(()=>{const lks=[
-          t.hp&&t.hp!=='-'?`<a href="${t.hp}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#1a88c8;font-size:11px;text-decoration:none;" title="HP">🌐</a>`:'',
+          t.hp&&t.hp!=='-'?`<a href="${t.hp}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#3b82f6;font-size:11px;text-decoration:none;" title="HP">🌐</a>`:'',
           t.x_url&&t.x_url!=='-'?`<a href="${t.x_url}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#444;font-size:11px;text-decoration:none;" title="X">𝕏</a>`:'',
           t.ig&&t.ig!=='-'?`<a href="${t.ig}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#e1306c;font-size:11px;text-decoration:none;" title="Instagram">📸</a>`:'',
-          t.other_url&&t.other_url!=='-'?`<a href="${t.other_url}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#5a7090;font-size:11px;text-decoration:none;" title="Link">🔗</a>`:'',
+          t.other_url&&t.other_url!=='-'?`<a href="${t.other_url}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#555;font-size:11px;text-decoration:none;" title="Link">🔗</a>`:'',
         ].filter(Boolean);return lks.length?`<div style="display:flex;gap:6px;align-items:center;margin-top:4px;padding-left:14px;">${lks.join('')}</div>`:''})()}`;
-      // タップで地図ジャンプ＋ポップアップ（小学生のみ）
+      // タップで地図ジャンプ＋ポップアップ
       item.addEventListener('click', () => {
         if (t.cat === 'elem') {
           // 小学生：地図移動＋ピンポップアップ（チーム名で正確にマッチ）
           if (!showPins) { showPins = true; const cb=document.getElementById('chk-pins'); if(cb) cb.checked=true; renderTeamPins(); }
-          map.setView([t.lat, t.lng], 15, {animate:true});
+          const _pc = (t.place && t.place!=='-') ? PLACE_COORDS[t.place] : null;
+          const _lat = _pc ? _pc[0] : t.lat;
+          const _lng = _pc ? _pc[1] : t.lng;
+          if (_lat && _lng) map.setView([_lat, _lng], 15, {animate:true});
           if (window.innerWidth <= 768) window.closeTeamList();
           setTimeout(() => {
             const target = teamPinLayers.find(layer => layer._teamName === t.name);
@@ -4775,22 +5031,51 @@ document.addEventListener('DOMContentLoaded',()=>{
             }
           }, 450);
         } else {
-          // 中学生以上：市町村コロプレスにズーム＋ポップアップ
+          // 中学生以上：市町村にズーム＋チーム情報ポップアップ表示
           const cityEntry = (useWardView ? [...wardData,...cityData.filter(x=>x.city!=='さいたま市')] : cityData)
             .find(x => x.city === t.city);
           if (window.innerWidth <= 768) window.closeTeamList();
           if (choroLayer) {
-            // コロプレス表示中：該当featureにズーム＋ポップアップ
+            let found = false;
             choroLayer.eachLayer(layer => {
+              if (found) return;
               const nm = layer.feature && layer.feature.properties && layer.feature.properties.name;
               const d = cityMap[nm];
               if (!d || d.city !== t.city) return;
+              found = true;
               const bounds = layer.getBounds();
+              const center = bounds.getCenter();
               map.fitBounds(bounds, { paddingTopLeft:[40,40], paddingBottomRight:[40,80], maxZoom:13, animate:true });
-              setTimeout(() => { layer.openPopup(bounds.getCenter()); _panForPopup(); }, 400);
+              setTimeout(() => {
+                const _pw = Math.min(260, window.innerWidth - 48);
+                L.popup({maxWidth:_pw, minWidth:Math.min(200,_pw)})
+                  .setLatLng(center)
+                  .setContent(teamPopupHTML(t))
+                  .openOn(map);
+                _panForPopup();
+              }, 400);
             });
+            if (!found && cityEntry && cityEntry.lat && cityEntry.lng) {
+              map.setView([cityEntry.lat, cityEntry.lng], 13, {animate:true});
+              setTimeout(() => {
+                const _pw = Math.min(260, window.innerWidth - 48);
+                L.popup({maxWidth:_pw, minWidth:Math.min(200,_pw)})
+                  .setLatLng([cityEntry.lat, cityEntry.lng])
+                  .setContent(teamPopupHTML(t))
+                  .openOn(map);
+                _panForPopup();
+              }, 400);
+            }
           } else if (cityEntry && cityEntry.lat && cityEntry.lng) {
-            map.setView([cityEntry.lat, cityEntry.lng], 12, {animate:true});
+            map.setView([cityEntry.lat, cityEntry.lng], 13, {animate:true});
+            setTimeout(() => {
+              const _pw = Math.min(260, window.innerWidth - 48);
+              L.popup({maxWidth:_pw, minWidth:Math.min(200,_pw)})
+                .setLatLng([cityEntry.lat, cityEntry.lng])
+                .setContent(teamPopupHTML(t))
+                .openOn(map);
+              _panForPopup();
+            }, 400);
           }
           item.style.background = '#eef4ff';
           setTimeout(() => { item.style.background = ''; }, 800);
@@ -4866,7 +5151,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   // 市町村詳細グラフ
   // ══════════════════════════════════════════
   const CHART_COLORS = {
-    elem:'#1a88c8', jhs:'#2ea84a', hs:'#d97000', univ:'#8a44b8', club:'#c8305a'
+    elem:'#3b82f6', jhs:'#059669', hs:'#d97706', univ:'#7c3aed', club:'#dc2626'
   };
   const CHART_CATS  = ['elem','jhs','hs','univ','club'];
   const CHART_LABELS= {elem:'小学生',jhs:'中学生',hs:'高校生',univ:'大学生',club:'企業・クラブ'};
@@ -4906,12 +5191,12 @@ document.addEventListener('DOMContentLoaded',()=>{
     // チーム数（カテゴリ別）
     const cityTeams = teamData.filter(t => t.city === d.city);
     if (cityTeams.length > 0) {
-      const teamCatColors = {elem:'#1a88c8',jhs:'#2ea84a',hs:'#d97000',univ:'#8a44b8',club:'#c8305a'};
+      const teamCatColors = {elem:'#3b82f6',jhs:'#059669',hs:'#d97706',univ:'#7c3aed',club:'#dc2626'};
       const catCounts = {};
       cityTeams.forEach(t => { catCounts[t.cat] = (catCounts[t.cat]||0)+1; });
       const teamMax = Math.max(...Object.values(catCounts));
       bars.innerHTML += '<div class="chart-section">チーム数</div>';
-      bars.innerHTML += `<div style="font-size:11px;color:#8aa0c0;margin-bottom:8px;">登録チーム合計 <span style="font-size:18px;font-family:'Bebas Neue';color:var(--gold);">${cityTeams.length}</span> 件</div>`;
+      bars.innerHTML += `<div style="font-size:11px;color:#8aa0c0;margin-bottom:8px;">登録チーム合計 <span style="font-size:18px;font-variant-numeric:tabular-nums;color:var(--ink);">${cityTeams.length}</span> 件</div>`;
       CHART_CATS.forEach(c => {
         const n = catCounts[c] || 0;
         if (!n) return;
@@ -4936,7 +5221,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     const rank = sorted.findIndex(x=>x.city===d.city) + 1;
     bars.innerHTML += `<div class="chart-section">県内順位</div>
       <div style="font-size:20px;font-weight:900;color:#1a2a4a;padding:6px 0;">
-        第 <span style="font-size:32px;color:var(--gold);">${rank}</span> 位
+        第 <span style="font-size:32px;color:var(--ink);">${rank}</span> 位
         <span style="font-size:12px;color:#8aa0c0;"> / ${sorted.length}市町村</span>
       </div>`;
     modal.classList.add('open');
@@ -4951,7 +5236,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   // ══════════════════════════
   const CMP_CATS   = ['elem','jhs','hs','univ','club'];
   const CMP_LABELS = {elem:'小学生',jhs:'中学生',hs:'高校生',univ:'大学生',club:'企業・クラブ'};
-  const CMP_COLORS = {elem:'#1a88c8',jhs:'#2ea84a',hs:'#d97000',univ:'#8a44b8',club:'#c8305a'};
+  const CMP_COLORS = {elem:'#3b82f6',jhs:'#059669',hs:'#d97706',univ:'#7c3aed',club:'#dc2626'};
 
   function _cmpInitSelects(defaultA) {
     const cities = Object.values(cityMap)
@@ -5003,12 +5288,12 @@ document.addEventListener('DOMContentLoaded',()=>{
     // KPIカード
     const kpiHtml = `
       <div class="cmp-kpi-row">
-        <div class="cmp-kpi" style="border-top:3px solid #1a78c8">
-          <div class="cmp-kpi-val" style="color:#1a78c8">${totalA.toLocaleString()}</div>
+        <div class="cmp-kpi" style="border-top:3px solid #2563eb">
+          <div class="cmp-kpi-val" style="color:#2563eb">${totalA.toLocaleString()}</div>
           <div class="cmp-kpi-lbl">競技者数合計</div>
         </div>
-        <div class="cmp-kpi" style="border-top:3px solid #e05a2b">
-          <div class="cmp-kpi-val" style="color:#e05a2b">${totalB.toLocaleString()}</div>
+        <div class="cmp-kpi" style="border-top:3px solid #d97706">
+          <div class="cmp-kpi-val" style="color:#d97706">${totalB.toLocaleString()}</div>
           <div class="cmp-kpi-lbl">競技者数合計</div>
         </div>
       </div>
@@ -5057,8 +5342,8 @@ document.addEventListener('DOMContentLoaded',()=>{
             <span>${vA.toLocaleString()} vs ${vB.toLocaleString()} 人 ${winner(vA,vB)}</span>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
-            <div class="cmp-bar-track"><div class="cmp-bar-fill" style="width:${pct(vA,catMax)}%;background:#1a78c8"></div></div>
-            <div class="cmp-bar-track"><div class="cmp-bar-fill" style="width:${pct(vB,catMax)}%;background:#e05a2b"></div></div>
+            <div class="cmp-bar-track"><div class="cmp-bar-fill" style="width:${pct(vA,catMax)}%;background:#2563eb"></div></div>
+            <div class="cmp-bar-track"><div class="cmp-bar-fill" style="width:${pct(vB,catMax)}%;background:#d97706"></div></div>
           </div>
         </div>`;
     });
@@ -5070,8 +5355,8 @@ document.addEventListener('DOMContentLoaded',()=>{
         <div class="cmp-bar-wrap">
           <div class="cmp-bar-label"><span>参加率</span><span>${rateA!==null?rateA.toFixed(1)+'%':'－'} vs ${rateB!==null?rateB.toFixed(1)+'%':'－'} ${winner(rateA,rateB)}</span></div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
-            <div class="cmp-bar-track"><div class="cmp-bar-fill" style="width:${pct(rateA||0,rMax)}%;background:#1a78c8"></div></div>
-            <div class="cmp-bar-track"><div class="cmp-bar-fill" style="width:${pct(rateB||0,rMax)}%;background:#e05a2b"></div></div>
+            <div class="cmp-bar-track"><div class="cmp-bar-fill" style="width:${pct(rateA||0,rMax)}%;background:#2563eb"></div></div>
+            <div class="cmp-bar-track"><div class="cmp-bar-fill" style="width:${pct(rateB||0,rMax)}%;background:#d97706"></div></div>
           </div>
         </div>`;
     }
@@ -5111,7 +5396,25 @@ document.addEventListener('DOMContentLoaded',()=>{
     const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   }
-  // 近くのチーム検索（位置情報 or 地図中心フォールバック）
+
+  // チームの最適座標を返す（活動場所座標 > チーム住所座標）
+  function _teamBestCoords(t) {
+    const _pc = (t.place && t.place !== '-') ? PLACE_COORDS[t.place] : null;
+    const lat = _pc ? _pc[0] : t.lat;
+    const lng = _pc ? _pc[1] : t.lng;
+    if (!lat || !lng) {
+      // cityDataからフォールバック
+      const cd = cityMap[t.city];
+      if (cd && cd.lat && cd.lng) return [cd.lat, cd.lng];
+      return null;
+    }
+    return [lat, lng];
+  }
+
+  // 現在地キャッシュ（セッション中に再利用）
+  let _cachedUserLoc = null;
+
+  // 近くのチーム検索（位置情報 or 地図タップ or フォールバック）
   function _doNearbySearch(lat, lng, usedFallback) {
     const btn = document.getElementById('btn-nearby');
     btn.classList.remove('locating');
@@ -5122,21 +5425,27 @@ document.addEventListener('DOMContentLoaded',()=>{
         icon: L.divIcon({ className:'', html:'<div class="loc-pulse"></div>', iconSize:[20,20], iconAnchor:[10,10] }),
         zIndexOffset: 2000
       }).addTo(map);
-      userLocMarker.bindTooltip('現在地', { permanent:false, className:'tt' });
+      userLocMarker.bindTooltip('📍 この地点から検索中', { permanent:false, className:'tt' });
     }
     const visible = teamData.filter(t => teamActiveCats.has(t.cat));
-    const withDist = visible.map(t => ({ ...t, km: haversineKm(lat, lng, t.lat, t.lng) }))
+    const withDist = visible
+      .map(t => {
+        const coords = _teamBestCoords(t);
+        if (!coords) return null;
+        return { ...t, _blat: coords[0], _blng: coords[1], km: haversineKm(lat, lng, coords[0], coords[1]) };
+      })
+      .filter(Boolean)
       .sort((a,b) => a.km - b.km)
       .slice(0, 20);
     const body = document.getElementById('nbp-body');
     body.innerHTML = '';
     const headerNote = usedFallback
-      ? '<div style="font-size:10px;color:#e07020;padding:4px 8px 0;text-align:center;">📌 地図の中心から近い順に表示しています<br><span style="color:#8a9ab0">（位置情報が利用できませんでした）</span></div>'
-      : '';
+      ? '<div style="font-size:10px;color:#e07020;padding:4px 8px 0;text-align:center;">📌 地図の中心から近い順に表示しています</div>'
+      : '<div style="font-size:10px;color:#059669;padding:4px 8px 0;text-align:center;">📍 指定地点から近い順に表示<br><span style="color:#8a9ab0;font-size:9px;">（再タップで地点を変更できます）</span></div>';
     if (!withDist.length) {
       body.innerHTML = headerNote + '<div class="nbp-empty">表示中のチームがありません。</div>';
     } else {
-      if (headerNote) { const n=document.createElement('div'); n.innerHTML=headerNote; body.appendChild(n.firstElementChild); }
+      const n=document.createElement('div'); n.innerHTML=headerNote; body.appendChild(n.firstElementChild);
       withDist.forEach((t, i) => {
         const col = CAT_COLOR[t.cat] || '#888';
         const km = t.km < 1 ? Math.round(t.km*1000)+'m' : t.km.toFixed(1)+'km';
@@ -5148,10 +5457,10 @@ document.addEventListener('DOMContentLoaded',()=>{
           ? `<span style="display:inline-block;padding:0 4px;border-radius:6px;font-size:8px;font-weight:700;background:#e8f3ff;color:#1a6ab0;border:1px solid #a8ccee;margin-left:3px;">軟式</span>`
           : '';
         const nbpLinks = [
-          t.hp      && t.hp!=='-'      ? `<a href="${t.hp}"        target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#1a88c8;font-size:10px;text-decoration:none;" title="HP">🌐</a>` : '',
+          t.hp      && t.hp!=='-'      ? `<a href="${t.hp}"        target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#3b82f6;font-size:10px;text-decoration:none;" title="HP">🌐</a>` : '',
           t.x_url   && t.x_url!=='-'   ? `<a href="${t.x_url}"     target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#444;font-size:10px;text-decoration:none;" title="X">𝕏</a>` : '',
           t.ig      && t.ig!=='-'      ? `<a href="${t.ig}"        target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#e1306c;font-size:10px;text-decoration:none;" title="Instagram">📸</a>` : '',
-          t.other_url && t.other_url!=='-' ? `<a href="${t.other_url}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#5a7090;font-size:10px;text-decoration:none;" title="Link">🔗</a>` : '',
+          t.other_url && t.other_url!=='-' ? `<a href="${t.other_url}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#555;font-size:10px;text-decoration:none;" title="Link">🔗</a>` : '',
         ].filter(Boolean).join(' ');
         item.innerHTML = `
           <div class="nbp-rank">${i+1}</div>
@@ -5162,19 +5471,35 @@ document.addEventListener('DOMContentLoaded',()=>{
           </div>
           <div class="nbp-km">${km}</div>`;
         item.addEventListener('click', () => {
-          map.setView([t.lat, t.lng], 14, {animate:true});
+          const tLat = t._blat, tLng = t._blng;
           window.closeNearby();
-          if (!showPins) {
-            showPins = true;
-            const cb=document.getElementById('chk-pins'); if(cb) cb.checked=true;
-            renderTeamPins();
+          if (t.cat === 'elem') {
+            // 小学生：ピンにジャンプ
+            if (!showPins) { showPins=true; const cb=document.getElementById('chk-pins'); if(cb) cb.checked=true; renderTeamPins(); }
+            map.setView([tLat, tLng], 15, {animate:true});
+            setTimeout(() => {
+              const target = teamPinLayers.find(layer => layer._teamName === t.name);
+              if (target) {
+                if (teamClusterGroup) teamClusterGroup.zoomToShowLayer(target, () => target.openPopup());
+                else target.openPopup();
+              }
+            }, 500);
+          } else {
+            // 非小学生：市町村ズーム＋チーム情報ポップアップ
+            const cityEntry = (useWardView ? [...wardData,...cityData.filter(x=>x.city!=='さいたま市')] : cityData)
+              .find(x => x.city === t.city);
+            const popLat = cityEntry ? cityEntry.lat : tLat;
+            const popLng = cityEntry ? cityEntry.lng : tLng;
+            map.setView([popLat, popLng], 13, {animate:true});
+            setTimeout(() => {
+              const _pw = Math.min(260, window.innerWidth - 48);
+              L.popup({maxWidth:_pw, minWidth:Math.min(200,_pw)})
+                .setLatLng([popLat, popLng])
+                .setContent(teamPopupHTML(t))
+                .openOn(map);
+              _panForPopup();
+            }, 400);
           }
-          setTimeout(() => {
-            teamPinLayers.forEach(layer => {
-              const ll = layer.getLatLng();
-              if (Math.abs(ll.lat - t.lat) < 0.0001 && Math.abs(ll.lng - t.lng) < 0.0001) layer.openPopup();
-            });
-          }, 450);
         });
         body.appendChild(item);
       });
@@ -5185,28 +5510,101 @@ document.addEventListener('DOMContentLoaded',()=>{
     if (!usedFallback) map.setView([lat, lng], 13, {animate:true});
   }
 
-  window.searchNearby = function() {
+  // ── 地図タップモード管理 ──
+  let _tapModeActive = false;
+  let _tapOverlay = null; // 透明オーバーレイ要素
+
+  function _enterTapMode() {
+    _tapModeActive = true;
+    const banner = document.getElementById('loc-tap-banner');
+    const mapC = document.getElementById('map-container');
+    if (banner) banner.classList.add('show');
+    if (mapC) mapC.classList.add('tap-mode');
     const btn = document.getElementById('btn-nearby');
-    const runWithFallback = () => {
-      const c = map.getCenter();
-      _doNearbySearch(c.lat, c.lng, true);
+    btn.classList.remove('locating');
+    btn.innerHTML = '📍';
+
+    // 地図の上に透明オーバーレイを配置してすべてのレイヤークリックを遮断
+    _tapOverlay = document.createElement('div');
+    _tapOverlay.id = 'tap-overlay';
+    _tapOverlay.style.cssText = 'position:absolute;top:0;left:0;right:0;bottom:0;z-index:900;cursor:crosshair;background:transparent;';
+    const mapEl = document.getElementById('map');
+    mapEl.parentElement.insertBefore(_tapOverlay, mapEl.nextSibling);
+
+    _tapOverlay.addEventListener('click', function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+      // クリック位置をmap座標に変換
+      const mapRect = mapEl.getBoundingClientRect();
+      const x = e.clientX - mapRect.left;
+      const y = e.clientY - mapRect.top;
+      const latlng = map.containerPointToLatLng([x, y]);
+      _exitTapMode();
+      _cachedUserLoc = { lat: latlng.lat, lng: latlng.lng, _ts: Date.now() };
+      _doNearbySearch(latlng.lat, latlng.lng, false);
+    });
+  }
+
+  function _exitTapMode() {
+    _tapModeActive = false;
+    const banner = document.getElementById('loc-tap-banner');
+    const mapC = document.getElementById('map-container');
+    if (banner) banner.classList.remove('show');
+    if (mapC) mapC.classList.remove('tap-mode');
+    if (_tapOverlay) {
+      _tapOverlay.remove();
+      _tapOverlay = null;
+    }
+  }
+
+  window.cancelTapMode = function() {
+    _exitTapMode();
+  };
+
+  window.searchNearby = function() {
+    // タップモード中なら解除
+    if (_tapModeActive) { _exitTapMode(); return; }
+
+    const btn = document.getElementById('btn-nearby');
+
+    // キャッシュがあれば再利用（5分以内は再取得しない）
+    if (_cachedUserLoc && _cachedUserLoc._ts && (Date.now() - _cachedUserLoc._ts < 300000)) {
+      _doNearbySearch(_cachedUserLoc.lat, _cachedUserLoc.lng, false);
+      return;
+    }
+
+    // Geolocation失敗時 → 地図タップモードに切り替え
+    const runWithTapMode = () => {
+      btn.classList.remove('locating');
+      btn.innerHTML = '📍';
+      _enterTapMode();
     };
-    if (!navigator.geolocation) { runWithFallback(); return; }
+
+    if (!navigator.geolocation) { runWithTapMode(); return; }
+
     btn.classList.add('locating');
     btn.innerHTML = '⏳';
-    const timer = setTimeout(() => { runWithFallback(); }, 6000);
+
+    const timer = setTimeout(() => { runWithTapMode(); }, 10000);
+
     navigator.geolocation.getCurrentPosition(
       pos => {
         clearTimeout(timer);
+        _cachedUserLoc = { lat: pos.coords.latitude, lng: pos.coords.longitude, _ts: Date.now() };
         _doNearbySearch(pos.coords.latitude, pos.coords.longitude, false);
       },
-      () => { clearTimeout(timer); runWithFallback(); },
-      { enableHighAccuracy: true, timeout: 5000, maximumAge: 60000 }
+      (err) => {
+        clearTimeout(timer);
+        console.warn('Geolocation error:', err.code, err.message);
+        runWithTapMode();
+      },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 300000 }
     );
   };
 
   window.closeNearby = function() {
     document.getElementById('nearby-panel').classList.remove('open');
+    _exitTapMode();
   };
   // ══════════════════════════════════════════
   // 市区町村フィルター
@@ -5518,7 +5916,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     bar.id = 'geo-progress-bar';
     bar.style.cssText = 'position:fixed;bottom:0;left:0;right:0;height:4px;background:#0a1628;z-index:9999;';
     const fill = document.createElement('div');
-    fill.style.cssText = 'height:100%;background:#1a88c8;width:0%;transition:width .3s;';
+    fill.style.cssText = 'height:100%;background:#3b82f6;width:0%;transition:width .3s;';
     bar.appendChild(fill);
     document.body.appendChild(bar);
     const _geoStatusEl = document.getElementById('geo-status');
