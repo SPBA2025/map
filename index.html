@@ -547,7 +547,7 @@ path.leaflet-interactive:focus{outline:none!important}
       </div>
 
       <!-- ② 地図スタイル選択 -->
-      <div class="ctrl-label" style="font-size:9px;color:#7a9aaa;margin-bottom:3px;">表示スタイル</div>
+      <div class="ctrl-label" style="font-size:9px;color:#999;margin-bottom:3px;">表示スタイル</div>
       <div class="view-btns" style="margin-bottom:8px;">
         <button class="vbtn on" id="btn-choro" onclick="setView('choro')">地域別</button>
         <button class="vbtn" id="btn-heat" onclick="setView('heat')">ヒートマップ</button>
@@ -556,7 +556,7 @@ path.leaflet-interactive:focus{outline:none!important}
 
       <!-- ③ 性別選択（競技者数のみ有効） -->
       <div id="gender-wrap">
-        <div class="ctrl-label" style="font-size:9px;color:#7a9aaa;margin-bottom:3px;">性別</div>
+        <div class="ctrl-label" style="font-size:9px;color:#999;margin-bottom:3px;">性別</div>
         <div class="gender-btns">
           <button class="gbtn on" id="gb-all" onclick="setGender('all')" aria-label="性別: 全体">全体</button>
           <button class="gbtn" id="gb-male" onclick="setGender('male')" aria-label="性別: 男子">男子</button>
@@ -588,15 +588,15 @@ path.leaflet-interactive:focus{outline:none!important}
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">
         <div style="display:flex;align-items:center;gap:4px;">
           <div style="width:12px;height:12px;border-radius:50%;background:#3b82f6;"></div>
-          <span style="font-size:10px;color:#4a6080;">男子</span>
+          <span style="font-size:10px;color:#555;">男子</span>
         </div>
         <div style="display:flex;align-items:center;gap:4px;">
           <div style="width:12px;height:12px;border-radius:50%;background:#e0448a;"></div>
-          <span style="font-size:10px;color:#4a6080;">女子</span>
+          <span style="font-size:10px;color:#555;">女子</span>
         </div>
         <div style="display:flex;align-items:center;gap:4px;">
           <div style="width:12px;height:12px;border-radius:50%;background:#8844cc;"></div>
-          <span style="font-size:10px;color:#4a6080;">混合</span>
+          <span style="font-size:10px;color:#555;">混合</span>
         </div>
       </div>
     </div>
@@ -604,13 +604,13 @@ path.leaflet-interactive:focus{outline:none!important}
     <div class="leg-section" id="leg-choro">
       <div class="leg-title">▍凡例（競技者数）</div>
       <div style="width:100%;height:18px;border-radius:6px;background:linear-gradient(90deg,rgb(235,245,255),rgb(130,200,200),rgb(80,180,120),rgb(200,230,80),rgb(255,200,0),rgb(255,110,0),rgb(200,0,0));margin-bottom:4px"></div>
-      <div style="display:flex;justify-content:space-between;font-size:9px;color:#7090a0"><span>少</span><span>多</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:9px;color:#999"><span>少</span><span>多</span></div>
     </div>
     <div class="leg-section" id="leg-rate" style="display:none">
       <div class="leg-title">▍凡例（参加率：小学生）</div>
       <div style="width:100%;height:18px;border-radius:6px;background:linear-gradient(90deg,rgb(240,248,255),rgb(80,170,230),rgb(40,160,100),rgb(200,230,60),rgb(255,180,0),rgb(255,80,0),rgb(160,0,0));margin-bottom:4px"></div>
-      <div style="display:flex;justify-content:space-between;font-size:9px;color:#7090a0"><span>低</span><span>高</span></div>
-      <div id="rate-note" style="display:none;font-size:9px;color:#7090a0;margin-top:4px;line-height:1.6;">
+      <div style="display:flex;justify-content:space-between;font-size:9px;color:#999"><span>低</span><span>高</span></div>
+      <div id="rate-note" style="display:none;font-size:9px;color:#999;margin-top:4px;line-height:1.6;">
         📌 <strong style="color:#2563eb;">小学生</strong>カテゴリのみ対応<br>
         小学生競技者数 ÷ 児童数（公立小学校在籍）<br>
         <span style="color:#aaa;">出典：令和7年度埼玉県学校便覧</span>
@@ -619,7 +619,7 @@ path.leaflet-interactive:focus{outline:none!important}
     <div class="leg-section" id="leg-heat" style="display:none">
       <div class="leg-title">▍凡例（ヒートマップ）</div>
       <div style="width:100%;height:18px;border-radius:6px;background:linear-gradient(90deg,rgba(0,0,255,.4),cyan,lime,yellow,red);margin-bottom:4px"></div>
-      <div style="display:flex;justify-content:space-between;font-size:9px;color:#7090a0">
+      <div style="display:flex;justify-content:space-between;font-size:9px;color:#999">
         <span>少</span><span id="leg-heat-max">〜9,000人</span>
       </div>
     </div>
@@ -659,7 +659,7 @@ path.leaflet-interactive:focus{outline:none!important}
     <div class="s-section">
       <div class="s-title" style="display:flex;align-items:center;justify-content:space-between;">
         ランキング TOP10
-        <button onclick="window.openCmpModal()" style="font-size:10px;padding:2px 8px;background:#fff7ed;color:#d97706;border:1px solid #e5c9a0;border-radius:10px;cursor:pointer;font-weight:700;">⚖️ 市町村比較</button>
+        <button onclick="window.openCmpModal()" style="font-size:10px;padding:2px 8px;background:#fff7ed;color:#d97706;border:1px solid #e5c9a0;border-radius:4px;cursor:pointer;font-weight:600;">⚖️ 市町村比較</button>
       </div>
       <div id="rank-cat-wrap">
         <!-- カテゴリ選択（プルダウン） -->
@@ -687,10 +687,10 @@ path.leaflet-interactive:focus{outline:none!important}
       <ol id="rank-list"></ol>
     </div>
     <!-- データ注記 -->
-    <div class="s-section" style="font-size:9px;color:#4a6080;line-height:1.6">
+    <div class="s-section" style="font-size:9px;color:#555;line-height:1.6">
       <div style="font-size:10px;color:#2563eb;font-weight:700;margin-bottom:4px;">📅 データ更新: 2025年度（令和7年度）</div>
-      競技者数: 埼玉県野球協議会（2024年度）<br>
-      チームデータ: 埼玉県野球協議会（2024年度）<br>
+      競技者数: 埼玉県野球協議会（2025年度）<br>
+      チームデータ: 埼玉県野球協議会（2025年度）<br>
       児童数: 令和7年度埼玉県学校便覧（公立小学校）
     </div>
     <div id="geo-status" style="display:none;margin-top:6px;padding:5px 8px;background:#eff6ff;border-radius:6px;font-size:9px;color:#2563eb;text-align:center;">
@@ -699,9 +699,9 @@ path.leaflet-interactive:focus{outline:none!important}
         <div id="geo-status-fill" style="height:100%;background:#2563eb;width:0%;transition:width .3s;"></div>
       </div>
     </div>
-    <div id="sidebar-copyright" style="margin-top:8px;padding-top:8px;border-top:1px solid #dde5ef;font-size:9px;color:#8090a0;text-align:center;line-height:1.8;">
+    <div id="sidebar-copyright" style="margin-top:8px;padding-top:8px;border-top:1px solid #dde5ef;font-size:9px;color:#999;text-align:center;line-height:1.8;">
       © 埼玉県野球協議会<br>
-      <span style="font-size:8px;">地図: <a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener noreferrer" style="color:#8090a0;">国土地理院</a>　地図ライブラリ: <a href="https://leafletjs.com" target="_blank" rel="noopener" style="color:#8090a0;">Leaflet</a></span>
+      <span style="font-size:8px;">地図: <a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener noreferrer" style="color:#999;">国土地理院</a>　地図ライブラリ: <a href="https://leafletjs.com" target="_blank" rel="noopener" style="color:#999;">Leaflet</a></span>
     </div>
   </div><!-- /sidebar -->
   <!-- バックドロップ -->
@@ -747,7 +747,7 @@ path.leaflet-interactive:focus{outline:none!important}
       <h3 style="margin:0 0 1px">📍</h3>
       <div id="nbp-dist" style="font-size:10px;color:var(--green)"></div>
     </div>
-    <button class="nbp-close" aria-label="近くのチームパネルを閉じる" onclick="closeNearby()" style="width:28px;height:28px;border-radius:50%;background:#f0efed;border:1px solid #d0dce8;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
+    <button class="nbp-close" aria-label="近くのチームパネルを閉じる" onclick="closeNearby()" style="width:28px;height:28px;border-radius:50%;background:var(--surface-2);border:1px solid var(--border);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
   </div>
   <div id="nbp-body"></div>
 </div>
@@ -1071,15 +1071,23 @@ document.addEventListener('DOMContentLoaded',()=>{
     const diffStr = diff !== null
       ? (diff>=0?'▲ +':'▼ ')+Math.abs(diff).toFixed(1)+'%（県平均比）' : '';
     const diffColor = diff===null?'#888':diff>=0?'#059669':'#dc2626';
-    // フィルター連動・県内順位
+    // フィルター連動・県内順位（人数）
     const _filtered = getFiltered();
     const _sortedForRank = [..._filtered].sort((a,b)=>getDisplayVal(b)-getDisplayVal(a));
     const _rankIdx = _sortedForRank.findIndex(x=>x.city===d.city);
     const _rankTotal = _filtered.length; // 0件の市町村も含めた全体数
     const _rank = _rankIdx >= 0 ? _rankIdx + 1 : null;
-    const _rankColor = _rank===1?'#d4a017':_rank===2?'#8a9aaa':_rank===3?'#b87333':'#4a6a8a';
+    const _rankColor = _rank===1?'#d4a017':_rank===2?'#8a9aaa':_rank===3?'#b87333':'#555';
     const _rankLabel = _rank ? `第${_rank}位` : '－';
     const _rankMedal = _rank===1?'🥇':_rank===2?'🥈':_rank===3?'🥉':'';
+    // 参加率順位（小学生・childrenデータあり）
+    const _rateFiltered = _filtered.filter(x=>x.children>0);
+    const _rateSorted = [..._rateFiltered].sort((a,b)=>calcRate(b)-calcRate(a));
+    const _rateRankIdx = _rateSorted.findIndex(x=>x.city===d.city);
+    const _rateRank = (thisRate!==null && _rateRankIdx>=0) ? _rateRankIdx+1 : null;
+    const _rateRankTotal = _rateFiltered.length;
+    const _rateRankColor = _rateRank===1?'#d4a017':_rateRank===2?'#8a9aaa':_rateRank===3?'#b87333':'#059669';
+    const _rateRankMedal = _rateRank===1?'🥇':_rateRank===2?'🥈':_rateRank===3?'🥉':'';
     // チームバッジ
     const CAT_COLORS2={elem:'#3b82f6',jhs:'#059669',hs:'#d97706',univ:'#7c3aed',club:'#dc2626',independent:'#64748b'};
     const CAT_JP3={elem:'小学生',jhs:'中学生',hs:'高校生',univ:'大学生',club:'企業・クラブ',independent:'独立'};
@@ -1094,7 +1102,7 @@ document.addEventListener('DOMContentLoaded',()=>{
           ${n} ${CAT_JP3[c]||c} ▶
         </span>`).join('');
       teamSection=`<div class="pu-teams-section">
-        <div class="pu-teams-title">登録チーム ${cityTeams.length}件 <span style="font-size:8px;color:#aab8cc;font-weight:400;">タップで一覧</span></div>
+        <div class="pu-teams-title">登録チーム ${cityTeams.length}件 <span style="font-size:8px;color:#999;font-weight:400;">タップで一覧</span></div>
         <div class="pu-cat-row">${badges}</div>
       </div>`;
     }
@@ -1104,14 +1112,15 @@ document.addEventListener('DOMContentLoaded',()=>{
       const n=calcSingle(d,c);
       return `<div class="pu-cat-cell" onclick="window.applyCityFilterByCat('${d.city}','${c}')" title="${CAT_JP[c]}チームを一覧表示">
         <div class="pu-cat-cell-num" style="color:${CAT_COLORS3[c]};">${n}</div>
-        <div class="pu-cat-cell-lbl">${CAT_JP[c]} <span style="font-size:8px;color:#aab8cc;">▶</span></div>
+        <div class="pu-cat-cell-lbl">${CAT_JP[c]} <span style="font-size:8px;color:#999;">▶</span></div>
       </div>`;
     }).join('');
     return `
       <div class="pu-header">
         <div class="pu-city">${d.city}</div>
         <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:3px;">
-          ${_rank ? `<span style="display:inline-flex;align-items:center;gap:2px;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700;background:#f0f4fa;color:${_rankColor};border:1px solid ${_rankColor}40;">${_rankMedal}${_rankLabel}<span style="font-size:8px;font-weight:400;color:#8090a0;margin-left:1px;">/${_rankTotal}${useWardView?"区市町村":"市町村"}</span></span>` : ''}
+          ${_rank ? `<span style="display:inline-flex;align-items:center;gap:2px;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;background:#eff6ff;color:${_rankColor};border:1px solid ${_rankColor}40;">${_rankMedal}人数 ${_rankLabel}<span style="font-size:8px;font-weight:400;color:#999;margin-left:1px;">/${_rankTotal}</span></span>` : ''}
+          ${_rateRank ? `<span style="display:inline-flex;align-items:center;gap:2px;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;background:#ecfdf5;color:${_rateRankColor};border:1px solid ${_rateRankColor}40;">${_rateRankMedal}参加率 第${_rateRank}位<span style="font-size:8px;font-weight:400;color:#999;margin-left:1px;">/${_rateRankTotal}</span></span>` : ''}
           ${thisRate !== null ? `
           <div class="pu-rate-chip">
             <span class="pu-rate-chip-label">小学生参加率</span>
@@ -1126,7 +1135,7 @@ document.addEventListener('DOMContentLoaded',()=>{
         <div class="pu-row pu-row-sub"><span>　女子</span><span>${fem}人</span></div>`:''}
         <div class="pu-cat-grid">${catGrid}</div>
         <div class="pu-row pu-row-sub" style="font-size:10px;border-top:1px solid rgba(15,30,58,0.06);padding-top:4px;">
-          <span>推計児童数（6-11歳）</span><span style="color:#8aa0c0;">${childStr}</span>
+          <span>児童数（公立小学校在籍）</span><span style="color:#999;">${childStr}</span>
         </div>
         ${thisRate !== null ? `
         <div class="pu-rate-cmp">
@@ -1143,7 +1152,7 @@ document.addEventListener('DOMContentLoaded',()=>{
             <div class="pu-rate-cmp-bar">
               <div class="pu-rate-cmp-fill" style="width:${avgW}%;background:#c0cce0;"></div>
             </div>
-            <span class="pu-rate-cmp-val" style="color:#7a9aaa;">${avgRate.toFixed(1)}%</span>
+            <span class="pu-rate-cmp-val" style="color:#999;">${avgRate.toFixed(1)}%</span>
           </div>
           <div class="pu-rate-diff" style="color:${diffColor};">${diffStr}</div>
         </div>` : ''}
@@ -1464,7 +1473,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       if (!note) {
         note = document.createElement('div');
         note.setAttribute('data-choro-note','1');
-        note.style.cssText = 'font-size:9px;color:#7a9aaa;margin-top:4px;';
+        note.style.cssText = 'font-size:9px;color:#999;margin-top:4px;';
         choroSec.appendChild(note);
       }
       note.textContent = `最大: ${Math.round(maxAbs).toLocaleString()}人（現在の表示条件）`;
@@ -1475,7 +1484,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       if (!note) {
         note = document.createElement('div');
         note.setAttribute('data-rate-note','1');
-        note.style.cssText = 'font-size:9px;color:#7a9aaa;margin-top:4px;';
+        note.style.cssText = 'font-size:9px;color:#999;margin-top:4px;';
         rateSec.appendChild(note);
       }
       note.textContent = `最大: ${maxRate.toFixed(1)}%（現在の表示条件）`;
@@ -1485,7 +1494,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     if (heatSec) {
       const note = heatSec.querySelector('small, [data-heat-note]') ||
                    (() => { const s=document.createElement('div'); s.setAttribute('data-heat-note','1');
-                     s.style.cssText='font-size:9px;color:#7a9aaa;margin-top:4px;'; heatSec.appendChild(s); return s; })();
+                     s.style.cssText='font-size:9px;color:#999;margin-top:4px;'; heatSec.appendChild(s); return s; })();
       note.textContent = `最大: ${Math.round(_choroMaxCache||0).toLocaleString()}人`;
     }
   }
@@ -4971,7 +4980,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     count.textContent = toShow.length + '件';
     body.innerHTML = '';
     if (toShow.length === 0) {
-      body.innerHTML = '<div style="padding:20px;text-align:center;color:#8aa0c0;font-size:12px;">条件に一致するチームがありません</div>';
+      body.innerHTML = '<div style="padding:20px;text-align:center;color:#999;font-size:12px;">条件に一致するチームがありません</div>';
       return;
     }
     // ソート
@@ -5003,7 +5012,7 @@ document.addEventListener('DOMContentLoaded',()=>{
             :t.gender==='mixed'?`<span class="tlp-tag" style="background:#8844cc;">混合</span>`
             :''}
         </div>
-        ${t.league?`<div style="font-size:9px;color:#7a9aaa;margin-top:3px;line-height:1.3;padding-left:14px;">${t.league}</div>`:''}
+        ${t.league?`<div style="font-size:9px;color:#999;margin-top:3px;line-height:1.3;padding-left:14px;">${t.league}</div>`:''}
         ${(()=>{const lks=[
           t.hp&&t.hp!=='-'?`<a href="${t.hp}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#3b82f6;font-size:11px;text-decoration:none;" title="HP">🌐</a>`:'',
           t.x_url&&t.x_url!=='-'?`<a href="${t.x_url}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#444;font-size:11px;text-decoration:none;" title="X">𝕏</a>`:'',
@@ -5165,7 +5174,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     rateArea.innerHTML = rate !== null
       ? `<div class="chart-rate-box">
            <div class="chart-rate-num">${rate.toFixed(1)}%</div>
-           <div class="chart-rate-label">小学生参加率<br><span style="font-size:9px;">推計児童数 ${d.children.toLocaleString()}人</span></div>
+           <div class="chart-rate-label">小学生参加率<br><span style="font-size:9px;">児童数 ${d.children.toLocaleString()}人（令和7年度学校便覧）</span></div>
          </div>` : '';
     const total = CHART_CATS.reduce((s,c)=>(s+(d[c+'_m']||0)+(d[c+'_f']||0)), 0);
     document.getElementById('chart-sub').textContent = `合計 ${total}人`;
@@ -5196,7 +5205,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       cityTeams.forEach(t => { catCounts[t.cat] = (catCounts[t.cat]||0)+1; });
       const teamMax = Math.max(...Object.values(catCounts));
       bars.innerHTML += '<div class="chart-section">チーム数</div>';
-      bars.innerHTML += `<div style="font-size:11px;color:#8aa0c0;margin-bottom:8px;">登録チーム合計 <span style="font-size:18px;font-variant-numeric:tabular-nums;color:var(--ink);">${cityTeams.length}</span> 件</div>`;
+      bars.innerHTML += `<div style="font-size:11px;color:#999;margin-bottom:8px;">登録チーム合計 <span style="font-size:18px;font-variant-numeric:tabular-nums;color:var(--ink);">${cityTeams.length}</span> 件</div>`;
       CHART_CATS.forEach(c => {
         const n = catCounts[c] || 0;
         if (!n) return;
@@ -5219,10 +5228,26 @@ document.addEventListener('DOMContentLoaded',()=>{
       (CHART_CATS.reduce((s,c)=>(s+(a[c+'_m']||0)+(a[c+'_f']||0)),0))
     );
     const rank = sorted.findIndex(x=>x.city===d.city) + 1;
+    // 参加率順位
+    const withChildren = allCities.filter(x=>x.children>0);
+    const rateSorted = [...withChildren].sort((a,b)=>{
+      const rA = ((a.elem_m||0)+(a.elem_f||0))/a.children;
+      const rB = ((b.elem_m||0)+(b.elem_f||0))/b.children;
+      return rB - rA;
+    });
+    const rateRank = rate!==null ? rateSorted.findIndex(x=>x.city===d.city)+1 : null;
     bars.innerHTML += `<div class="chart-section">県内順位</div>
-      <div style="font-size:20px;font-weight:900;color:#1a2a4a;padding:6px 0;">
-        第 <span style="font-size:32px;color:var(--ink);">${rank}</span> 位
-        <span style="font-size:12px;color:#8aa0c0;"> / ${sorted.length}市町村</span>
+      <div style="display:flex;gap:16px;align-items:baseline;padding:6px 0;">
+        <div>
+          <span style="font-size:10px;color:#999;">人数</span><br>
+          <span style="font-size:20px;font-weight:700;color:var(--ink);">第 <span style="font-size:28px;">${rank}</span> 位</span>
+          <span style="font-size:11px;color:#999;"> / ${sorted.length}</span>
+        </div>
+        ${rateRank ? `<div>
+          <span style="font-size:10px;color:#999;">小学生参加率</span><br>
+          <span style="font-size:20px;font-weight:700;color:var(--ink);">第 <span style="font-size:28px;">${rateRank}</span> 位</span>
+          <span style="font-size:11px;color:#999;"> / ${withChildren.length}</span>
+        </div>` : ''}
       </div>`;
     modal.classList.add('open');
     modal.onclick = e => { if (e.target === modal) window.closeChartModal(); };
@@ -5259,7 +5284,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     const nameA = document.getElementById('cmp-sel-a').value;
     const nameB = document.getElementById('cmp-sel-b').value;
     const body  = document.getElementById('cmp-body');
-    if (!nameA || !nameB) { body.innerHTML = '<div style="text-align:center;color:#8090a0;padding:20px;font-size:12px;">2つの市町村を選択してください</div>'; return; }
+    if (!nameA || !nameB) { body.innerHTML = '<div style="text-align:center;color:#999;padding:20px;font-size:12px;">2つの市町村を選択してください</div>'; return; }
     const dA = cityMap[nameA], dB = cityMap[nameB];
     if (!dA || !dB) return;
 
@@ -5714,8 +5739,19 @@ document.addEventListener('DOMContentLoaded',()=>{
   };
 
   window.focusCity = function(cityName) {
+    // モバイル: サイドバーを閉じて地図を見えるようにする
+    if (window.innerWidth <= 768) {
+      const sb = document.getElementById('sidebar');
+      if (sb && !sb.classList.contains('hidden')) {
+        sb.classList.add('hidden');
+        const hbg = document.getElementById('hbg');
+        if (hbg) hbg.classList.remove('open');
+        const bd = document.getElementById('backdrop');
+        if (bd) bd.classList.remove('show');
+      }
+    }
     window.applyCityFilter(cityName);
-      _pushState();
+    _pushState();
   };
   window.selectCityFilter = function(cityName) {
     window.applyCityFilter(cityName);
