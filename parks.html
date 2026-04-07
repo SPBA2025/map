@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta property="og:title" content="埼玉県公園マップ">
+<meta property="og:description" content="埼玉県内の公園でキャッチボールができるかを地図で確認。住所、広さ、トイレ、駐車場情報も表示。">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ja_JP">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="埼玉県公園マップ">
+<meta name="description" content="埼玉県内の公園でキャッチボールができるかを地図で確認。">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>埼玉県公園マップ</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" crossorigin="anonymous">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.min.css" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.min.css" crossorigin="anonymous">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js" crossorigin="anonymous"></script>
+<!-- Google Maps API キーは parks.config.js から読み込む -->
+<script src="parks.config.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=API_KEY"></script>
+<style>
+/* ═══ COLOR SYSTEM (Stripe-inspired) ═══
+  UI roles (Stripe palette):
+    action=#533afd (Stripe purple)  action-h=#4434d4  caution=#b45309  danger=#dc2626
+    surface=#f6f9fc  surface-1=#fff  surface-2=#f0f4f8  border=#e5edf5  border-2=#d6d9fc
+    ink=#061b31 (deep navy)  ink-2=#273951  ink-3=#64748d
+  Stripe shadow formula: rgba(50,50,93,0.25) 0 30px 45px -30px, rgba(0,0,0,0.1) 0 18px 36px -18px
+*/
+:root{--action:#533afd;--action-h:#4434d4;--caution:#b45309;--danger:#dc2626;--green:#059669;--surface:#f6f9fc;--surface-1:#fff;--surface-2:#f0f4f8;--border:#e5edf5;--border-2:#d6d9fc;--ink:#061b31;--ink-2:#273951;--ink-3:#64748d}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);color:var(--ink);height:100vh;display:flex;flex-direction:column;overflow:hidden;-webkit-font-smoothing:antialiased}
+
+/* ── HEADER ── */
+#header{background:var(--surface-1);padding:0 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);box-shadow:rgba(0,55,112,0.06) 0 1px 0;flex-shrink:0;z-index:1100;min-height:48px}
+#hbg{display:none;flex-direction:column;justify-content:center;gap:4px;width:32px;height:32px;cursor:pointer;padding:4px}
+#hbg span{display:block;height:2px;background:var(--ink);border-radius:1px;transition:.3s}
+#hbg.open span:nth-child(1){transform:rotate(45deg) translate(4px,4px)}
+#hbg.open span:nth-child(2){opacity:0}
+#hbg.open span:nth-child(3){transform:rotate(-45deg) translate(4px,-4px)}
+.hdr-brand{display:flex;flex-direction:column;gap:0;min-width:140px}
+.hdr-logo{font-size:13px;font-weight:700;color:var(--ink);letter-spacing:-.02em;white-space:nowrap}
+.hdr-sub{font-size:10px;color:var(--ink-3);letter-spacing:.02em;white-space:nowrap}
+.hdr-stat{display:flex;align-items:center;gap:0;margin-left:auto}
+.hdr-kpi{text-align:center;padding:0 14px}
+.hdr-kpi-val{font-size:18px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1;letter-spacing:-.02em}
+.hdr-kpi-lbl{font-size:9px;color:var(--ink-3);margin-top:2px;letter-spacing:.04em;text-transform:uppercase}
+.hdr-kpi-sep{width:1px;height:24px;background:var(--border);flex-shrink:0}
+
+/* ── LAYOUT ── */
+#app{display:flex;flex:1;overflow:hidden;position:relative}
+#map{flex:1;z-index:1}
+
+/* ── SIDEBAR ── */
+#sidebar{width:272px;background:var(--surface-1);border-left:1px solid var(--border);overflow-y:auto;flex-shrink:0;z-index:1000;transition:transform .3s}
+#sidebar::-webkit-scrollbar{width:3px}
+#sidebar::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:2px}
+.s-section{padding:12px 14px;border-bottom:1px solid var(--border)}
+.s-title{font-size:10px;font-weight:600;color:var(--ink-3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
+
+/* ── FILTERS ── */
+.filter-btns{display:flex;flex-direction:column;gap:6px}
+.filter-btn{padding:8px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:4px;color:var(--ink-2);font-size:11px;cursor:pointer;text-align:center;transition:.15s;font-weight:500;font-family:inherit}
+.filter-btn:hover{background:rgba(83,58,253,0.08);border-color:var(--border)}
+.filter-btn.on{background:var(--action);border-color:var(--action);color:#fff}
+.filter-btn.on:hover{background:var(--action-h)}
+
+/* ── LEGEND ── */
+.leg-section{padding:10px 14px;border-bottom:1px solid var(--border)}
+.leg-item{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:11px;color:var(--ink-2)}
+.leg-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.leg-label{color:var(--ink)}
+
+/* ── PARK LIST ── */
+#park-list{display:flex;flex-direction:column;gap:0;list-style:none;margin:0;padding:0}
+.park-item{display:flex;flex-direction:column;gap:4px;padding:8px 10px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;border-radius:0}
+.park-item:hover{background:var(--surface-2)}
+.park-item-name{font-size:12px;font-weight:600;color:var(--ink)}
+.park-item-addr{font-size:10px;color:var(--ink-3)}
+.park-item-badge{display:inline-flex;align-items:center;gap:2px;padding:1px 6px;border-radius:4px;font-size:9px;font-weight:600;margin-top:2px}
+.park-item-badge.catchball{background:rgba(5,150,105,0.2);color:#108c3d}
+.park-item-badge.no-catchball{background:rgba(100,116,139,0.2);color:#64748d}
+
+/* ── MODALS ── */
+#park-modal{display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.25)}
+#park-modal.open{display:flex;align-items:center;justify-content:center}
+.park-box{background:var(--surface-1);border:1px solid var(--border);border-radius:6px;padding:20px;width:90%;max-width:480px;max-height:80vh;overflow-y:auto;box-shadow:rgba(50,50,93,0.25) 0 30px 45px -30px,rgba(0,0,0,0.1) 0 18px 36px -18px}
+.park-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.park-title{font-size:16px;font-weight:700;color:var(--ink)}
+.park-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink-3);padding:2px 6px}
+.park-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:6px 0;color:var(--ink-2)}
+.park-row-label{font-weight:600;color:var(--ink)}
+.park-row-value{text-align:right}
+.park-badge-large{display:inline-block;padding:4px 10px;border-radius:4px;font-weight:700;font-size:11px;margin:6px 0}
+.park-badge-catchball{background:rgba(5,150,105,0.2);color:#108c3d}
+.park-badge-no-catchball{background:rgba(229,48,48,0.2);color:#dc2626}
+.park-btn{width:100%;padding:10px;margin-top:8px;background:var(--action);color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer;transition:.15s;font-family:inherit}
+.park-btn:hover{background:var(--action-h)}
+
+/* ── LEAFLET OVERRIDES ── */
+.leaflet-popup-content-wrapper{background:var(--surface-1);border:1px solid var(--border);color:var(--ink);border-radius:6px;box-shadow:rgba(50,50,93,0.2) 0 14px 28px -14px,rgba(0,0,0,0.1) 0 8px 16px -8px}
+.leaflet-popup-tip{background:var(--surface-1)}
+.leaflet-popup-pane{z-index:2500!important}
+.leaflet-interactive:focus{outline:none!important}
+
+/* ── SEARCH ── */
+#hdr-search-wrap{position:relative;display:flex;align-items:center;margin-left:8px;flex-shrink:0}
+#hdr-search-input{padding:5px 26px 5px 10px;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--ink);font-size:12px;width:180px;outline:none;transition:.15s;font-family:inherit}
+#hdr-search-input::placeholder{color:var(--ink-3)}
+#hdr-search-input:focus{border-color:var(--action);outline:2px solid var(--action);outline-offset:2px;width:220px;background:var(--surface-1)}
+#hdr-search-clear{position:absolute;right:6px;background:none;border:none;color:var(--ink-3);cursor:pointer;font-size:13px;display:none;padding:0;line-height:1}
+#hdr-search-clear.show{display:block}
+
+@media(max-width:768px){
+  #hbg{display:flex}
+  #sidebar{position:fixed;right:0;height:100%;border-left:none;transform:translateX(100%)}
+  #sidebar.open{transform:translateX(0)}
+  #hdr-search-wrap{display:none}
+  .park-item{padding:10px 12px}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="header">
+  <button id="hbg"><span></span><span></span><span></span></button>
+  <div class="hdr-brand">
+    <div class="hdr-logo">埼玉県公園マップ</div>
+    <div class="hdr-sub">キャッチボール可能</div>
+  </div>
+  <div class="hdr-stat" style="margin-left:auto">
+    <div class="hdr-kpi">
+      <div class="hdr-kpi-val" id="total-parks">0</div>
+      <div class="hdr-kpi-lbl">公園</div>
+    </div>
+    <div class="hdr-kpi-sep"></div>
+    <div class="hdr-kpi">
+      <div class="hdr-kpi-val" id="catchball-parks">0</div>
+      <div class="hdr-kpi-lbl">可能</div>
+    </div>
+  </div>
+  <div id="hdr-search-wrap">
+    <input id="hdr-search-input" type="text" placeholder="公園名で検索...">
+    <button id="hdr-search-clear">×</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="app">
+  <div id="map"></div>
+
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <!-- FILTERS -->
+    <div class="s-section">
+      <div class="s-title">フィルター</div>
+      <div class="filter-btns">
+        <button class="filter-btn on" data-filter="catchball" title="キャッチボール可の公園">キャッチボール可</button>
+        <button class="filter-btn" data-filter="toilet" title="トイレがある公園">トイレあり</button>
+        <button class="filter-btn" data-filter="parking" title="駐車場がある公園">駐車場あり</button>
+      </div>
+    </div>
+
+    <!-- LEGEND -->
+    <div class="s-section">
+      <div class="s-title">凡例</div>
+      <div class="leg-item">
+        <div class="leg-dot" style="background:#059669"></div>
+        <div class="leg-label">キャッチボール可</div>
+      </div>
+      <div class="leg-item">
+        <div class="leg-dot" style="background:#64748d"></div>
+        <div class="leg-label">不可・条件付き</div>
+      </div>
+    </div>
+
+    <!-- PARK LIST -->
+    <div class="s-section" style="flex:1;overflow-y:auto;padding:0">
+      <div style="padding:12px 14px;border-bottom:1px solid var(--border)">
+        <div class="s-title">公園一覧 <span id="park-count" style="color:var(--ink)">(0)</span></div>
+      </div>
+      <ul id="park-list"></ul>
+    </div>
+  </div>
+</div>
+
+<!-- PARK DETAIL MODAL -->
+<div id="park-modal">
+  <div class="park-box">
+    <div class="park-header">
+      <div class="park-title" id="modal-park-name"></div>
+      <button class="park-close" onclick="closeParkModal()">×</button>
+    </div>
+    <div id="modal-park-content"></div>
+    <button class="park-btn" id="modal-parkful-link" target="_blank">PARKFUL で詳しく見る →</button>
+  </div>
+</div>
+
+<script>
+/* ═══ DATA ═══ */
+const parkData = [
+  {id:1, name:'浦和高速下緑地公園', address:'さいたま市浦和区北浦和1', lat:35.8666, lng:139.7211, catchball:true, area:'約2.5ha', toilet:true, parking:true, parkful_url:'https://parkful.net/parks/11201010001', notes:''},
+  {id:2, name:'与野公園', address:'さいたま市中央区本町西1', lat:35.8917, lng:139.6383, catchball:true, area:'約2.0ha', toilet:true, parking:true, parkful_url:'https://parkful.net/parks/11201020001', notes:''},
+  {id:3, name:'氷川公園', address:'さいたま市大宮区高鼻町', lat:35.9083, lng:139.6289, catchball:false, area:'約4.5ha', toilet:true, parking:false, parkful_url:'https://parkful.net/parks/11201030001', notes:'禁止事項あり'},
+];
+
+/* ═══ STATE ═══ */
+let map;
+let markers = [];
+let clusterGroup;
+let filteredData = [...parkData];
+const activeFilters = {catchball: true, toilet: false, parking: false};
+
+/* ═══ MAP INIT ═══ */
+function initMap() {
+  map = L.map('map').setView([35.8617, 139.6455], 9);
+
+  // Google Maps タイル
+  L.tileLayer('https://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}', {
+    attribution: '© Google',
+    maxZoom: 18
+  }).addTo(map);
+
+  // フォールバック: 国土地理院
+  /*
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap',
+    maxZoom: 18
+  }).addTo(map);
+  */
+
+  clusterGroup = L.markerClusterGroup();
+  map.addLayer(clusterGroup);
+
+  renderMarkers();
+  updateStats();
+  renderParkList();
+}
+
+/* ═══ MARKER RENDERING ═══ */
+function renderMarkers() {
+  clusterGroup.clearLayers();
+  markers = [];
+
+  filteredData.forEach(park => {
+    const isVisible = isMarkerVisible(park);
+    if (!isVisible) return;
+
+    const color = park.catchball ? '#059669' : '#64748d';
+    const icon = L.divIcon({
+      html: `<div style="background:${color};width:24px;height:24px;border-radius:50%;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.2)"></div>`,
+      iconSize: [30, 30],
+      className: ''
+    });
+
+    const marker = L.marker([park.lat, park.lng], {icon})
+      .bindPopup(makePopup(park), {maxWidth: 300})
+      .on('click', () => {
+        showParkModal(park);
+      });
+
+    clusterGroup.addLayer(marker);
+    markers.push({marker, park});
+  });
+}
+
+function makePopup(park) {
+  return `<div style="padding:8px">
+    <div style="font-weight:700;margin-bottom:6px">${park.name}</div>
+    <div style="font-size:11px;color:#666;margin-bottom:8px">${park.address}</div>
+    <div style="padding:4px 8px;background:${park.catchball ? 'rgba(5,150,105,0.2)' : 'rgba(229,48,48,0.2)'};border-radius:3px;font-size:10px;font-weight:600;color:${park.catchball ? '#108c3d' : '#dc2626'};margin-bottom:6px">
+      ${park.catchball ? '✓ キャッチボール可' : '✕ 不可・要確認'}
+    </div>
+    <div style="font-size:10px;line-height:1.6">
+      <div><strong>広さ:</strong> ${park.area}</div>
+      <div><strong>トイレ:</strong> ${park.toilet ? 'あり' : 'なし'}</div>
+      <div><strong>駐車場:</strong> ${park.parking ? 'あり' : 'なし'}</div>
+    </div>
+  </div>`;
+}
+
+/* ═══ MODAL ═══ */
+function showParkModal(park) {
+  document.getElementById('modal-park-name').textContent = park.name;
+  document.getElementById('modal-park-content').innerHTML = `
+    <div class="park-row">
+      <span class="park-row-label">住所</span>
+      <span class="park-row-value">${park.address}</span>
+    </div>
+    <div style="margin:8px 0">
+      <span class="park-badge-large ${park.catchball ? 'park-badge-catchball' : 'park-badge-no-catchball'}">
+        ${park.catchball ? '✓ キャッチボール可' : '✕ 不可・要確認'}
+      </span>
+    </div>
+    <div class="park-row"><span class="park-row-label">広さ</span><span class="park-row-value">${park.area}</span></div>
+    <div class="park-row"><span class="park-row-label">トイレ</span><span class="park-row-value">${park.toilet ? 'あり' : 'なし'}</span></div>
+    <div class="park-row"><span class="park-row-label">駐車場</span><span class="park-row-value">${park.parking ? 'あり' : 'なし'}</span></div>
+    ${park.notes ? `<div class="park-row"><span class="park-row-label">備考</span><span class="park-row-value">${park.notes}</span></div>` : ''}
+  `;
+  document.getElementById('modal-parkful-link').href = park.parkful_url;
+  document.getElementById('park-modal').classList.add('open');
+}
+
+function closeParkModal() {
+  document.getElementById('park-modal').classList.remove('open');
+}
+
+/* ═══ FILTER & VISIBILITY ═══ */
+function isMarkerVisible(park) {
+  if (activeFilters.catchball && !park.catchball) return false;
+  if (activeFilters.toilet && !park.toilet) return false;
+  if (activeFilters.parking && !park.parking) return false;
+  return true;
+}
+
+function applyFilters() {
+  const searchTerm = document.getElementById('hdr-search-input').value.toLowerCase();
+  filteredData = parkData.filter(p => {
+    const matchesFilter = isMarkerVisible(p);
+    const matchesSearch = searchTerm === '' || p.name.toLowerCase().includes(searchTerm);
+    return matchesFilter && matchesSearch;
+  });
+  renderMarkers();
+  renderParkList();
+  updateStats();
+}
+
+function updateStats() {
+  const total = parkData.length;
+  const catchable = parkData.filter(p => p.catchball).length;
+  document.getElementById('total-parks').textContent = total;
+  document.getElementById('catchball-parks').textContent = catchable;
+}
+
+function renderParkList() {
+  const list = document.getElementById('park-list');
+  list.innerHTML = '';
+  document.getElementById('park-count').textContent = `(${filteredData.length})`;
+
+  filteredData.forEach(park => {
+    const item = document.createElement('li');
+    item.className = 'park-item';
+    item.innerHTML = `
+      <div class="park-item-name">${park.name}</div>
+      <div class="park-item-addr">${park.address}</div>
+      <span class="park-item-badge ${park.catchball ? 'catchball' : 'no-catchball'}">
+        ${park.catchball ? '✓ 可' : '✕ 不可'}
+      </span>
+    `;
+    item.onclick = () => showParkModal(park);
+    list.appendChild(item);
+  });
+}
+
+/* ═══ EVENT LISTENERS ═══ */
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const filter = this.dataset.filter;
+    if (filter === 'catchball') {
+      this.classList.toggle('on');
+      activeFilters.catchball = this.classList.contains('on');
+    } else {
+      this.classList.toggle('on');
+      activeFilters[filter] = this.classList.contains('on');
+    }
+    applyFilters();
+  });
+});
+
+document.getElementById('hdr-search-input').addEventListener('input', function() {
+  document.getElementById('hdr-search-clear').classList.toggle('show', this.value.length > 0);
+  applyFilters();
+});
+
+document.getElementById('hdr-search-clear').addEventListener('click', function() {
+  document.getElementById('hdr-search-input').value = '';
+  this.classList.remove('show');
+  applyFilters();
+});
+
+document.getElementById('hbg').addEventListener('click', function() {
+  document.getElementById('sidebar').classList.toggle('open');
+  this.classList.toggle('open');
+});
+
+document.getElementById('park-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeParkModal();
+});
+
+/* ═══ INIT ═══ */
+document.addEventListener('DOMContentLoaded', initMap);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,21 @@
+# === セキュリティ関連 ===
+# Google Maps API キーは絶対に GitHub に上げない
+parks.config.js
+
+# === システムファイル ===
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# === IDE ===
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# === ローカル開発 ===
+node_modules/
+.env
+.env.local
