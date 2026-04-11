@@ -1,0 +1,292 @@
+/**
+ * 埼玉県公園データ
+ * 新しい公園を追加する場合は、この配列に追記してください。
+ */
+
+const parkData = [
+
+  // === 要確認公園（キャッチボール可否不明）===
+  { id:3, name:'氷川公園', city:'さいたま市', catchball:null, notes:'キャッチボール可否不明' },
+
+  // === キャッチボール可能公園（PARKFUL調査：231件）===
+  // さいたま市
+  { id:10,  name:'岩槻文化公園',       city:'さいたま市', catchball:true },
+  { id:11,  name:'別所沼公園',         city:'さいたま市', catchball:true },
+  { id:12,  name:'見沼自然公園',       city:'さいたま市', catchball:true },
+  { id:13,  name:'三橋総合公園',       city:'さいたま市', catchball:true },
+  // 与野公園はid:2に登録済み
+  { id:14,  name:'水判土公園',         city:'さいたま市', catchball:true },
+  { id:15,  name:'土屋公園',           city:'さいたま市', catchball:true },
+  { id:16,  name:'中元児童公園',       city:'さいたま市', catchball:true },
+  // 川越市
+  { id:17,  name:'増形緑地',           city:'川越市', catchball:true },
+  { id:18,  name:'高階運動広場',       city:'川越市', catchball:true },
+  { id:19,  name:'笠幡公園',           city:'川越市', catchball:true },
+  { id:20,  name:'安比奈親水公園',     city:'川越市', catchball:true },
+  { id:21,  name:'的場緑地',           city:'川越市', catchball:true },
+  { id:22,  name:'霞ヶ関東緑地',       city:'川越市', catchball:true },
+  { id:23,  name:'市民グランド',       city:'川越市', catchball:true },
+  { id:24,  name:'入間大橋緑地',       city:'川越市', catchball:true },
+  { id:25,  name:'雁見緑地',           city:'川越市', catchball:true },
+  { id:26,  name:'寺山緑地',           city:'川越市', catchball:true },
+  { id:27,  name:'平塚緑地',           city:'川越市', catchball:true },
+  { id:28,  name:'上戸緑地',           city:'川越市', catchball:true },
+  { id:29,  name:'高階南公共広場',     city:'川越市', catchball:true },
+  { id:30,  name:'かほく運動公園',     city:'川越市', catchball:true },
+  { id:31,  name:'スポーツパーク福原', city:'川越市', catchball:true },
+  // 熊谷市
+  { id:32,  name:'船木台中央公園',     city:'熊谷市', catchball:true },
+  { id:33,  name:'別府沼公園',         city:'熊谷市', catchball:true },
+  { id:34,  name:'妻沼運動公園',       city:'熊谷市', catchball:true },
+  { id:35,  name:'村岡荒川緑地',       city:'熊谷市', catchball:true },
+  { id:36,  name:'熊谷運動公園',       city:'熊谷市', catchball:true },
+  { id:37,  name:'みいずが原公園',     city:'熊谷市', catchball:true },
+  { id:38,  name:'玉井緑地',           city:'熊谷市', catchball:true },
+  { id:39,  name:'妻沼東運動公園',     city:'熊谷市', catchball:true },
+  { id:40,  name:'利根川総合運動公園', city:'熊谷市', catchball:true },
+  { id:41,  name:'久下荒川緑地',       city:'熊谷市', catchball:true },
+  { id:42,  name:'江南総合公園',       city:'熊谷市', catchball:true },
+  { id:43,  name:'万平公園',           city:'熊谷市', catchball:true },
+  { id:44,  name:'熊谷荒川緑地',       city:'熊谷市', catchball:true },
+  { id:45,  name:'荒川公園',           city:'熊谷市', catchball:true },
+  { id:46,  name:'南運動場',           city:'熊谷市', catchball:true },
+  { id:47,  name:'中央公園',           city:'熊谷市', catchball:true },
+  { id:48,  name:'外原公園',           city:'熊谷市', catchball:true },
+  { id:49,  name:'別府第2公園',        city:'熊谷市', catchball:true },
+  { id:50,  name:'妻沼西第2公園',      city:'熊谷市', catchball:true },
+  { id:51,  name:'籠原中央公園',       city:'熊谷市', catchball:true },
+  // 川口市
+  { id:52,  name:'柳崎公園',           city:'川口市', catchball:true },
+  { id:53,  name:'中青木公園',         city:'川口市', catchball:true },
+  { id:54,  name:'新郷西沼公園',       city:'川口市', catchball:true },
+  { id:55,  name:'戸塚赤道公園',       city:'川口市', catchball:true },
+  { id:56,  name:'戸塚藤谷公園',       city:'川口市', catchball:true },
+  { id:57,  name:'戸塚杉本公園',       city:'川口市', catchball:true },
+  { id:58,  name:'新郷東部公園',       city:'川口市', catchball:true },
+  // 行田市
+  { id:59,  name:'つきみちした公園',   city:'行田市', catchball:true },
+  { id:60,  name:'棚田中央公園',       city:'行田市', catchball:true },
+  { id:61,  name:'鶴土井公園',         city:'行田市', catchball:true },
+  { id:62,  name:'持田南公園',         city:'行田市', catchball:true },
+  { id:63,  name:'向町公園',           city:'行田市', catchball:true },
+  { id:64,  name:'行田市総合公園',     city:'行田市', catchball:true },
+  { id:65,  name:'見沼元圦公園',       city:'行田市', catchball:true },
+  { id:66,  name:'古代蓮の里',         city:'行田市', catchball:true },
+  { id:67,  name:'つるまき公園',       city:'行田市', catchball:true },
+  { id:68,  name:'長野中央公園',       city:'行田市', catchball:true },
+  // 所沢市
+  { id:69,  name:'東所沢公園',         city:'所沢市', catchball:true },
+  { id:70,  name:'亀ヶ谷公園',         city:'所沢市', catchball:true },
+  { id:71,  name:'椿峰中央公園',       city:'所沢市', catchball:true },
+  { id:72,  name:'北野公園',           city:'所沢市', catchball:true },
+  { id:73,  name:'滝の城址公園',       city:'所沢市', catchball:true },
+  { id:74,  name:'所沢カルチャーパーク', city:'所沢市', catchball:true },
+  { id:75,  name:'緑町中央公園',       city:'所沢市', catchball:true },
+  // 飯能市
+  { id:76,  name:'阿須運動公園',       city:'飯能市', catchball:true },
+  { id:77,  name:'岩沢運動公園',       city:'飯能市', catchball:true },
+  // 加須市
+  { id:78,  name:'ふるさと広場',       city:'加須市', catchball:true },
+  { id:79,  name:'藤ノ木公園',         city:'加須市', catchball:true },
+  { id:80,  name:'けやき公園',         city:'加須市', catchball:true },
+  { id:81,  name:'騎西城山公園',       city:'加須市', catchball:true },
+  { id:82,  name:'騎西中央公園',       city:'加須市', catchball:true },
+  { id:83,  name:'騎西総合公園',       city:'加須市', catchball:true },
+  { id:84,  name:'花崎北公園',         city:'加須市', catchball:true },
+  { id:85,  name:'豊野台公園',         city:'加須市', catchball:true },
+  { id:86,  name:'かぞインター公園',   city:'加須市', catchball:true },
+  { id:87,  name:'加須市民運動公園',   city:'加須市', catchball:true },
+  { id:88,  name:'大利根運動公園',     city:'加須市', catchball:true },
+  { id:89,  name:'加須北部公園',       city:'加須市', catchball:true },
+  { id:90,  name:'大利根西部公園',     city:'加須市', catchball:true },
+  { id:91,  name:'旧川ふるさと公園',   city:'加須市', catchball:true },
+  { id:92,  name:'不動岡北みどり公園', city:'加須市', catchball:true },
+  { id:93,  name:'鎮守前公園',         city:'加須市', catchball:true },
+  { id:94,  name:'渡良瀬総合グラウンド', city:'加須市', catchball:true },
+  // 本庄市
+  { id:95,  name:'本庄市万年寺下公園', city:'本庄市', catchball:true },
+  { id:96,  name:'本庄市城下公園',     city:'本庄市', catchball:true },
+  { id:97,  name:'本庄市宮内公園',     city:'本庄市', catchball:true },
+  // 東松山市
+  { id:98,  name:'松風公園',           city:'東松山市', catchball:true },
+  { id:99,  name:'唐子中央公園',       city:'東松山市', catchball:true },
+  { id:100, name:'五領沼公園',         city:'東松山市', catchball:true },
+  { id:101, name:'五領町近隣公園',     city:'東松山市', catchball:true },
+  { id:102, name:'岩鼻運動公園',       city:'東松山市', catchball:true },
+  { id:103, name:'折本山公園',         city:'東松山市', catchball:true },
+  { id:104, name:'新郷公園',           city:'東松山市', catchball:true },
+  { id:105, name:'千年谷公園',         city:'東松山市', catchball:true },
+  { id:106, name:'駒形公園',           city:'東松山市', catchball:true },
+  // 春日部市
+  { id:107, name:'薬師沼親水公園',     city:'春日部市', catchball:true },
+  { id:108, name:'豊野町第１公園',     city:'春日部市', catchball:true },
+  { id:109, name:'谷原第１公園',       city:'春日部市', catchball:true },
+  { id:110, name:'八幡公園',           city:'春日部市', catchball:true },
+  { id:111, name:'南栄町第１近隣公園', city:'春日部市', catchball:true },
+  { id:112, name:'牛島公園',           city:'春日部市', catchball:true },
+  { id:113, name:'庄和総合公園',       city:'春日部市', catchball:true },
+  { id:114, name:'旧倉松公園',         city:'春日部市', catchball:true },
+  { id:115, name:'大枝公園',           city:'春日部市', catchball:true },
+  { id:116, name:'大凧公園',           city:'春日部市', catchball:true },
+  { id:117, name:'東中野近隣公園',      city:'春日部市', catchball:true },
+  { id:118, name:'一の割公園',         city:'春日部市', catchball:true },
+  { id:119, name:'大沼公園',           city:'春日部市', catchball:true },
+  { id:120, name:'川久保公園',         city:'春日部市', catchball:true },
+  { id:121, name:'内牧公園',           city:'春日部市', catchball:true },
+  // 狭山市
+  { id:122, name:'県営）狭山稲荷山公園', city:'狭山市', catchball:true },
+  { id:123, name:'狭山稲荷山公園',     city:'狭山市', catchball:true },
+  { id:124, name:'鵜ノ木運動公園',     city:'狭山市', catchball:true },
+  { id:125, name:'狭山台中央公園',     city:'狭山市', catchball:true },
+  { id:126, name:'上奥富運動公園',     city:'狭山市', catchball:true },
+  { id:127, name:'智光山公園',         city:'狭山市', catchball:true },
+  { id:128, name:'新狭山公園',         city:'狭山市', catchball:true },
+  { id:129, name:'堀兼・上赤坂公園',   city:'狭山市', catchball:true },
+  { id:130, name:'広瀬台虹の橋公園',   city:'狭山市', catchball:true },
+  // 鴻巣市
+  { id:131, name:'下忍第一公園',       city:'鴻巣市', catchball:true },
+  { id:132, name:'筑波児童公園',       city:'鴻巣市', catchball:true },
+  { id:133, name:'下忍第二公園',       city:'鴻巣市', catchball:true },
+  { id:134, name:'袋ふれあい公園',     city:'鴻巣市', catchball:true },
+  // 深谷市
+  { id:135, name:'白草台運動公園',     city:'深谷市', catchball:true },
+  { id:136, name:'仙元山公園',         city:'深谷市', catchball:true },
+  { id:137, name:'上柴中央公園',       city:'深谷市', catchball:true },
+  { id:138, name:'北部運動公園',       city:'深谷市', catchball:true },
+  { id:139, name:'花園総合運動公園',   city:'深谷市', catchball:true },
+  { id:140, name:'柴崎公園',           city:'深谷市', catchball:true },
+  { id:141, name:'東公園',             city:'深谷市', catchball:true },
+  { id:142, name:'東方公園',           city:'深谷市', catchball:true },
+  { id:143, name:'常盤公園',           city:'深谷市', catchball:true },
+  { id:144, name:'花園水辺公園',       city:'深谷市', catchball:true },
+  // 上尾市
+  { id:145, name:'平塚公園',           city:'上尾市', catchball:true },
+  { id:146, name:'上平公園',           city:'上尾市', catchball:true },
+  { id:147, name:'ゆりが丘公園',       city:'上尾市', catchball:true },
+  { id:148, name:'こどもの城公園',     city:'上尾市', catchball:true },
+  { id:149, name:'浅間台大公園',       city:'上尾市', catchball:true },
+  { id:150, name:'鴨川中央公園',       city:'上尾市', catchball:true },
+  { id:151, name:'上尾丸山公園',       city:'上尾市', catchball:true },
+  { id:152, name:'小泉氷川山公園',     city:'上尾市', catchball:true },
+  { id:153, name:'中分スポーツ公園',   city:'上尾市', catchball:true },
+  // 草加市
+  { id:154, name:'谷塚第6公園',        city:'草加市', catchball:true },
+  // 越谷市
+  { id:155, name:'レイクタウン湖畔の森公園', city:'越谷市', catchball:true },
+  { id:156, name:'レイクタウンスポーツ公園', city:'越谷市', catchball:true },
+  // 戸田市
+  { id:157, name:'彩湖・道満グリーンパーク', city:'戸田市', catchball:true },
+  { id:158, name:'ボール公園',         city:'戸田市', catchball:true },
+  { id:159, name:'芦原ちびっこ広場',   city:'戸田市', catchball:true },
+  // 入間市
+  { id:160, name:'富士見公園',         city:'入間市', catchball:true },
+  { id:161, name:'県営）彩の森入間公園', city:'入間市', catchball:true },
+  { id:162, name:'彩の森入間公園',     city:'入間市', catchball:true },
+  { id:163, name:'新光中央公園',       city:'入間市', catchball:true },
+  // 朝霞市
+  { id:164, name:'朝霞中央公園',       city:'朝霞市', catchball:true },
+  { id:165, name:'北朝霞公園',         city:'朝霞市', catchball:true },
+  { id:166, name:'いずみ公園',         city:'朝霞市', catchball:true },
+  { id:167, name:'青葉台公園',         city:'朝霞市', catchball:true },
+  // 新座市
+  { id:168, name:'総合運動公園',       city:'新座市', catchball:true },
+  // 桶川市
+  { id:169, name:'城山公園',           city:'桶川市', catchball:true },
+  { id:170, name:'駅西口公園',         city:'桶川市', catchball:true },
+  { id:171, name:'桶川市子ども公園わんぱく村', city:'桶川市', catchball:true },
+  { id:172, name:'舎人公園',           city:'桶川市', catchball:true },
+  { id:173, name:'下日出谷中央公園',   city:'桶川市', catchball:true },
+  // 久喜市
+  { id:174, name:'県営）権現堂公園',   city:'久喜市', catchball:true },
+  { id:175, name:'権現堂公園',         city:'久喜市', catchball:true },
+  { id:176, name:'森下緑地グラウンド', city:'久喜市', catchball:true },
+  { id:177, name:'久喜市総合運動公園', city:'久喜市', catchball:true },
+  { id:178, name:'清久公園',           city:'久喜市', catchball:true },
+  { id:179, name:'桜田運動公園',       city:'久喜市', catchball:true },
+  { id:180, name:'上大崎運動公園',     city:'久喜市', catchball:true },
+  { id:181, name:'あやめ公園',         city:'久喜市', catchball:true },
+  { id:182, name:'寺田緑地グラウンド', city:'久喜市', catchball:true },
+  { id:183, name:'青葉公園',           city:'久喜市', catchball:true },
+  // 北本市
+  { id:184, name:'深井スポーツ広場',   city:'北本市', catchball:true },
+  { id:185, name:'天神下公園',         city:'北本市', catchball:true },
+  { id:186, name:'高尾スポーツ広場',   city:'北本市', catchball:true },
+  { id:187, name:'中丸スポーツ広場',   city:'北本市', catchball:true },
+  // 蓮田市
+  { id:188, name:'黒浜公園',           city:'蓮田市', catchball:true },
+  { id:189, name:'堂山公園',           city:'蓮田市', catchball:true },
+  { id:190, name:'根ヶ谷戸公園',       city:'蓮田市', catchball:true },
+  { id:191, name:'山ノ内公園',         city:'蓮田市', catchball:true },
+  { id:192, name:'西城沼公園',         city:'蓮田市', catchball:true },
+  { id:193, name:'中道公園',           city:'蓮田市', catchball:true },
+  // 坂戸市
+  { id:194, name:'芦山公園',           city:'坂戸市', catchball:true },
+  { id:195, name:'坂戸市民総合運動公園', city:'坂戸市', catchball:true },
+  { id:196, name:'稲荷久保公園',       city:'坂戸市', catchball:true },
+  { id:197, name:'溝端公園',           city:'坂戸市', catchball:true },
+  // 幸手市
+  { id:198, name:'神扇グラウンド',     city:'幸手市', catchball:true },
+  { id:199, name:'幸手総合公園',       city:'幸手市', catchball:true },
+  { id:200, name:'上吉羽中央公園',     city:'幸手市', catchball:true },
+  { id:201, name:'上吉羽西公園',       city:'幸手市', catchball:true },
+  { id:202, name:'千塚西公園',         city:'幸手市', catchball:true },
+  // 鶴ヶ島市
+  { id:203, name:'鶴ヶ島市運動公園',   city:'鶴ヶ島市', catchball:true },
+  { id:204, name:'鶴ヶ島南近隣公園',   city:'鶴ヶ島市', catchball:true },
+  { id:205, name:'脚折近隣公園',       city:'鶴ヶ島市', catchball:true },
+  { id:206, name:'富士見中央近隣公園', city:'鶴ヶ島市', catchball:true },
+  // 日高市
+  { id:207, name:'巾着田曼珠沙華公園', city:'日高市', catchball:true },
+  { id:208, name:'日高総合公園',       city:'日高市', catchball:true },
+  { id:209, name:'丘の上公園',         city:'日高市', catchball:true },
+  // ふじみ野市
+  { id:210, name:'西ノ原中央公園',     city:'ふじみ野市', catchball:true },
+  { id:211, name:'福岡中央公園',       city:'ふじみ野市', catchball:true },
+  // 白岡市
+  { id:212, name:'高岩公園',           city:'白岡市', catchball:true },
+  { id:213, name:'ふれあいの森公園',   city:'白岡市', catchball:true },
+  { id:214, name:'白岡公園',           city:'白岡市', catchball:true },
+  { id:215, name:'白岡市総合運動公園', city:'白岡市', catchball:true },
+  // 伊奈町
+  { id:216, name:'伊奈町制施行記念公園', city:'伊奈町', catchball:true },
+  { id:217, name:'内宿台公園',         city:'伊奈町', catchball:true },
+  { id:218, name:'中部公園',           city:'伊奈町', catchball:true },
+  // 毛呂山町
+  { id:219, name:'毛呂山総合公園',     city:'毛呂山町', catchball:true },
+  // 滑川町
+  { id:220, name:'都第一公園',         city:'滑川町', catchball:true },
+  // 嵐山町
+  { id:221, name:'菅谷公園',           city:'嵐山町', catchball:true },
+  { id:222, name:'蜻蛉橋上緑地',       city:'嵐山町', catchball:true },
+  { id:223, name:'志賀２区第１公園',   city:'嵐山町', catchball:true },
+  { id:224, name:'花見台第２公園',     city:'嵐山町', catchball:true },
+  { id:225, name:'花見台第１公園',     city:'嵐山町', catchball:true },
+  // 小川町
+  { id:226, name:'みどりが丘中央公園', city:'小川町', catchball:true },
+  // 吉見町
+  { id:227, name:'南部緑地',           city:'吉見町', catchball:true },
+  { id:228, name:'東部緑地',           city:'吉見町', catchball:true },
+  { id:229, name:'ふれあい広場',       city:'吉見町', catchball:true },
+  // 皆野町
+  { id:230, name:'皆野スポーツ公園',   city:'皆野町', catchball:true },
+  // 神川町
+  { id:231, name:'新宿ふれあい公園',   city:'神川町', catchball:true },
+  { id:232, name:'神川ゆ～ゆ～ランド', city:'神川町', catchball:true },
+  // 上里町
+  { id:233, name:'烏川・神流川総合運動公園', city:'上里町', catchball:true },
+  // 寄居町
+  { id:234, name:'寄居運動公園',       city:'寄居町', catchball:true },
+  // 宮代町
+  { id:235, name:'はらっパーク宮代',   city:'宮代町', catchball:true },
+  // 杉戸町
+  { id:236, name:'杉戸西近隣公園',     city:'杉戸町', catchball:true },
+  { id:237, name:'倉松公園',           city:'杉戸町', catchball:true },
+  // 松伏町
+  { id:238, name:'県営）まつぶし緑の丘公園', city:'松伏町', catchball:true },
+  { id:239, name:'まつぶし緑の丘公園', city:'松伏町', catchball:true },
+  { id:240, name:'田島東公園',         city:'松伏町', catchball:true },
+  { id:241, name:'松伏記念公園',       city:'松伏町', catchball:true },
+  { id:242, name:'松伏総合公園',       city:'松伏町', catchball:true },
+  { id:243, name:'かがり火公園',       city:'松伏町', catchball:true },
+
+];
