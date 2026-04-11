@@ -13,3 +13,4 @@
  */
 
 const API_KEY = 'YOUR_API_KEY_HERE';
+const GAS_URL = 'YOUR_GAS_WEBAPP_URL_HERE';
