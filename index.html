@@ -12,11 +12,16 @@
   <meta name="description" content="埼玉県63市町村・2,143チームの野球競技者データを地図で可視化。少年野球チーム検索、参加率ランキング、市区町村比較など。">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>埼玉県野球競技者人口マップ | 埼玉県野球協議会</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" crossorigin="anonymous">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" crossorigin="anonymous"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.min.css" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.min.css" crossorigin="anonymous">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js" crossorigin="anonymous"></script>
+<!-- Google Maps + MarkerClusterer -->
+<script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
+<script>
+  const API_KEY = 'AIzaSyDwTAz9qqQPnbARWe_vd8Vo2LXgDygCyN0';
+  window.initMapCallback = function() { initMap(); };
+  const _s = document.createElement('script');
+  _s.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places,marker,visualization&callback=initMapCallback&loading=async`;
+  _s.async = true;
+  document.head.appendChild(_s);
+</script>
 <style>
 /* ═══ COLOR SYSTEM (Stripe-inspired) ═══
   Data identity (categories — unchanged):
@@ -222,13 +227,10 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
 .bnav-badge{position:absolute;top:4px;right:calc(50% - 16px);background:var(--danger);color:#fff;border-radius:8px;font-size:9px;font-weight:700;padding:1px 4px;display:none}
 .bnav-badge.show{display:block}
 
-/* ── LEAFLET OVERRIDES ── */
-.leaflet-popup-content-wrapper{background:var(--surface-1);border:1px solid var(--border);color:var(--ink);border-radius:6px;box-shadow:rgba(50,50,93,0.2) 0 14px 28px -14px,rgba(0,0,0,0.1) 0 8px 16px -8px}
-.leaflet-popup-tip{background:var(--surface-1)}
-.leaflet-popup-pane{z-index:2500!important}
-.leaflet-tooltip-pane{z-index:2600!important}
-.leaflet-interactive:focus{outline:none!important}
-path.leaflet-interactive:focus{outline:none!important}
+/* ── GOOGLE MAPS OVERRIDES ── */
+.gm-style .gm-style-iw-c{border-radius:6px!important;box-shadow:rgba(50,50,93,0.2) 0 14px 28px -14px,rgba(0,0,0,0.1) 0 8px 16px -8px!important;padding:0!important}
+.gm-style .gm-style-iw-d{overflow:hidden!important}
+.gm-style .gm-style-iw-t::after{display:none}
 
 /* ── HEADER SEARCH ── */
 #hdr-search-wrap{position:relative;display:flex;align-items:center;margin-left:8px;flex-shrink:0}
@@ -379,7 +381,6 @@ path.leaflet-interactive:focus{outline:none!important}
   #tlp-body{padding:6px}
   .tlp-close{width:36px;height:36px;font-size:15px}
   #nearby-panel{width:100%;right:0;border-radius:0;border-left:none;bottom:52px}
-  .leaflet-popup-content-wrapper{max-width:calc(100vw - 40px)!important}
   .team-popup-wrap{max-width:calc(100vw - 60px)}
   .chart-box{width:95%;max-height:85vh;padding:12px}
   .rank-city{font-size:11px}
@@ -387,7 +388,7 @@ path.leaflet-interactive:focus{outline:none!important}
 }
 
 /* ── TOOLTIP ── */
-.tt{background:var(--surface-1);border:1px solid var(--border);color:var(--ink);font-size:11px;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.gm-tooltip{background:var(--surface-1);border:1px solid var(--border);color:var(--ink);font-size:11px;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.08);padding:3px 8px;pointer-events:none;white-space:nowrap}
 
 /* ── TEAM LIST ── */
 .tlp-tags{display:flex;flex-wrap:wrap;gap:3px;margin-top:3px}
@@ -706,7 +707,7 @@ path.leaflet-interactive:focus{outline:none!important}
     </div>
     <div id="sidebar-copyright" style="margin-top:8px;padding-top:8px;border-top:1px solid #dde5ef;font-size:9px;color:#999;text-align:center;line-height:1.8;">
       © 埼玉県野球協議会<br>
-      <span style="font-size:8px;">地図: <a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener noreferrer" style="color:#999;">国土地理院</a>　地図ライブラリ: <a href="https://leafletjs.com" target="_blank" rel="noopener" style="color:#999;">Leaflet</a></span>
+      <span style="font-size:8px;">地図: <a href="https://maps.google.com" target="_blank" rel="noopener" style="color:#999;">Google Maps</a></span>
     </div>
   </div><!-- /sidebar -->
   <!-- バックドロップ -->
@@ -905,7 +906,7 @@ let choroLayer      = null;
 let popupLayer      = null; // ヒートマップ/バブル時のポップアップ用透明オーバーレイ
 let bubbleLayer     = null;
 let bubbleMarkers   = [];
-let heatLayer       = null;
+let heatLayer       = null; let _gmDataLayer = null; let _gmBubbleItems = [];
 let markerGroup     = null;
 let showPins        = true;
 let teamPinLayers   = [];
@@ -929,68 +930,38 @@ window.onerror=function(msg,src,line,col,err){
   console.error('[GLOBAL ERROR]',msg,'@',src,line+':'+col);
   return false;
 };
-document.addEventListener('DOMContentLoaded',()=>{
+window.initMap = function() {
+  // Google Maps HeatmapLayer ラッパー
   class HeatLayer {
-  constructor(pts){ this._pts=pts; this._map=null; this._c=null; }
-  addTo(map){
-    this._map=map;
-    this._c=document.createElement('canvas');
-    this._c.style.cssText='position:absolute;top:0;left:0;pointer-events:none;z-index:450;';
-    map.getContainer().appendChild(this._c);
-    this._boundDraw=()=>this._draw();
-    this._boundResize=()=>this._resize();
-    this._resize();
-    map.on('move zoom resize moveend zoomend',this._boundDraw);
-    map.on('resize',this._boundResize);
-    this._draw();
-    return this;
-  }
-  remove(){
-    if(!this._map||!this._c) return;
-    this._map.off('move zoom resize moveend zoomend',this._boundDraw);
-    this._map.off('resize',this._boundResize);
-    if(this._c.parentNode) this._c.parentNode.removeChild(this._c);
-    this._map=null; this._c=null;
-  }
-  setData(pts){ this._pts=pts; this._draw(); }
-  _resize(){
-    if(!this._map||!this._c) return;
-    const sz=this._map.getSize();
-    this._c.width=sz.x; this._c.height=sz.y;
-    this._c.style.width=sz.x+'px'; this._c.style.height=sz.y+'px';
-  }
-  _draw(){
-    if(!this._map||!this._c) return;
-    const m=this._map,c=this._c;
-    const ctx=c.getContext('2d');
-    ctx.clearRect(0,0,c.width,c.height);
-    if(!this._pts||!this._pts.length) return;
-    const R=42,sh=document.createElement('canvas');
-    sh.width=c.width; sh.height=c.height;
-    const sc=sh.getContext('2d');
-    this._pts.forEach(([la,ln,it])=>{
-      const p=m.latLngToContainerPoint([la,ln]);
-      const g=sc.createRadialGradient(p.x,p.y,0,p.x,p.y,R);
-      g.addColorStop(0,`rgba(0,0,0,${Math.min(1,it)})`);
-      g.addColorStop(1,'rgba(0,0,0,0)');
-      sc.fillStyle=g; sc.fillRect(p.x-R,p.y-R,R*2,R*2);
-    });
-    const id=sc.getImageData(0,0,c.width,c.height),px=id.data,pal=this._pal();
-    for(let i=3;i<px.length;i+=4){
-      const a=px[i];
-      if(a>0){const x=a*4;px[i-3]=pal[x];px[i-2]=pal[x+1];px[i-1]=pal[x+2];px[i]=Math.min(255,a*2.5);}
+    constructor(pts){ this._pts = pts; this._layer = null; }
+    addTo(map){
+      const data = this._pts.map(([lat, lng, w]) => ({
+        location: new google.maps.LatLng(lat, lng),
+        weight: Math.max(0.01, w)
+      }));
+      this._layer = new google.maps.visualization.HeatmapLayer({
+        data,
+        radius: 40,
+        opacity: 0.75,
+        gradient: ['rgba(0,0,128,0)','#0000ff','#00ffff','#00ff00','#ffff00','#ff8800','#ff0000'],
+        map
+      });
+      return this;
     }
-    ctx.putImageData(id,0,0);
+    remove(){
+      if(this._layer){ this._layer.setMap(null); this._layer = null; }
+    }
+    setData(pts){
+      this._pts = pts;
+      if(this._layer){
+        const data = pts.map(([lat, lng, w]) => ({
+          location: new google.maps.LatLng(lat, lng),
+          weight: Math.max(0.01, w)
+        }));
+        this._layer.setData(data);
+      }
+    }
   }
-  _pal(){
-    const c=document.createElement('canvas');c.width=256;c.height=1;
-    const ctx=c.getContext('2d'),g=ctx.createLinearGradient(0,0,256,0);
-    g.addColorStop(0,'#000080');g.addColorStop(.2,'#0000ff');g.addColorStop(.4,'#00ffff');
-    g.addColorStop(.6,'#00ff00');g.addColorStop(.75,'#ffff00');g.addColorStop(.9,'#ff8800');g.addColorStop(1,'#ff0000');
-    ctx.fillStyle=g;ctx.fillRect(0,0,256,1);
-    return ctx.getImageData(0,0,256,1).data;
-  }
-}
   function getFiltered() {
     const base = useWardView
       ? [...wardData, ...cityData.filter(d=>d.city!=='さいたま市')]
@@ -998,7 +969,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     let result = base.filter(d=>activeRegions.has(d.region));
     if(areaFilterActive){
       const bounds = map.getBounds();
-      result = result.filter(d => d.lat && d.lng && bounds.contains([d.lat, d.lng]));
+      result = result.filter(d => d.lat && d.lng && bounds.contains(new google.maps.LatLng(d.lat, d.lng)));
     }
     return result;
   }
@@ -1172,32 +1143,21 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(currentGender==='all') return (d[c+'_m']||0)+(d[c+'_f']||0);
     return currentGender==='male'?d[c+'_m']||0:d[c+'_f']||0;
   }
-  const map=L.map('map',{center:[36.0,139.4],zoom:9,zoomControl:true});
-  // 初期表示：埼玉県全域にfitBounds
-  const SAITAMA_BOUNDS = [[35.77, 138.95], [36.28, 139.92]]; // 東松山付近を中心に
-  // 確実にサイズ再計算（iframe埋め込み時にも有効）
-  setTimeout(()=>map.invalidateSize(),300);
-  // ── タイル読み込みエラー処理 ──────────────────────────────
-  var _tileErrorTimer = null;
-  map.on('tileerror', function() {
-    var toast = document.getElementById('tile-error-toast');
-    if (!toast) return;
-    toast.classList.add('show');
-    clearTimeout(_tileErrorTimer);
-    _tileErrorTimer = setTimeout(function() { toast.classList.remove('show'); }, 4000);
+  // ── Google Maps 初期化 ──
+  const SAITAMA_BOUNDS_ARRAY = [[35.77, 138.95], [36.28, 139.92]];
+  const map = new google.maps.Map(document.getElementById('map'), {
+    center: { lat: 36.0, lng: 139.4 },
+    zoom: 9,
+    mapId: 'DEMO_MAP_ID',
+    mapTypeControl: false,
+    fullscreenControl: false,
+    streetViewControl: false,
+    zoomControl: true,
   });
-  map.on('tileload', function() {
-    clearTimeout(_tileErrorTimer);
-    var toast = document.getElementById('tile-error-toast');
-    if (toast) toast.classList.remove('show');
-  });
-  // タイルレイヤー: 国土地理院（日本語地名・道路名表示）
-  // ブラウザで開くと正常に表示されます
-  L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener noreferrer">国土地理院</a>',
-    maxZoom: 18,
-    errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
-  }).addTo(map);
+  const SAITAMA_BOUNDS = new google.maps.LatLngBounds(
+    {lat: 35.77, lng: 138.95},
+    {lat: 36.28, lng: 139.92}
+  );
   function maxVal(){
     const base=useWardView?[...wardData,...cityData.filter(d=>d.city!=='さいたま市')]:cityData;
     return Math.max(...base.map(getDisplayVal),1);
@@ -1212,105 +1172,107 @@ document.addEventListener('DOMContentLoaded',()=>{
   function removeHeat(){if(heatLayer){heatLayer.remove();heatLayer=null;}}
   // ── BUBBLE ──
   function updateBubble(data){
-    bubbleMarkers.forEach(m=>map.removeLayer(m));bubbleMarkers=[];
+    removeBubble();
     const mx=maxVal();
+    const iw = new google.maps.InfoWindow();
     data.forEach(d=>{
       const v=getDisplayVal(d),r=Math.sqrt(v/mx)*30+4;
       const pct=v/mx;
       const col=pct>.7?'#ff3300':pct>.45?'#ff8800':pct>.25?'#ffcc00':pct>.12?'#00ee88':'#0088ff';
-      const m=L.circleMarker([d.lat,d.lng],{radius:r,fillColor:col,color:'rgba(255,255,255,0.35)',weight:1,fillOpacity:.7});
-      m.bindPopup(popupHTML(d));
-      m.bindTooltip(`${d.city} ${v}人`,{className:'tt',direction:'top',offset:[0,-4]});
-      m.addTo(map);bubbleMarkers.push(m);
+      const el=document.createElement('div');
+      el.style.cssText=`width:${r*2}px;height:${r*2}px;border-radius:50%;background:${col};opacity:.7;border:1px solid rgba(255,255,255,.35);cursor:pointer`;
+      const m=new google.maps.marker.AdvancedMarkerElement({position:{lat:d.lat,lng:d.lng},content:el,title:d.city,map});
+      m._data=d;
+      m.addListener('click',()=>{iw.setContent(popupHTML(d));iw.open(map,m);});
+      bubbleMarkers.push(m);
     });
   }
-  function removeBubble(){bubbleMarkers.forEach(m=>map.removeLayer(m));bubbleMarkers=[];}
+  function removeBubble(){bubbleMarkers.forEach(m=>m.map=null);bubbleMarkers=[];}
   // ── CHORO ──
   // ヒートマップ/バブル用・透明ポップアップオーバーレイ
+  let _popupInfoWindow = null;
+  function _getPopupIW() {
+    if (!_popupInfoWindow) _popupInfoWindow = new google.maps.InfoWindow();
+    return _popupInfoWindow;
+  }
   function initPopupLayer() {
-    if (popupLayer) { map.removeLayer(popupLayer); popupLayer = null; }
+    if (popupLayer) { popupLayer.setMap(null); popupLayer = null; }
     const geo = useWardView ? geoDataWard : geoDataCity;
-    popupLayer = L.geoJSON(geo, {
-      style: { fillOpacity: 0, color: 'transparent', weight: 0 },
-      onEachFeature(feat, layer) {
-        const d = cityMap[feat.properties.name || ''];
-        if (!d) return;
-        layer.bindPopup(popupHTML(d));
-        layer.on('click', function() {
-          const bounds = layer.getBounds();
-          layer.openPopup(bounds.getCenter());
-          _filterCityOnly(d.city);
-          setTimeout(_panForPopup, 300);
-        });
-      }
+    popupLayer = new google.maps.Data({map: null});
+    popupLayer.addGeoJson(geo);
+    popupLayer.setStyle({ fillOpacity: 0, strokeOpacity: 0, strokeWeight: 0 });
+    popupLayer.addListener('click', function(event) {
+      const name = event.feature.getProperty('name') || '';
+      const d = cityMap[name];
+      if (!d) return;
+      const iw = _getPopupIW();
+      iw.setContent(popupHTML(d));
+      iw.setPosition(event.latLng);
+      iw.open(map);
+      _filterCityOnly(d.city);
+      setTimeout(_panForPopup, 300);
     });
   }
   function showPopupLayer() {
     if (!popupLayer) initPopupLayer();
-    if (!map.hasLayer(popupLayer)) popupLayer.addTo(map);
+    popupLayer.setMap(map);
   }
   function hidePopupLayer() {
-    if (popupLayer && map.hasLayer(popupLayer)) map.removeLayer(popupLayer);
+    if (popupLayer) popupLayer.setMap(null);
   }
 
   function updateChoro(){
-    if(choroLayer){map.removeLayer(choroLayer);choroLayer=null;}
-    // 動的スケール: 表示中データの最大値をキャッシュ
+    if(choroLayer){choroLayer.setMap(null);choroLayer=null;}
     const base = useWardView
       ? [...wardData,...cityData.filter(d=>d.city!=='さいたま市')]
       : cityData;
     let activeData = base.filter(d => activeRegions.has(d.region));
     if(areaFilterActive){
       const bounds = map.getBounds();
-      activeData = activeData.filter(d => d.lat && d.lng && bounds.contains([d.lat, d.lng]));
+      activeData = activeData.filter(d => d.lat && d.lng && bounds.contains(new google.maps.LatLng(d.lat, d.lng)));
     }
     _choroMaxCache = Math.max(1, ...activeData.map(d => calcVal(d)));
     _choroSortedCache = activeData.map(d=>calcVal(d)).filter(v=>v>0).sort((a,b)=>a-b);
     _choroRateSortedCache = activeData.map(d=>calcRate(d)).filter(v=>v>0).sort((a,b)=>a-b);
     _choroRateMaxCache = Math.max(1, ...activeData.map(d => calcRate(d)));
-    const geo=useWardView?geoDataWard:geoDataCity;
-    choroLayer=L.geoJSON(geo,{
-      style(feat){
-        const name=feat.properties.name||'';
-        const d=cityMap[name];
-        if(!d||!activeRegions.has(d.region)) return{fillColor:'#f5f5f5',color:'#e0e0de',weight:.8,fillOpacity:.5};
-        // エリアフィルター: 範囲外はグレーアウト
-        if(areaFilterActive && d.lat && d.lng && !map.getBounds().contains([d.lat,d.lng]))
-          return{fillColor:'#e8eef4',color:'#e0e0de',weight:.5,fillOpacity:.3};
-        const dv = currentIndex==='rate'?calcRate(d):calcVal(d);
-        const fc = currentIndex==='rate'?choroColorRate(dv,_choroRateMaxCache):choroColor(dv,_choroMaxCache);
-        return{fillColor:fc,color:'rgba(255,255,255,0.6)',weight:1,fillOpacity:.85};
-      },
-      onEachFeature(feat,layer){
-        const d=cityMap[feat.properties.name||''];
-        if(d){
-          layer.bindPopup(popupHTML(d));
-          layer.bindTooltip(`${d.city} ${calcVal(d)}人`,{className:'tt',direction:'top'});
-          layer.on('mouseover',function(){
-            this.setStyle({weight:2,color:'rgba(255,255,255,0.9)',fillOpacity:.95});
-            this._isPopupOpen = false;
-          });
-          layer.on('mouseout',function(){
-            if(!this._isPopupOpen && choroLayer) choroLayer.resetStyle(this);
-          });
-          layer.on('popupopen',function(){
-            this._isPopupOpen = true;
-            this.setStyle({weight:2,color:'rgba(255,255,255,0.9)',fillOpacity:.92});
-            // チームリストをこの市町村で絞り込む（ズーム・ポップアップ再表示はしない）
-            _filterCityOnly(d.city);
-            _panForPopup();
-          });
-          layer.on('popupclose',function(){
-            this._isPopupOpen = false;
-            if(choroLayer) choroLayer.resetStyle(this);
-            // チームリスト絞り込みを解除
-            _filterCityOnly(null);
-          });
-        }
-      }
-    }).addTo(map);
+    const geo = useWardView ? geoDataWard : geoDataCity;
+    const iw = new google.maps.InfoWindow();
+    choroLayer = new google.maps.Data({map});
+    choroLayer.addGeoJson(geo);
+    choroLayer.setStyle(function(feature){
+      const name = feature.getProperty('name') || '';
+      const d = cityMap[name];
+      if(!d || !activeRegions.has(d.region)) return {fillColor:'#f5f5f5',strokeColor:'#e0e0de',strokeWeight:0.8,fillOpacity:0.5};
+      if(areaFilterActive && d.lat && d.lng && !map.getBounds().contains(new google.maps.LatLng(d.lat, d.lng)))
+        return {fillColor:'#e8eef4',strokeColor:'#e0e0de',strokeWeight:0.5,fillOpacity:0.3};
+      const dv = currentIndex==='rate' ? calcRate(d) : calcVal(d);
+      const fc = currentIndex==='rate' ? choroColorRate(dv,_choroRateMaxCache) : choroColor(dv,_choroMaxCache);
+      return {fillColor:fc,strokeColor:'rgba(255,255,255,0.6)',strokeWeight:1,fillOpacity:0.85};
+    });
+    choroLayer.addListener('mouseover', function(event){
+      choroLayer.overrideStyle(event.feature, {strokeWeight:2,strokeColor:'rgba(255,255,255,0.9)',fillOpacity:0.95});
+    });
+    choroLayer.addListener('mouseout', function(event){
+      choroLayer.revertStyle(event.feature);
+    });
+    choroLayer.addListener('click', function(event){
+      const name = event.feature.getProperty('name') || '';
+      const d = cityMap[name];
+      if(!d) return;
+      iw.setContent(popupHTML(d));
+      iw.setPosition(event.latLng);
+      iw.open(map);
+      choroLayer.overrideStyle(event.feature,{strokeWeight:2,strokeColor:'rgba(255,255,255,0.9)',fillOpacity:0.92});
+      _filterCityOnly(d.city);
+      setTimeout(() => {
+        google.maps.event.addListenerOnce(iw, 'closeclick', () => {
+          choroLayer.revertStyle(event.feature);
+          _filterCityOnly(null);
+        });
+      }, 0);
+    });
   }
-  function removeChoro(){if(choroLayer){map.removeLayer(choroLayer);choroLayer=null;}}
+  function removeChoro(){if(choroLayer){choroLayer.setMap(null);choroLayer=null;}}
   // ── UPDATE ALL ──
   const RANK_CAT_COLORS = {all:'#555',elem:'#3b82f6',jhs:'#059669',hs:'#d97706',univ:'#7c3aed',club:'#dc2626',independent:'#64748b'};
   function calcValForCat(d, cat) {
@@ -1460,9 +1422,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   setTimeout(() => {
     const sidebarW = window.innerWidth > 768 ? 280 : 0;
     map.fitBounds(SAITAMA_BOUNDS, {
-      paddingTopLeft: [sidebarW + 10, 10],
-      paddingBottomRight: [10, 10],
-      animate: false
+      left: sidebarW + 10, top: 10, right: 10, bottom: 10
     });
   }, 100);
   // ── CONTROLS ──
@@ -1683,10 +1643,13 @@ document.addEventListener('DOMContentLoaded',()=>{
       // ピンのマーカーを名前で検索（座標ずれを考慮）
       const _findAndOpenPin = () => {
         let found = false;
-        teamPinLayers.forEach(layer => {
-          if (layer._teamName === t.name) {
-            if(teamClusterGroup) teamClusterGroup.zoomToShowLayer(layer, ()=>layer.openPopup());
-            else layer.openPopup();
+        teamPinLayers.forEach(marker => {
+          if (marker._teamName === t.name) {
+            map.setCenter(marker.position); map.setZoom(15);
+            setTimeout(() => {
+              const _iw = new google.maps.InfoWindow({content: teamPopupHTML(t)});
+              _iw.open(map, marker);
+            }, 300);
             found = true;
           }
         });
@@ -1698,7 +1661,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       const _lat = _pc ? _pc[0] : t.lat;
       const _lng = _pc ? _pc[1] : t.lng;
       if (_lat && _lng) {
-        map.setView([_lat, _lng], 16, {animate:true});
+        map.setCenter({lat:_lat, lng:_lng}); map.setZoom(16);
         setTimeout(_findAndOpenPin, 500);
       }
     } else {
@@ -1706,14 +1669,12 @@ document.addEventListener('DOMContentLoaded',()=>{
       const cityEntry = (useWardView?[...wardData,...cityData.filter(x=>x.city!=='さいたま市')]:cityData)
         .find(x=>x.city===t.city);
       if (cityEntry) {
-        map.setView([cityEntry.lat, cityEntry.lng], 13, {animate:true});
+        map.setCenter({lat:cityEntry.lat, lng:cityEntry.lng}); map.setZoom(13);
         // チーム情報のポップアップを表示
         setTimeout(() => {
-          const _pw = Math.min(260, window.innerWidth - 48);
-          L.popup({maxWidth:_pw, minWidth:Math.min(200,_pw)})
-            .setLatLng([cityEntry.lat, cityEntry.lng])
-            .setContent(teamPopupHTML(t))
-            .openOn(map);
+          const _iw = new google.maps.InfoWindow({content: teamPopupHTML(t)});
+          _iw.setPosition(new google.maps.LatLng(cityEntry.lat, cityEntry.lng));
+          _iw.open(map);
           _panForPopup();
         }, 400);
       }
@@ -1795,67 +1756,31 @@ document.addEventListener('DOMContentLoaded',()=>{
       const _lat = _pc ? _pc[0] : t.lat;
       const _lng = _pc ? _pc[1] : t.lng;
       if (_lat && _lng) {
-        map.setView([_lat, _lng], 16, {animate:true});
+        map.setCenter({lat:_lat, lng:_lng}); map.setZoom(16);
         if (window.innerWidth <= 768) window.closeTeamList();
         setTimeout(() => {
-          teamPinLayers.forEach(layer => {
-            if (layer._teamName === t.name) {
-              if(teamClusterGroup) teamClusterGroup.zoomToShowLayer(layer, ()=>layer.openPopup());
-              else layer.openPopup();
+          teamPinLayers.forEach(marker => {
+            if (marker._teamName === t.name) {
+              map.setCenter(marker.position); map.setZoom(15);
+              setTimeout(() => {
+                const _iw = new google.maps.InfoWindow({content: teamPopupHTML(t)});
+                _iw.open(map, marker);
+              }, 300);
             }
           });
         }, 500);
       }
     } else {
       // 非小学生カテゴリ：市町村にズーム＋チーム情報ポップアップ表示
-      if (choroLayer) {
-        let found = false;
-        choroLayer.eachLayer(layer => {
-          if (found) return;
-          const nm = layer.feature && layer.feature.properties && layer.feature.properties.name;
-          const d = cityMap[nm];
-          if (!d || d.city !== t.city) return;
-          found = true;
-          const bounds = layer.getBounds();
-          const center = bounds.getCenter();
-          map.fitBounds(bounds, { paddingTopLeft:[40,40], paddingBottomRight:[40,80], maxZoom:13, animate:true });
-          if (window.innerWidth <= 768) window.closeTeamList();
-          setTimeout(() => {
-            const _pw = Math.min(260, window.innerWidth - 48);
-            L.popup({maxWidth:_pw, minWidth:Math.min(200,_pw)})
-              .setLatLng(center)
-              .setContent(teamPopupHTML(t))
-              .openOn(map);
-            _panForPopup();
-          }, 400);
-        });
-        if (!found) {
-          const ce = (useWardView?[...wardData,...cityData.filter(x=>x.city!=='さいたま市')]:cityData).find(x=>x.city===t.city);
-          if (ce) {
-            map.setView([ce.lat, ce.lng], 13, {animate:true});
-            setTimeout(() => {
-              const _pw = Math.min(260, window.innerWidth - 48);
-              L.popup({maxWidth:_pw, minWidth:Math.min(200,_pw)})
-                .setLatLng([ce.lat, ce.lng])
-                .setContent(teamPopupHTML(t))
-                .openOn(map);
-              _panForPopup();
-            }, 400);
-          }
-        }
-      } else {
-        const ce = (useWardView?[...wardData,...cityData.filter(x=>x.city!=='さいたま市')]:cityData).find(x=>x.city===t.city);
-        if (ce) {
-          map.setView([ce.lat, ce.lng], 13, {animate:true});
-          setTimeout(() => {
-            const _pw = Math.min(260, window.innerWidth - 48);
-            L.popup({maxWidth:_pw, minWidth:Math.min(200,_pw)})
-              .setLatLng([ce.lat, ce.lng])
-              .setContent(teamPopupHTML(t))
-              .openOn(map);
-            _panForPopup();
-          }, 400);
-        }
+      const ce = (useWardView?[...wardData,...cityData.filter(x=>x.city!=='さいたま市')]:cityData).find(x=>x.city===t.city);
+      if (ce) {
+        map.setCenter({lat:ce.lat, lng:ce.lng}); map.setZoom(13);
+        setTimeout(() => {
+          const _iw = new google.maps.InfoWindow({content: teamPopupHTML(t)});
+          _iw.setPosition(new google.maps.LatLng(ce.lat, ce.lng));
+          _iw.open(map);
+          _panForPopup();
+        }, 400);
       }
     }
   };
@@ -1894,69 +1819,37 @@ document.addEventListener('DOMContentLoaded',()=>{
   }
 
   function _panForPopup() {
-    setTimeout(function() {
-      const popup = map._popup;
-      if (!popup || !popup._wrapper) return;
-      const wrapper = popup._wrapper;
-      const rect = wrapper.getBoundingClientRect();
-      const headerH = document.getElementById('header').offsetHeight || 48;
-      const topBoundary = headerH + 10;
-      const sidebarW = (window.innerWidth > 768) ? 280 : 0;
-      let panX = 0, panY = 0;
-      // 上はみ出し
-      if (rect.top < topBoundary) panY = rect.top - topBoundary;
-      // 左右はみ出し
-      if (rect.left < sidebarW + 10) panX = rect.left - sidebarW - 10;
-      if (rect.right > window.innerWidth - 10) panX = rect.right - window.innerWidth + 10;
-      if (panX !== 0 || panY !== 0) map.panBy([panX, panY], { animate: true });
-      // リストパネルがポップアップを隠す場合は縮める
-      _shrinkListForPopup();
-    }, 300);
+    // Google Maps InfoWindow では自動パンされるため最小限の実装
+    _shrinkListForPopup();
   }
 
   // ポップアップ下端に合わせてリストパネルを縮める
   function _shrinkListForPopup() {
     if (!teamListOpen) return;
-    const popup = map._popup;
-    if (!popup || !popup._wrapper) return;
+    const iwEl = document.querySelector('.gm-style-iw');
+    if (!iwEl) return;
     const tlpPanel = document.getElementById('team-list-panel');
     if (!tlpPanel) return;
-    // ポップアップ下端 + 余白16px をリスト上端にする
-    const popRect = popup._wrapper.getBoundingClientRect();
+    const popRect = iwEl.getBoundingClientRect();
     const needed = popRect.bottom + 16;
     const tlpRect = tlpPanel.getBoundingClientRect();
     if (needed > tlpRect.top) {
-      // リストを縮める：現在の top を needed に合わせる
       const mapContainer = document.getElementById('map-container');
       const headerH = document.getElementById('header').offsetHeight || 48;
       const isMob = window.innerWidth <= 768;
       const bnavH = isMob ? 56 : 0;
       const availH = window.innerHeight - headerH - bnavH;
-      // リストの新しい高さ = 画面下端 - needed - bnav
       const newPanelH = window.innerHeight - needed - bnavH;
-      const minPanelH = 80; // 最小高さ
+      const minPanelH = 80;
       const clampedH = Math.max(newPanelH, minPanelH);
       tlpPanel.style.height = clampedH + 'px';
       tlpPanel.style.maxHeight = clampedH + 'px';
-      // map-container も合わせて縮める
       mapContainer.style.height = (availH - clampedH) + 'px';
-      requestAnimationFrame(() => map.invalidateSize({ animate: false }));
     }
   }
 
-  // ポップアップが閉じたらリストを元の高さに戻す
-  map.on('popupclose', function() {
-    if (!teamListOpen) return;
-    const tlpPanel = document.getElementById('team-list-panel');
-    if (tlpPanel) { tlpPanel.style.height = ''; tlpPanel.style.maxHeight = ''; }
-    applyMapPadding(true);
-  });
-
-  // 全ポップアップに適用
-  map.on('popupopen', _panForPopup);
-
   // ── ローディング非表示 ──────────────────────────────────
-  map.whenReady(function() {
+  google.maps.event.addListenerOnce(map, 'tilesloaded', function() {
     setTimeout(function() {
       var ov = document.getElementById('loading-overlay');
       if (ov) {
@@ -1966,7 +1859,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     }, 600);
   });
 
-  map.on('moveend', function(){
+  google.maps.event.addListener(map, 'idle', function(){
     if(areaFilterActive) update();
   });
 
@@ -2077,7 +1970,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     renderTeamPins();
     _pushState();
   };
-  window.toggleWard=function(v){useWardView=v;if(popupLayer){map.removeLayer(popupLayer);popupLayer=null;}initCitySelect();update();};
+  window.toggleWard=function(v){useWardView=v;if(popupLayer){popupLayer.setMap(null);popupLayer=null;}initCitySelect();update();};
   
   // ═══════════════════════════════════════════════
   // チームデータ（ダミー10件 ── 実データに差し替え）
@@ -4238,7 +4131,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   const GEN_JP   ={male:'男子',female:'女子',mixed:'混合'};
   const GEN_TAG  ={male:'tag-m',female:'tag-f',mixed:'tag-mix'};
   // ※ renderTeamPins()はbuildTeamList定義後に呼ぶ（後述）
-  function makeTeamIcon(cat, gender, ball){
+  function makeTeamIconHTML(cat, gender, ball){
     const basecol = CAT_COLOR[cat] || '#888';
     const isHard   = ball === '硬式';
 
@@ -4274,7 +4167,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     // 枠線: 硬式=金色, female=白, mixed=白, male=白
     const border = isHard ? '2.5px solid #1a1a1a' : '2.5px solid rgba(255,255,255,0.95)';
 
-    const pinHtml = `<div style="
+    return `<div style="
       position:relative;
       width:30px;height:30px;
       background:linear-gradient(135deg,${col},${col}cc);
@@ -4284,14 +4177,6 @@ document.addEventListener('DOMContentLoaded',()=>{
       box-shadow:0 3px 10px rgba(0,0,0,0.35),0 1px 3px rgba(0,0,0,0.2);
       cursor:pointer;
     ">${inner}</div>`;
-
-    return L.divIcon({
-      className: '',
-      html: pinHtml,
-      iconSize: [30, 30],
-      iconAnchor: [15, 30],
-      popupAnchor: [0, -34]
-    });
   }
   function teamPopupHTML(t){
     // 空欄判定: '-', '', null, undefined はすべて非表示
@@ -4737,10 +4622,10 @@ document.addEventListener('DOMContentLoaded',()=>{
     '越谷市立大袋小学校':1,
     '越谷市立蒲生小学校':1
   };
-  function renderTeamPins(){
+  window.renderTeamPins = function renderTeamPins(){
     // 既存クラスターグループを削除
-    if(teamClusterGroup){ map.removeLayer(teamClusterGroup); teamClusterGroup=null; }
-    teamPinLayers.forEach(l=>{ try{map.removeLayer(l);}catch(e){} });
+    if(teamClusterGroup){ teamClusterGroup.clearMarkers(); teamClusterGroup=null; }
+    teamPinLayers.forEach(m => m.map = null);
     teamPinLayers=[];
     document.getElementById('team-count').textContent='チーム数: 0件表示中';
     document.getElementById('hdr-teams').textContent = '－';
@@ -4754,15 +4639,17 @@ document.addEventListener('DOMContentLoaded',()=>{
       if(kw&&!t.name.includes(kw)&&!t.city.includes(kw)) return false;
       if(selectedCity && t.city !== selectedCity) return false;
       if(selectedCityCat && t.cat !== selectedCityCat) return false;
-      if(_areaBounds && !(t.lat && t.lng && _areaBounds.contains([t.lat, t.lng]))) return false;
+      if(_areaBounds && !(t.lat && t.lng && _areaBounds.contains(new google.maps.LatLng(t.lat, t.lng)))) return false;
       return true;
     };
     // ピン：小学生のみ
     const pinFiltered = teamData.filter(t => t.cat === 'elem' && baseFilter(t));
     // リスト：全カテゴリ
     const listFiltered = teamData.filter(t => baseFilter(t));
-    let _pinErr=0;
-    pinFiltered.forEach(t=>{
+    // クラスターグループ（@googlemaps/markerclusterer）
+    teamClusterGroup = new markerclusterer.MarkerClusterer({ map, markers: [] });
+    const iw = new google.maps.InfoWindow();
+    pinFiltered.forEach(t => {
       // placeフィールドがあればPLACE_COORDSで活動場所座標を使用
       // 活動場所座標（ジオキャッシュ適用後）を優先、なければチーム住所座標
       const _pc = (t.place && t.place!=='-') ? PLACE_COORDS[t.place] : null;
@@ -4779,43 +4666,22 @@ document.addEventListener('DOMContentLoaded',()=>{
         const fb = LEAGUE_FALLBACK[t.city] || (cityMap[t.city] ? [cityMap[t.city].lat, cityMap[t.city].lng] : null);
         if(fb){ _lat=fb[0]; _lng=fb[1]; } else return;
       }
-      try {
-        const m=L.marker([_lat,_lng],{icon:makeTeamIcon(t.cat,t.gender,t.ball)});
-        const _pw=Math.min(260,window.innerWidth-48);
-        m.bindPopup(teamPopupHTML(t),{maxWidth:_pw,minWidth:Math.min(200,_pw),autoPan:true,autoPanPaddingTopLeft:[20,60],autoPanPaddingBottomRight:[20,20]});
-        m.bindTooltip(t.name,{className:'tt',direction:'top',offset:[0,-30]});
-        m._teamName = t.name; // チームリストからのポップアップ呼び出し用
-        teamPinLayers.push(m);
-      } catch(e) {
-        _pinErr++;
-        if(_pinErr<=3) console.error('pin error ['+t.name+']:', e.message);
-      }
+      const el = document.createElement('div');
+      el.innerHTML = makeTeamIconHTML(t.cat, t.gender, t.ball);
+      const m = new google.maps.marker.AdvancedMarkerElement({
+        position: {lat: _lat, lng: _lng},
+        content: el,
+        title: t.name,
+      });
+      m._teamData = t;
+      m._teamName = t.name; // チームリストからのポップアップ呼び出し用
+      m.addListener('click', () => {
+        iw.setContent(teamPopupHTML(t));
+        iw.open(map, m);
+      });
+      teamPinLayers.push(m);
+      teamClusterGroup.addMarker(m);
     });
-    // clusterGroupに一括追加してmapへ
-    teamClusterGroup = L.markerClusterGroup({
-      maxClusterRadius: 50,
-      showCoverageOnHover: false,
-      iconCreateFunction: function(cluster){
-        const count = cluster.getChildCount();
-        const size = count >= 50 ? 44 : count >= 20 ? 38 : 32;
-        return L.divIcon({
-          html: `<div style="
-            width:${size}px;height:${size}px;
-            background:linear-gradient(135deg,#2563eb,#3b82f6);
-            border-radius:50%;
-            border:2.5px solid #fff;
-            box-shadow:0 2px 8px rgba(0,0,0,.3);
-            display:flex;align-items:center;justify-content:center;
-            color:#fff;font-size:${count>=100?10:11}px;font-weight:700;
-          ">${count}</div>`,
-          className: '',
-          iconSize: [size, size],
-          iconAnchor: [size/2, size/2]
-        });
-      }
-    });
-    teamPinLayers.forEach(m => teamClusterGroup.addLayer(m));
-    map.addLayer(teamClusterGroup);
     document.getElementById('team-count').textContent=`少年野球ピン: ${pinFiltered.length}件表示中`;
     updateBnavBadge(pinFiltered.length);
     // ヘッダー統計更新（ピン数）
@@ -4824,7 +4690,8 @@ document.addEventListener('DOMContentLoaded',()=>{
     updateTlpTabCounts(listFiltered);
     renderTlpBody(listFiltered); // タブフィルター適用済みで描画
     updateHeaderBadges(); // フィルター変化をヘッダーバッジに反映
-  }
+  };
+  const renderTeamPins = window.renderTeamPins; // ローカル参照も保持
   // ── チームリスト ─────────────────────────────────────
   let tlpActiveCat = 'all';
   let tlpSortKey = 'cat'; // 'cat' | 'name' | 'city' // 現在のタブ
@@ -4862,12 +4729,15 @@ document.addEventListener('DOMContentLoaded',()=>{
         const _lng = _pc ? _pc[1] : t.lng;
         if (_lat && _lng) {
           if (!showPins) { showPins=true; const cb=document.getElementById('chk-pins'); if(cb) cb.checked=true; renderTeamPins(); }
-          map.setView([_lat, _lng], 16, {animate:true});
+          map.setCenter({lat:_lat, lng:_lng}); map.setZoom(16);
           setTimeout(() => {
-            teamPinLayers.forEach(layer => {
-              if (layer._teamName === t.name) {
-                if(teamClusterGroup) teamClusterGroup.zoomToShowLayer(layer, ()=>layer.openPopup());
-                else layer.openPopup();
+            teamPinLayers.forEach(marker => {
+              if (marker._teamName === t.name) {
+                map.setCenter(marker.position); map.setZoom(15);
+                setTimeout(() => {
+                  const _iw = new google.maps.InfoWindow({content: teamPopupHTML(t)});
+                  _iw.open(map, marker);
+                }, 300);
               }
             });
           }, 500);
@@ -4876,13 +4746,11 @@ document.addEventListener('DOMContentLoaded',()=>{
         const cityEntry = (useWardView?[...wardData,...cityData.filter(x=>x.city!=='さいたま市')]:cityData)
           .find(x=>x.city===t.city);
         if (cityEntry) {
-          map.setView([cityEntry.lat, cityEntry.lng], 13, {animate:true});
+          map.setCenter({lat:cityEntry.lat, lng:cityEntry.lng}); map.setZoom(13);
           setTimeout(() => {
-            const _pw = Math.min(260, window.innerWidth - 48);
-            L.popup({maxWidth:_pw, minWidth:Math.min(200,_pw)})
-              .setLatLng([cityEntry.lat, cityEntry.lng])
-              .setContent(teamPopupHTML(t))
-              .openOn(map);
+            const _iw = new google.maps.InfoWindow({content: teamPopupHTML(t)});
+            _iw.setPosition(new google.maps.LatLng(cityEntry.lat, cityEntry.lng));
+            _iw.open(map);
             _panForPopup();
           }, 400);
         }
@@ -5032,16 +4900,16 @@ document.addEventListener('DOMContentLoaded',()=>{
           const _pc = (t.place && t.place!=='-') ? PLACE_COORDS[t.place] : null;
           const _lat = _pc ? _pc[0] : t.lat;
           const _lng = _pc ? _pc[1] : t.lng;
-          if (_lat && _lng) map.setView([_lat, _lng], 15, {animate:true});
+          if (_lat && _lng) { map.setCenter({lat:_lat, lng:_lng}); map.setZoom(15); }
           if (window.innerWidth <= 768) window.closeTeamList();
           setTimeout(() => {
             const target = teamPinLayers.find(layer => layer._teamName === t.name);
             if (target) {
-              if (teamClusterGroup) {
-                teamClusterGroup.zoomToShowLayer(target, () => { target.openPopup(); });
-              } else {
-                target.openPopup();
-              }
+              map.setCenter(target.position); map.setZoom(15);
+              setTimeout(() => {
+                const _iw = new google.maps.InfoWindow({content: teamPopupHTML(t)});
+                _iw.open(map, target);
+              }, 300);
             }
           }, 450);
         } else {
@@ -5049,45 +4917,12 @@ document.addEventListener('DOMContentLoaded',()=>{
           const cityEntry = (useWardView ? [...wardData,...cityData.filter(x=>x.city!=='さいたま市')] : cityData)
             .find(x => x.city === t.city);
           if (window.innerWidth <= 768) window.closeTeamList();
-          if (choroLayer) {
-            let found = false;
-            choroLayer.eachLayer(layer => {
-              if (found) return;
-              const nm = layer.feature && layer.feature.properties && layer.feature.properties.name;
-              const d = cityMap[nm];
-              if (!d || d.city !== t.city) return;
-              found = true;
-              const bounds = layer.getBounds();
-              const center = bounds.getCenter();
-              map.fitBounds(bounds, { paddingTopLeft:[40,40], paddingBottomRight:[40,80], maxZoom:13, animate:true });
-              setTimeout(() => {
-                const _pw = Math.min(260, window.innerWidth - 48);
-                L.popup({maxWidth:_pw, minWidth:Math.min(200,_pw)})
-                  .setLatLng(center)
-                  .setContent(teamPopupHTML(t))
-                  .openOn(map);
-                _panForPopup();
-              }, 400);
-            });
-            if (!found && cityEntry && cityEntry.lat && cityEntry.lng) {
-              map.setView([cityEntry.lat, cityEntry.lng], 13, {animate:true});
-              setTimeout(() => {
-                const _pw = Math.min(260, window.innerWidth - 48);
-                L.popup({maxWidth:_pw, minWidth:Math.min(200,_pw)})
-                  .setLatLng([cityEntry.lat, cityEntry.lng])
-                  .setContent(teamPopupHTML(t))
-                  .openOn(map);
-                _panForPopup();
-              }, 400);
-            }
-          } else if (cityEntry && cityEntry.lat && cityEntry.lng) {
-            map.setView([cityEntry.lat, cityEntry.lng], 13, {animate:true});
+          if (cityEntry && cityEntry.lat && cityEntry.lng) {
+            map.setCenter({lat:cityEntry.lat, lng:cityEntry.lng}); map.setZoom(13);
             setTimeout(() => {
-              const _pw = Math.min(260, window.innerWidth - 48);
-              L.popup({maxWidth:_pw, minWidth:Math.min(200,_pw)})
-                .setLatLng([cityEntry.lat, cityEntry.lng])
-                .setContent(teamPopupHTML(t))
-                .openOn(map);
+              const _iw = new google.maps.InfoWindow({content: teamPopupHTML(t)});
+              _iw.setPosition(new google.maps.LatLng(cityEntry.lat, cityEntry.lng));
+              _iw.open(map);
               _panForPopup();
             }, 400);
           }
@@ -5105,7 +4940,6 @@ document.addEventListener('DOMContentLoaded',()=>{
       ? Math.round(window.innerHeight * (isMob ? 0.45 : 0.40))
       : 0;
     // #map-container の高さを直接縮める
-    // → #map(flex:1)もそれに追従し、Leafletが正しいサイズを認識する
     const totalReserved = panelH + bnavH;
     const mapContainer = document.getElementById('map-container');
     // ヘッダー高さを引いた残り高さから予約分を引く
@@ -5113,8 +4947,8 @@ document.addEventListener('DOMContentLoaded',()=>{
     const availH = window.innerHeight - headerH - totalReserved;
     mapContainer.style.height = availH + 'px';
     mapContainer.style.paddingBottom = '';  // 以前の設定をリセット
-    // Leafletに再計算させる（少し遅延してDOMが確定してから）
-    requestAnimationFrame(() => map.invalidateSize({ animate: false }));
+    // Google Maps にリサイズを通知
+    requestAnimationFrame(() => google.maps.event.trigger(map, 'resize'));
   }
   window.toggleTeamList = function() {
     teamListOpen = !teamListOpen;
@@ -5449,13 +5283,16 @@ document.addEventListener('DOMContentLoaded',()=>{
     const btn = document.getElementById('btn-nearby');
     btn.classList.remove('locating');
     btn.innerHTML = '📍';
-    if (userLocMarker) map.removeLayer(userLocMarker);
+    if (userLocMarker) userLocMarker.map = null;
     if (!usedFallback) {
-      userLocMarker = L.marker([lat, lng], {
-        icon: L.divIcon({ className:'', html:'<div class="loc-pulse"></div>', iconSize:[20,20], iconAnchor:[10,10] }),
-        zIndexOffset: 2000
-      }).addTo(map);
-      userLocMarker.bindTooltip('📍 この地点から検索中', { permanent:false, className:'tt' });
+      const el = document.createElement('div');
+      el.className = 'loc-pulse';
+      userLocMarker = new google.maps.marker.AdvancedMarkerElement({
+        position: {lat, lng},
+        content: el,
+        map,
+        title: '現在地',
+      });
     }
     const visible = teamData.filter(t => teamActiveCats.has(t.cat));
     const withDist = visible
@@ -5506,12 +5343,15 @@ document.addEventListener('DOMContentLoaded',()=>{
           if (t.cat === 'elem') {
             // 小学生：ピンにジャンプ
             if (!showPins) { showPins=true; const cb=document.getElementById('chk-pins'); if(cb) cb.checked=true; renderTeamPins(); }
-            map.setView([tLat, tLng], 15, {animate:true});
+            map.setCenter({lat:tLat, lng:tLng}); map.setZoom(15);
             setTimeout(() => {
               const target = teamPinLayers.find(layer => layer._teamName === t.name);
               if (target) {
-                if (teamClusterGroup) teamClusterGroup.zoomToShowLayer(target, () => target.openPopup());
-                else target.openPopup();
+                map.setCenter(target.position); map.setZoom(15);
+                setTimeout(() => {
+                  const _iw = new google.maps.InfoWindow({content: teamPopupHTML(t)});
+                  _iw.open(map, target);
+                }, 300);
               }
             }, 500);
           } else {
@@ -5520,13 +5360,11 @@ document.addEventListener('DOMContentLoaded',()=>{
               .find(x => x.city === t.city);
             const popLat = cityEntry ? cityEntry.lat : tLat;
             const popLng = cityEntry ? cityEntry.lng : tLng;
-            map.setView([popLat, popLng], 13, {animate:true});
+            map.setCenter({lat:popLat, lng:popLng}); map.setZoom(13);
             setTimeout(() => {
-              const _pw = Math.min(260, window.innerWidth - 48);
-              L.popup({maxWidth:_pw, minWidth:Math.min(200,_pw)})
-                .setLatLng([popLat, popLng])
-                .setContent(teamPopupHTML(t))
-                .openOn(map);
+              const _iw = new google.maps.InfoWindow({content: teamPopupHTML(t)});
+              _iw.setPosition(new google.maps.LatLng(popLat, popLng));
+              _iw.open(map);
               _panForPopup();
             }, 400);
           }
@@ -5537,7 +5375,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     document.getElementById('nbp-dist').textContent =
       withDist.length ? `最寄り ${withDist[0].km < 1 ? Math.round(withDist[0].km*1000)+'m' : withDist[0].km.toFixed(1)+'km'}` : '';
     document.getElementById('nearby-panel').classList.add('open');
-    if (!usedFallback) map.setView([lat, lng], 13, {animate:true});
+    if (!usedFallback) { map.setCenter({lat, lng}); map.setZoom(13); }
   }
 
   // ── 地図タップモード管理 ──
@@ -5564,14 +5402,22 @@ document.addEventListener('DOMContentLoaded',()=>{
     _tapOverlay.addEventListener('click', function(e) {
       e.stopPropagation();
       e.preventDefault();
-      // クリック位置をmap座標に変換
+      // クリック位置をmap座標に変換（Google Maps Projection を使用）
       const mapRect = mapEl.getBoundingClientRect();
       const x = e.clientX - mapRect.left;
       const y = e.clientY - mapRect.top;
-      const latlng = map.containerPointToLatLng([x, y]);
+      const proj = map.getProjection();
+      const topRight = proj.fromLatLngToPoint(map.getBounds().getNorthEast());
+      const bottomLeft = proj.fromLatLngToPoint(map.getBounds().getSouthWest());
+      const scale = Math.pow(2, map.getZoom());
+      const worldPoint = new google.maps.Point(
+        x / scale + bottomLeft.x,
+        y / scale + topRight.y
+      );
+      const latlng = proj.fromPointToLatLng(worldPoint);
       _exitTapMode();
-      _cachedUserLoc = { lat: latlng.lat, lng: latlng.lng, _ts: Date.now() };
-      _doNearbySearch(latlng.lat, latlng.lng, false);
+      _cachedUserLoc = { lat: latlng.lat(), lng: latlng.lng(), _ts: Date.now() };
+      _doNearbySearch(latlng.lat(), latlng.lng(), false);
     });
   }
 
@@ -5689,39 +5535,23 @@ document.addEventListener('DOMContentLoaded',()=>{
       const zoomAndPopup = () => {
         // パネル分の下側パディングを確保（パネル高さ=60vh）
         const panelH = teamListOpen ? Math.round(window.innerHeight * 0.6) : 40;
-        if (choroLayer) {
-          // コロプレス表示中：featureにズームしてポップアップ
-          choroLayer.eachLayer(layer => {
-            const name = layer.feature && layer.feature.properties && layer.feature.properties.name;
-            const d = cityMap[name];
-            if (!d || d.city !== selectedCity) return;
-            const bounds = layer.getBounds();
-            map.fitBounds(bounds, { paddingTopLeft: [40, 40], paddingBottomRight: [40, panelH + 20], maxZoom: 13, animate: true });
-            setTimeout(() => { layer.openPopup(bounds.getCenter()); }, 400);
-          });
-        } else {
-          // ヒートマップ/バブル表示中：popupLayerからポップアップを開く
-          const all = useWardView
-            ? [...wardData, ...cityData.filter(x => x.city !== 'さいたま市')]
-            : cityData;
-          const entry = all.find(d => d.city === selectedCity);
-          if (entry && entry.lat && entry.lng) {
-            map.setView([entry.lat, entry.lng], 12, { animate: true });
-          }
-          if (popupLayer) {
-            setTimeout(() => {
-              popupLayer.eachLayer(layer => {
-                const nm = layer.feature && layer.feature.properties && layer.feature.properties.name;
-                const d = cityMap[nm];
-                if (!d || d.city !== selectedCity) return;
-                // popupHTMLを最新状態で再バインド
-                layer.bindPopup(popupHTML(d));
-                const bounds = layer.getBounds();
-                layer.openPopup(bounds.getCenter());
-                setTimeout(_panForPopup, 300);
-              });
-            }, 500);
-          }
+        // 市区町村の中心座標を使ってズーム＋ポップアップ
+        const all = useWardView
+          ? [...wardData, ...cityData.filter(x => x.city !== 'さいたま市')]
+          : cityData;
+        const entry = all.find(d => d.city === selectedCity);
+        if (entry && entry.lat && entry.lng) {
+          map.setCenter({lat:entry.lat, lng:entry.lng}); map.setZoom(12);
+          setTimeout(() => {
+            const d = (useWardView ? [...wardData,...cityData.filter(x=>x.city!=='さいたま市')] : cityData).find(x=>x.city===selectedCity);
+            if (d) {
+              const iw = _getPopupIW();
+              iw.setContent(popupHTML(d));
+              iw.setPosition(new google.maps.LatLng(entry.lat, entry.lng));
+              iw.open(map);
+              setTimeout(_panForPopup, 300);
+            }
+          }, 400);
         }
       };
       setTimeout(zoomAndPopup, 100);
@@ -5730,9 +5560,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   window.resetMapView = function() {
     const sidebarW = window.innerWidth > 768 ? 280 : 0;
     map.fitBounds(SAITAMA_BOUNDS, {
-      paddingTopLeft: [sidebarW + 10, 10],
-      paddingBottomRight: [10, 10],
-      animate: true
+      left: sidebarW + 10, top: 10, right: 10, bottom: 10
     });
     // エリアフィルター解除
     if (areaFilterActive) {
@@ -5790,19 +5618,19 @@ document.addEventListener('DOMContentLoaded',()=>{
     // ズーム（applyCityFilter と同じ処理）
     setTimeout(() => {
       const panelH = teamListOpen ? Math.round(window.innerHeight * 0.6) : 40;
-      if (choroLayer) {
-        choroLayer.eachLayer(layer => {
-          const nm = layer.feature && layer.feature.properties && layer.feature.properties.name;
-          const d = cityMap[nm];
-          if (!d || d.city !== cityName) return;
-          const bounds = layer.getBounds();
-          map.fitBounds(bounds, { paddingTopLeft:[40,40], paddingBottomRight:[40,panelH+20], maxZoom:13, animate:true });
-          setTimeout(() => { layer.openPopup(bounds.getCenter()); }, 400);
-        });
-      } else {
-        const all = useWardView ? [...wardData,...cityData.filter(x=>x.city!=='さいたま市')] : cityData;
-        const entry = all.find(d => d.city === cityName);
-        if (entry && entry.lat && entry.lng) map.setView([entry.lat, entry.lng], 12, {animate:true});
+      const all = useWardView ? [...wardData,...cityData.filter(x=>x.city!=='さいたま市')] : cityData;
+      const entry = all.find(d => d.city === cityName);
+      if (entry && entry.lat && entry.lng) {
+        map.setCenter({lat:entry.lat, lng:entry.lng}); map.setZoom(12);
+        setTimeout(() => {
+          const d = cityMap[cityName];
+          if (d) {
+            const iw = _getPopupIW();
+            iw.setContent(popupHTML(d));
+            iw.setPosition(new google.maps.LatLng(entry.lat, entry.lng));
+            iw.open(map);
+          }
+        }, 400);
       }
     }, 100);
   };
@@ -5862,10 +5690,9 @@ document.addEventListener('DOMContentLoaded',()=>{
   window.addEventListener('resize',()=>{
     applyMapPadding(teamListOpen);
     if(!isMobile()){sidebar.classList.remove('hidden');backdrop.classList.remove('show');}
-    map.invalidateSize();
     update();
   });
-});
+}; // end initMap
 
   // ══════════════════════════════════════════════
   // 活動場所ジオコーディング（国土地理院API）
@@ -5949,7 +5776,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     if (todo.length === 0) {
       // キャッシュから適用してピン再描画
       const n = _applyGeoCache();
-      if (n > 0) renderTeamPins();
+      if (n > 0 && window.renderTeamPins) window.renderTeamPins();
       return;
     }
     // ジオコーディング進捗バー表示
@@ -5977,13 +5804,13 @@ document.addEventListener('DOMContentLoaded',()=>{
       if (done % 20 === 0) {
         _saveGeoCache();
         _applyGeoCache();
-        renderTeamPins(); // 20件ごとに部分更新
+        if (window.renderTeamPins) window.renderTeamPins(); // 20件ごとに部分更新
       }
       await new Promise(r => setTimeout(r, 150)); // 150ms間隔
     }
     _saveGeoCache();
     _applyGeoCache();
-    renderTeamPins();
+    if (window.renderTeamPins) window.renderTeamPins();
     // バー・ステータス除去
     setTimeout(() => {
       bar.remove();
@@ -5999,7 +5826,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   (function initGeocoding() {
     _loadGeoCache();
     var nApplied = _applyGeoCache();
-    if (nApplied > 0) renderTeamPins();
+    if (nApplied > 0 && window.renderTeamPins) window.renderTeamPins();
     setTimeout(function() { runGeocodingAll(); }, 2500);
   })();
 
