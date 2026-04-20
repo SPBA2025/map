@@ -963,6 +963,12 @@ window.initMap = function() {
       }
     }
   }
+  // さいたま市選択時に全区をマッチさせるヘルパー
+  function _cityMatch(teamCity, filterCity) {
+    return teamCity === filterCity ||
+      (filterCity === 'さいたま市' && teamCity.startsWith('さいたま市'));
+  }
+
   function getFiltered() {
     const base = useWardView
       ? [...wardData, ...cityData.filter(d=>d.city!=='さいたま市')]
@@ -1383,7 +1389,7 @@ window.initMap = function() {
     teamData.forEach(t => {
       if(currentGender==='male'   && t.gender==='female') return;
       if(currentGender==='female' && t.gender==='male')   return;
-      if(selectedCity && t.city !== selectedCity) return;
+      if(selectedCity && !_cityMatch(t.city, selectedCity)) return;
       if(bounds && !(t.lat && t.lng && bounds.contains([t.lat,t.lng]))) return;
       if(counts[t.cat] !== undefined) counts[t.cat]++;
     });
@@ -1804,7 +1810,7 @@ window.initMap = function() {
     selectedCityCat = null;
     const bar = document.getElementById('city-filter-bar');
     if (selectedCity) {
-      const count = teamData.filter(t => t.city === selectedCity).length;
+      const count = teamData.filter(t => _cityMatch(t.city, selectedCity)).length;
       document.getElementById('city-filter-name').textContent = '📍 ' + selectedCity;
       document.getElementById('city-filter-count').textContent = count + 'チーム';
       bar.classList.add('show');
@@ -4638,7 +4644,7 @@ window.initMap = function() {
       if(currentGender==='male' && t.gender==='female') return false;
       if(currentGender==='female' && t.gender!=='female' && t.gender!=='mixed') return false;
       if(kw&&!t.name.includes(kw)&&!t.city.includes(kw)) return false;
-      if(selectedCity && t.city !== selectedCity) return false;
+      if(selectedCity && !_cityMatch(t.city, selectedCity)) return false;
       if(selectedCityCat && t.cat !== selectedCityCat) return false;
       if(_areaBounds && !(t.lat && t.lng && _areaBounds.contains(new google.maps.LatLng(t.lat, t.lng)))) return false;
       return true;
@@ -5521,7 +5527,7 @@ window.initMap = function() {
     // フィルターバー表示
     const bar = document.getElementById('city-filter-bar');
     if (selectedCity) {
-      const count = teamData.filter(t => t.city === selectedCity).length;
+      const count = teamData.filter(t => _cityMatch(t.city, selectedCity)).length;
       document.getElementById('city-filter-name').textContent = '📍 ' + selectedCity;
       document.getElementById('city-filter-count').textContent = count + 'チーム';
       bar.classList.add('show');
@@ -5609,7 +5615,7 @@ window.initMap = function() {
     selectedCityCat = cat;
     // フィルターバー表示
     const bar = document.getElementById('city-filter-bar');
-    const count = teamData.filter(t => t.city === cityName && t.cat === cat).length;
+    const count = teamData.filter(t => _cityMatch(t.city, cityName) && t.cat === cat).length;
     document.getElementById('city-filter-name').textContent = '📍 ' + cityName + '｜' + (CAT_JP3[cat]||cat);
     document.getElementById('city-filter-count').textContent = count + 'チーム';
     bar.classList.add('show');
