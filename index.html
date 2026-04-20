@@ -103,7 +103,7 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
 #city-filter-bar.show{display:flex}
 #city-filter-name{font-size:11px;color:var(--ink);flex:1;font-weight:500}
 #city-filter-count{font-size:10px;color:var(--ink-2)}
-.cfbar-close{background:none;border:none;color:var(--ink-3);cursor:pointer;font-size:14px;padding:0 2px}
+.cfbar-close{background:none;border:none;color:var(--ink-3);cursor:pointer;font-size:14px;padding:4px 8px;min-width:32px;min-height:32px}
 #city-select{width:100%;padding:5px 8px;background:var(--surface-1);border:1px solid var(--border);border-radius:4px;color:var(--ink);font-size:11px;margin-top:6px;cursor:pointer;font-family:inherit}
 
 /* ── RANKING ── */
@@ -655,7 +655,7 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
       <div id="city-filter-bar">
         <span id="city-filter-name"></span>
         <span id="city-filter-count"></span>
-        <button class="cfbar-close" onclick="clearCityFilter()">✕</button>
+        <button class="cfbar-close" onclick="window.clearCityFilter()">✕</button>
       </div>
       <select id="city-select" onchange="selectCityFilter(this.value)">
         <option value="">── 市町村を選択 ──</option>
@@ -5605,8 +5605,14 @@ window.initMap = function() {
     window.applyCityFilter(cityName);
   };
   window.clearCityFilter = function() {
-    window.applyCityFilter(null);
-    if (teamListOpen) window.closeTeamList();
+    selectedCity = null;
+    selectedCityCat = null;
+    const _bar = document.getElementById('city-filter-bar');
+    if (_bar) _bar.classList.remove('show');
+    const _sel = document.getElementById('city-select');
+    if (_sel) _sel.value = '';
+    if (typeof window.setTlpTab === 'function') window.setTlpTab('all');
+    renderTeamPins();
   };
   // カテゴリ指定付き市区町村フィルター（バッジタップ）
   window.applyCityFilterByCat = function(cityName, cat) {
