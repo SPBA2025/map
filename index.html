@@ -4630,9 +4630,7 @@ window.initMap = function() {
     if(teamClusterGroup){ teamClusterGroup.clearMarkers(); teamClusterGroup=null; }
     teamPinLayers.forEach(m => m.map = null);
     teamPinLayers=[];
-    document.getElementById('team-count').textContent='チーム数: 0件表示中';
-    document.getElementById('hdr-teams').textContent = '－';
-    if(!showPins) return;
+
     const kw=(document.getElementById('team-search').value||'').trim();
     const _areaBounds = areaFilterActive ? map.getBounds() : null;
     // 共通フィルター条件（性別・検索ワード・市区町村・エリア）
@@ -4645,10 +4643,22 @@ window.initMap = function() {
       if(_areaBounds && !(t.lat && t.lng && _areaBounds.contains(new google.maps.LatLng(t.lat, t.lng)))) return false;
       return true;
     };
+    // リスト：全カテゴリ（showPinsに関係なく常に更新）
+    const listFiltered = teamData.filter(t => baseFilter(t));
+    tlpAllFiltered = listFiltered;
+    updateTlpTabCounts(listFiltered);
+    renderTlpBody(listFiltered);
+    updateHeaderBadges();
+
+    if(!showPins) {
+      document.getElementById('team-count').textContent='チーム数: 0件表示中';
+      document.getElementById('hdr-teams').textContent = '－';
+      updateBnavBadge(0);
+      return;
+    }
+
     // ピン：小学生のみ
     const pinFiltered = teamData.filter(t => t.cat === 'elem' && baseFilter(t));
-    // リスト：全カテゴリ
-    const listFiltered = teamData.filter(t => baseFilter(t));
     // クラスターグループ（@googlemaps/markerclusterer）
     teamClusterGroup = new markerclusterer.MarkerClusterer({ map, markers: [] });
     const iw = new google.maps.InfoWindow();
@@ -4689,10 +4699,6 @@ window.initMap = function() {
     updateBnavBadge(pinFiltered.length);
     // ヘッダー統計更新（ピン数）
     document.getElementById('hdr-teams').textContent = pinFiltered.length.toLocaleString();
-    tlpAllFiltered = listFiltered;
-    updateTlpTabCounts(listFiltered);
-    renderTlpBody(listFiltered); // タブフィルター適用済みで描画
-    updateHeaderBadges(); // フィルター変化をヘッダーバッジに反映
   };
   const renderTeamPins = window.renderTeamPins; // ローカル参照も保持
   // ── チームリスト ─────────────────────────────────────
