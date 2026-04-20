@@ -915,6 +915,7 @@ let teamActiveCats  = new Set(['elem']);
 let teamGender      = 'all';
 let teamListOpen    = false;
 let currentRankCat  = 'all';
+let currentRankGender = 'all';
 let areaFilterActive = false;
 let userLocMarker   = null;
 let _choroMaxCache = 1;
@@ -4224,7 +4225,9 @@ window.initMap = function() {
       ${hasNote  ? `<div class="team-popup-note">${t.note}</div>` : ''}
     </div>`;
   }
-  const PLACE_COORDS={
+  window.PLACE_COORDS = window.PLACE_COORDS || {};
+  const PLACE_COORDS = window.PLACE_COORDS;
+  Object.assign(PLACE_COORDS, {
     '入間市立新久小学校':[35.85042,139.39564],
     '入間市立藤沢北小学校':[35.848135,139.391509],
     '入間市立豊岡小学校':[35.852639,139.397948],
@@ -4596,7 +4599,7 @@ window.initMap = function() {
     '鷲宮運動広場':[36.06201,139.668281],
     '黒浜小学校':[36.001028,139.651845],
     '／明治神宮野球場':[36.135522,139.598555]
-  };
+  });
   const PLACE_TRUSTED={
     'さいたま市立上落合小学校':1,
     'さいたま市立下落合小学校':1,
@@ -5757,10 +5760,12 @@ window.initMap = function() {
 
   // PLACE_COORDSをジオキャッシュで上書きする
   function _applyGeoCache() {
+    const pc = window.PLACE_COORDS;
+    if (!pc) return 0;
     let updated = 0;
     for (const [place, coords] of Object.entries(_geoCache)) {
-      if (coords && PLACE_COORDS[place]) {
-        PLACE_COORDS[place] = coords;
+      if (coords && pc[place]) {
+        pc[place] = coords;
         updated++;
       }
     }
