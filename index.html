@@ -1231,6 +1231,10 @@ window.initMap = function() {
     if(currentGender==='all') return (d[c+'_m']||0)+(d[c+'_f']||0);
     return currentGender==='male'?d[c+'_m']||0:d[c+'_f']||0;
   }
+  function isMobile(){
+    const ua = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+    return ua || isMobile();
+  }
   // ── Google Maps 初期化 ──
   const SAITAMA_BOUNDS_ARRAY = [[35.77, 138.95], [36.28, 139.92]];
   const map = new google.maps.Map(document.getElementById('map'), {
@@ -1514,7 +1518,7 @@ window.initMap = function() {
   update();
   // 初期表示を埼玉県全域にフィット（サイドバー幅考慮）
   const _fitSaitama = () => {
-    const sidebarW = window.innerWidth > 768 ? 280 : 0;
+    const sidebarW = !isMobile() ? 280 : 0;
     map.fitBounds(SAITAMA_BOUNDS, {
       left: sidebarW + 10, top: 10, right: 10, bottom: 10
     });
@@ -1787,7 +1791,7 @@ window.initMap = function() {
     }
 
     // モバイルではサイドバーを閉じる
-    if (window.innerWidth <= 768) {
+    if (isMobile()) {
       const sb = document.getElementById('sidebar');
       const bd = document.getElementById('backdrop');
       const hb = document.getElementById('hbg');
@@ -1863,7 +1867,7 @@ window.initMap = function() {
       const _lng = _pc ? _pc[1] : t.lng;
       if (_lat && _lng) {
         map.setCenter({lat:_lat, lng:_lng}); map.setZoom(16);
-        if (window.innerWidth <= 768) window.closeTeamList();
+        if (isMobile()) window.closeTeamList();
         setTimeout(() => {
           teamPinLayers.forEach(marker => {
             if (marker._teamName === t.name) {
@@ -1942,7 +1946,7 @@ window.initMap = function() {
     if (needed > tlpRect.top) {
       const mapContainer = document.getElementById('map-container');
       const headerH = document.getElementById('header').offsetHeight || 48;
-      const isMob = window.innerWidth <= 768;
+      const isMob = isMobile();
       const bnavH = isMob ? 56 : 0;
       const availH = window.innerHeight - headerH - bnavH;
       const newPanelH = window.innerHeight - needed - bnavH;
@@ -5084,7 +5088,7 @@ window.initMap = function() {
           const _lat = _pc ? _pc[0] : t.lat;
           const _lng = _pc ? _pc[1] : t.lng;
           if (_lat && _lng) { map.setCenter({lat:_lat, lng:_lng}); map.setZoom(15); }
-          if (window.innerWidth <= 768) window.closeTeamList();
+          if (isMobile()) window.closeTeamList();
           setTimeout(() => {
             const target = teamPinLayers.find(layer => layer._teamName === t.name);
             if (target) {
@@ -5099,7 +5103,7 @@ window.initMap = function() {
           // 中学生以上：市町村にズーム＋チーム情報ポップアップ表示
           const cityEntry = (useWardView ? [...wardData,...cityData.filter(x=>x.city!=='さいたま市')] : cityData)
             .find(x => x.city === t.city);
-          if (window.innerWidth <= 768) window.closeTeamList();
+          if (isMobile()) window.closeTeamList();
           if (cityEntry && cityEntry.lat && cityEntry.lng) {
             map.setCenter({lat:cityEntry.lat, lng:cityEntry.lng}); map.setZoom(13);
             setTimeout(() => {
@@ -5117,7 +5121,7 @@ window.initMap = function() {
     });
   }
   function applyMapPadding(open) {
-    const isMob = window.innerWidth <= 768;
+    const isMob = isMobile();
     const bnavH = isMob ? 56 : 0;
     const panelH = open
       ? Math.round(window.innerHeight * (isMob ? 0.45 : 0.40))
@@ -5170,7 +5174,6 @@ window.initMap = function() {
   const sidebar=document.getElementById('sidebar');
   const backdrop=document.getElementById('backdrop');
   const hbg=document.getElementById('hbg');
-  function isMobile(){return window.innerWidth<=768;}
   // desktop: show / mobile: hidden（ハンバーガーで開閉）
   if(isMobile()){
     sidebar.classList.add('hidden');
@@ -5745,7 +5748,7 @@ window.initMap = function() {
     document.querySelectorAll('.mtype-btn,.smtype-btn').forEach(b => b.classList.toggle('active', b.dataset.mtype === type));
   };
   window.resetMapView = function() {
-    const sidebarW = window.innerWidth > 768 ? 280 : 0;
+    const sidebarW = !isMobile() ? 280 : 0;
     map.fitBounds(SAITAMA_BOUNDS, {
       left: sidebarW + 10, top: 10, right: 10, bottom: 10
     });
@@ -5760,7 +5763,7 @@ window.initMap = function() {
 
   window.focusCity = function(cityName) {
     // モバイル: サイドバーを閉じて地図を見えるようにする
-    if (window.innerWidth <= 768) {
+    if (isMobile()) {
       const sb = document.getElementById('sidebar');
       if (sb && !sb.classList.contains('hidden')) {
         sb.classList.add('hidden');
