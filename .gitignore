@@ -1,6 +1,8 @@
 # === セキュリティ関連 ===
 # Google Maps API キーは絶対に GitHub に上げない
 parks.config.js
+config.js
+*.secret.js
 
 # === システムファイル ===
 .DS_Store
@@ -19,3 +21,6 @@ Thumbs.db
 node_modules/
 .env
 .env.local
+
+# === Claude Code ===
+.claude/

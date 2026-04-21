@@ -9,58 +9,54 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="埼玉県公園マップ">
 <meta name="description" content="埼玉県内の公園でキャッチボールができるかを地図で確認。">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>埼玉県公園マップ</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" crossorigin="anonymous">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" crossorigin="anonymous"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.min.css" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.min.css" crossorigin="anonymous">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js" crossorigin="anonymous"></script>
-<!-- Leaflet GoogleMutant（正しいパッケージ名） -->
-<script src="https://unpkg.com/leaflet.gridlayer.googlemutant@latest/dist/Leaflet.GoogleMutant.js"></script>
+<!-- MarkerClusterer for Google Maps -->
+<script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
 <!-- 公園データ（parks-data.js に追記してデータ更新）-->
 <script src="parks-data.js"></script>
+<!-- API キー（.gitignore 済み・GitHub には上げない） -->
+<script src="parks.config.js"></script>
 <script>
-  const API_KEY = 'AIzaSyDwTAz9qqQPnbARWe_vd8Vo2LXgDygCyN0';
-  const GAS_URL = 'https://script.google.com/macros/s/AKfycbyBqycA_v8614sI_4vWtqniSlValz6q-3BtfF-5iXyCKTeB3oScXR4RcRNR7ZYbQjFi/exec';
-  window.initMapCallback = function() {
-    initMap();
-  };
+  window.initMapCallback = function() { initMap(); };
   const _s = document.createElement('script');
-  _s.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places&callback=initMapCallback&loading=async`;
+  _s.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places,marker&callback=initMapCallback&loading=async`;
   _s.async = true;
   document.head.appendChild(_s);
 </script>
 <style>
-/* ═══ Airbnb Design System ═══
-   Rausch Red #ff385c / Near Black #222222 / Pure White #ffffff
-   Warm rounded corners / Three-layer shadows / Photography-forward
+/* ═══ Color System (埼玉県野球協議会 共通 / Park accent: Red) ═══
+   --action=#ff385c (park red)  surface-1=#fff  surface=#f7f7f7
 */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
 
 :root{
   --red:#ff385c;
   --red-h:#e00b41;
-  --surface:#ffffff;
-  --surface-2:#f7f7f7;
-  --surface-3:#f2f2f2;
-  --border:#dddddd;
-  --ink:#222222;
-  --ink-2:#3f3f3f;
-  --ink-3:#6a6a6a;
+  --action:#1a56db;
+  --action-h:#1648c0;
+  --caution:#c45500;
   --green:#00a854;
   --green-dim:rgba(0,168,84,0.1);
   --orange:#c45500;
   --orange-dim:rgba(196,85,0,0.1);
+  --surface:#f7f7f7;
+  --surface-1:#ffffff;
+  --surface-2:#f2f2f2;
+  --border:#dddddd;
+  --border-2:#f0d8d8;
+  --ink:#222222;
+  --ink-2:#3f3f3f;
+  --ink-3:#6a6a6a;
   --shadow-card:rgba(0,0,0,0.02) 0px 0px 0px 1px,rgba(0,0,0,0.04) 0px 2px 6px,rgba(0,0,0,0.1) 0px 4px 8px;
   --shadow-hover:rgba(0,0,0,0.08) 0px 4px 12px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface-2);color:var(--ink);height:100vh;display:flex;flex-direction:column;overflow:hidden;-webkit-font-smoothing:antialiased}
+body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);color:var(--ink);height:100vh;display:flex;flex-direction:column;overflow:hidden;-webkit-font-smoothing:antialiased}
 
 /* ── HEADER ── */
 #header{
-  background:var(--surface);
+  background:var(--surface-1);
   padding:0 20px;
   display:flex;
   align-items:center;
@@ -78,7 +74,7 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface-2)
 #hbg.open span:nth-child(3){transform:rotate(-45deg) translate(4px,-4px)}
 
 .hdr-brand{display:flex;flex-direction:column;gap:1px;min-width:130px}
-.hdr-logo{font-size:14px;font-weight:700;color:var(--red);letter-spacing:-.3px;white-space:nowrap}
+.hdr-logo{font-size:14px;font-weight:700;color:var(--action);letter-spacing:-.3px;white-space:nowrap}
 .hdr-sub{font-size:10px;color:var(--ink-3);letter-spacing:.01em;white-space:nowrap}
 
 .hdr-stat{display:flex;align-items:center;gap:0;margin-left:auto}
@@ -92,7 +88,7 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface-2)
 #map{flex:1;z-index:1}
 
 /* ── SIDEBAR ── */
-#sidebar{width:280px;background:var(--surface);border-left:1px solid var(--border);overflow-y:auto;flex-shrink:0;z-index:1000;transition:transform .3s}
+#sidebar{width:280px;background:var(--surface-1);border-left:1px solid var(--border);overflow-y:auto;flex-shrink:0;z-index:1000;transition:transform .3s}
 #sidebar::-webkit-scrollbar{width:4px}
 #sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 .s-section{padding:14px 16px;border-bottom:1px solid var(--border)}
@@ -102,7 +98,7 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface-2)
 .filter-btns{display:flex;flex-direction:column;gap:6px}
 .filter-btn{
   padding:10px 14px;
-  background:var(--surface);
+  background:var(--surface-1);
   border:1.5px solid var(--border);
   border-radius:8px;
   color:var(--ink-2);
@@ -114,7 +110,7 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface-2)
   font-family:inherit;
 }
 .filter-btn:hover{border-color:var(--ink);background:var(--surface-2)}
-.filter-btn.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.filter-btn.on{background:var(--action);border-color:var(--action);color:#fff}
 
 /* ── LEGEND ── */
 .leg-item{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:12px;color:var(--ink-2)}
@@ -150,10 +146,10 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface-2)
 .park-item-badge.unknown-catchball{background:var(--orange-dim);color:var(--orange)}
 
 /* ── MODAL ── */
-#park-modal{display:none;position:fixed;inset:0;z-index:3000;background:rgba(34,34,34,.5)}
+#park-modal{display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.3)}
 #park-modal.open{display:flex;align-items:center;justify-content:center}
 .park-box{
-  background:var(--surface);
+  background:var(--surface-1);
   border-radius:20px;
   padding:24px;
   width:90%;
@@ -198,7 +194,7 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface-2)
   width:100%;
   padding:12px;
   margin-top:12px;
-  background:var(--red);
+  background:var(--action);
   color:#fff;
   border:none;
   border-radius:8px;
@@ -208,7 +204,7 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface-2)
   transition:.15s;
   font-family:inherit;
 }
-.park-btn:hover{background:var(--red-h);box-shadow:var(--shadow-hover)}
+.park-btn:hover{background:var(--action-h);box-shadow:var(--shadow-hover)}
 .park-btn-report{
   width:100%;
   padding:10px;
@@ -231,28 +227,11 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface-2)
 .park-btn-report:hover{border-color:var(--ink);background:var(--surface-2);box-shadow:var(--shadow-hover)}
 .park-divider{border:none;border-top:1px solid var(--border);margin:14px 0 4px}
 
-/* ── LEAFLET OVERRIDES ── */
-.leaflet-popup-content-wrapper{background:var(--surface);border:none;color:var(--ink);border-radius:14px;box-shadow:var(--shadow-card)}
-.leaflet-popup-tip{background:var(--surface)}
-.leaflet-popup-pane{z-index:2500!important}
-.leaflet-interactive:focus{outline:none!important}
-
 /* ── MAP TYPE ── */
-#hdr-map-type{display:flex;gap:4px;align-items:center;margin-left:8px;flex-shrink:0}
-.map-type-btn{
-  padding:6px 12px;
-  background:var(--surface);
-  border:1.5px solid var(--border);
-  border-radius:8px;
-  color:var(--ink-2);
-  font-size:12px;
-  font-weight:500;
-  cursor:pointer;
-  transition:.15s;
-  font-family:inherit;
-}
-.map-type-btn:hover{border-color:var(--ink);background:var(--surface-2)}
-.map-type-btn.active{background:var(--ink);border-color:var(--ink);color:#fff}
+#park-map-type-bar{display:flex;gap:4px;background:rgba(255,255,255,.96);border:1.5px solid var(--border);border-radius:10px;padding:4px;box-shadow:var(--shadow-card);backdrop-filter:blur(8px);margin:10px 10px 0 0}
+.map-type-btn{border:none;background:transparent;color:var(--ink-3);font-size:12px;font-weight:500;padding:5px 10px;border-radius:7px;cursor:pointer;font-family:inherit;white-space:nowrap;transition:.12s}
+.map-type-btn:hover{background:var(--surface-2);color:var(--ink)}
+.map-type-btn.active{background:var(--ink);color:#fff}
 
 /* ── SEARCH ── */
 #hdr-search-wrap{position:relative;display:flex;align-items:center;margin-left:8px;flex-shrink:0}
@@ -308,11 +287,11 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface-2)
   transition:.15s;
 }
 #gps-btn:hover{border-color:var(--ink);background:var(--surface-2)}
-#gps-btn.locating{background:var(--red);color:#fff;border-color:var(--red)}
+#gps-btn.locating{background:var(--action);color:#fff;border-color:var(--action)}
 #gps-btn svg{width:13px;height:13px;flex-shrink:0}
 
 /* ── CURRENT LOCATION MARKER ── */
-.current-location-marker{background:var(--red);width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 3px rgba(255,56,92,0.3)}
+.current-location-marker{background:var(--action);width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 3px rgba(26,86,219,0.3)}
 
 /* ── SORT SELECT ── */
 #sort-select{
@@ -329,24 +308,111 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface-2)
 }
 #sort-select:focus{border-color:var(--ink)}
 
+#parks-bnav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface-1);border-top:1px solid var(--border);z-index:1500;height:calc(52px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);align-items:stretch}
+.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;background:none;border:none;color:var(--ink-3);font-size:9px;font-weight:500;cursor:pointer;font-family:inherit;touch-action:manipulation;position:relative;padding:4px 0}
+.bnav-btn:active{background:var(--surface-2)}
+.bnav-btn.active{color:var(--action);font-weight:600}
+.bnav-icon{font-size:18px;line-height:1.1}
+
 @media(max-width:768px){
   #hbg{display:flex}
-  #sidebar{position:fixed;right:0;height:100%;border-left:none;transform:translateX(100%);border-radius:20px 0 0 20px}
-  #sidebar.open{transform:translateX(0)}
+  #header{min-height:52px;padding:0 10px;gap:8px}
+  .hdr-stat{display:none}
+  #hdr-map-type{display:none}
+  #sidebar{
+    position:fixed;top:auto;bottom:calc(52px + env(safe-area-inset-bottom));left:0;right:0;
+    width:100%!important;height:78vh;
+    border-left:none;
+    transform:translateY(100%);
+    border-radius:18px 18px 0 0;
+    box-shadow:0 -4px 24px rgba(0,0,0,.12);
+    transition:transform .35s cubic-bezier(0.32,0.72,0,1);
+  }
+  #sidebar.open{transform:translateY(0)}
   #hdr-search-wrap{display:none}
   #city-select{display:none}
-  .park-item{padding:12px 16px}
+  .park-item{padding:12px 16px;touch-action:manipulation}
+  #parks-bnav{display:flex}
+  .bnav-btn{font-size:10px;padding:5px 0;touch-action:manipulation}
+  .bnav-icon{font-size:22px;line-height:1.1}
+  button{touch-action:manipulation}
+  #sidebar-search-wrap{display:flex}
 }
+
+/* ── BOTTOM SHEET HANDLE ── */
+.bs-handle{width:36px;height:4px;background:var(--border-2);border-radius:2px;margin:10px auto 2px;cursor:pointer;flex-shrink:0}
+
+/* ── SIDEBAR SEARCH (モバイル用) ── */
+#sidebar-search-wrap{display:none;padding:8px 14px;border-bottom:1px solid var(--border);position:relative;align-items:center;gap:6px}
+#sidebar-search-input{flex:1;padding:8px 28px 8px 10px;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);color:var(--ink);font-size:13px;font-family:inherit;outline:none;transition:.2s}
+#sidebar-search-input:focus{border-color:var(--action);box-shadow:0 0 0 2px rgba(26,86,219,0.1)}
+#sidebar-search-input::placeholder{color:var(--ink-3)}
+#sidebar-search-clear{position:absolute;right:20px;background:none;border:none;color:var(--ink-3);cursor:pointer;font-size:14px;display:none;padding:0;line-height:1}
+#sidebar-search-clear.show{display:block}
+
+/* ── MAP ACTION BUTTONS ── */
+.mab{display:flex;align-items:center;gap:8px;padding:7px 14px 7px 10px;background:rgba(255,255,255,.96);border:1.5px solid var(--border);border-radius:8px;color:var(--ink-2);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;white-space:nowrap;backdrop-filter:blur(8px);box-shadow:var(--shadow-card);transition:.15s;text-align:left}
+.mab:hover{border-color:var(--ink);box-shadow:var(--shadow-hover);color:var(--ink)}
+.mab-icon{font-size:15px;flex-shrink:0;line-height:1}
+.mab-label{line-height:1}
+#pbtn-catchball.active{background:var(--green)!important;border-color:var(--green)!important;color:#fff!important}
+@media(max-width:768px){#park-action-btns{display:none!important}#park-map-type-bar{display:none!important}}
+
+/* ── GOOGLE MAPS INFO WINDOW ── */
+.gm-style .gm-style-iw-c{border-radius:6px!important;box-shadow:rgba(50,50,93,0.2) 0 14px 28px -14px,rgba(0,0,0,0.1) 0 8px 16px -8px!important;padding:0!important}
+.gm-style .gm-style-iw-d{overflow:hidden!important}
+.gm-style .gm-style-iw-t::after{display:none}
+
+/* ── IMPROVED PARK LIST ITEMS ── */
+.park-item{
+  display:flex;flex-direction:column;gap:3px;
+  padding:11px 14px 11px 16px;
+  border-bottom:1px solid var(--border);
+  cursor:pointer;transition:background .12s;
+  border-left:3px solid transparent;
+}
+.park-item:hover{background:var(--surface-2)}
+.park-item.cb-yes{border-left-color:var(--green)}
+.park-item.cb-no{border-left-color:var(--red)}
+.park-item.cb-unknown{border-left-color:var(--orange)}
+.park-item-top{display:flex;align-items:flex-start;justify-content:space-between;gap:6px}
+.park-item-name{font-size:13px;font-weight:600;color:var(--ink);letter-spacing:-.1px;flex:1}
+.park-item-meta{display:flex;align-items:center;gap:6px;margin-top:2px}
+.park-item-addr{font-size:11px;color:var(--ink-3)}
+.park-item-badge{display:inline-flex;align-items:center;gap:2px;padding:2px 8px;border-radius:14px;font-size:10px;font-weight:600;flex-shrink:0}
+.park-item-badge.catchball{background:var(--green-dim);color:var(--green)}
+.park-item-badge.no-catchball{background:rgba(255,56,92,0.1);color:var(--red)}
+.park-item-badge.unknown-catchball{background:var(--orange-dim);color:var(--orange)}
+.park-item-dist{font-size:10px;color:var(--ink-3);flex-shrink:0}
+
+/* ── LOADING OVERLAY ── */
+#loading-overlay{position:fixed;inset:0;z-index:9999;background:var(--surface-1);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;transition:opacity .4s}
+#loading-overlay.fade-out{opacity:0;pointer-events:none}
+#loading-overlay.hidden{display:none}
+.loading-ball{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--action);border-radius:50%;animation:spin .8s linear infinite}
+.loading-text{color:var(--ink-2);font-size:13px}
+.loading-sub{color:var(--ink-3);font-size:11px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── SEARCH INPUT (index.html 統一) ── */
+#hdr-search-input:focus{border-color:var(--ink);width:220px;box-shadow:0 0 0 2px rgba(34,34,34,0.08);background:var(--surface-1)}
 </style>
 </head>
 <body>
+
+<!-- LOADING OVERLAY -->
+<div id="loading-overlay">
+  <div class="loading-ball"></div>
+  <div class="loading-text">読み込み中…</div>
+  <div class="loading-sub">地図データを準備しています</div>
+</div>
 
 <!-- HEADER -->
 <div id="header">
   <button id="hbg"><span></span><span></span><span></span></button>
   <div class="hdr-brand">
-    <div class="hdr-logo">埼玉県公園マップ</div>
-    <div class="hdr-sub">キャッチボール可能</div>
+    <div class="hdr-logo">⚾ 埼玉県野球協議会</div>
+    <div class="hdr-sub">埼玉県公園マップ</div>
   </div>
   <div class="hdr-stat" style="margin-left:auto">
     <div class="hdr-kpi">
@@ -363,11 +429,6 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface-2)
       <div class="hdr-kpi-val" id="loading-parks" style="font-size:11px;color:var(--ink-3)">読込中…</div>
       <div class="hdr-kpi-lbl">進捗</div>
     </div>
-  </div>
-  <div id="hdr-map-type">
-    <button class="map-type-btn active" data-type="roadmap">地図</button>
-    <button class="map-type-btn" data-type="satellite">航空写真</button>
-    <button class="map-type-btn" data-type="terrain">地形</button>
   </div>
   <select id="city-select">
     <option value="">市町村・区を選択</option>
@@ -479,12 +540,33 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface-2)
   </div>
 </div>
 
+<!-- MAP CONTROLS (registered via map.controls) -->
+<div id="park-map-type-bar">
+  <button class="map-type-btn active" data-type="roadmap">地図</button>
+  <button class="map-type-btn" data-type="satellite">航空写真</button>
+  <button class="map-type-btn" data-type="hybrid">ハイブリッド</button>
+</div>
+<div id="park-action-btns" style="display:flex;flex-direction:column;gap:5px;margin:10px 0 0 10px">
+  <button class="mab" id="pbtn-reset" onclick="window.parkResetView()">
+    <span class="mab-icon">🗺️</span><span class="mab-label">全域を表示</span>
+  </button>
+  <button class="mab" id="pbtn-catchball" onclick="window.parkToggleCatchball()">
+    <span class="mab-icon">⚾</span><span class="mab-label">キャッチボール可のみ</span>
+  </button>
+</div>
+
 <!-- MAIN -->
 <div id="app">
   <div id="map"></div>
 
   <!-- SIDEBAR -->
   <div id="sidebar">
+    <div class="bs-handle" onclick="document.getElementById('sidebar').classList.remove('open');document.getElementById('hbg').classList.remove('open')"></div>
+    <!-- SIDEBAR SEARCH (モバイルのみ表示) -->
+    <div id="sidebar-search-wrap">
+      <input id="sidebar-search-input" type="search" placeholder="公園名で検索...">
+      <button id="sidebar-search-clear">×</button>
+    </div>
     <!-- FILTERS -->
     <div class="s-section">
       <div class="s-title">フィルター</div>
@@ -517,13 +599,13 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface-2)
     <!-- PARK LIST -->
     <div class="s-section" style="flex:1;overflow-y:auto;padding:0">
       <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px">
-        <div class="s-title" style="margin:0">公園一覧 <span id="park-count" style="color:var(--white-2)">(0)</span></div>
-        <select id="sort-select" style="font-size:11px;padding:3px 6px;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--ink-2);cursor:pointer;font-family:inherit;outline:none">
+        <div class="s-title" style="margin:0">公園一覧 <span id="park-count" style="color:var(--ink-3)">(0)</span></div>
+        <select id="sort-select">
           <option value="name">名前順</option>
           <option value="near">近い順</option>
         </select>
       </div>
-      <div id="last-updated" style="padding:6px 14px;font-size:9px;color:var(--white-3);border-bottom:1px solid var(--border);display:none;font-family:var(--mono);letter-spacing:.04em"></div>
+      <div id="last-updated" style="padding:6px 14px;font-size:9px;color:var(--ink-3);border-bottom:1px solid var(--border);display:none;letter-spacing:.04em"></div>
       <ul id="park-list"></ul>
     </div>
   </div>
@@ -542,56 +624,28 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface-2)
 </div>
 
 <script>
-/* ═══ STATE ═══ */
-let map, clusterGroup, googleMutantLayer, placesService, placesDiv;
-let currentMapType = 'roadmap';
-let placesMarkers = {};   // place_id → Leaflet marker（Places API取得分）
-let curated = {};         // 公園名 → parkData エントリ（parks-data.js + GAS）
-const activeFilters = {catchball: false};
-// マーカー追加時にフィルターを適用する関数
-function addMarkerIfVisible(marker) {
-  const info = marker._parkInfo;
-  if (activeFilters.catchball && info.catchball !== true) return;
-  clusterGroup.addLayer(marker);
-}
-
-/* ═══ GASからデータ取得してcuratedを更新 ═══ */
-let gasUpdated = null; // GASデータの最終更新日時
-
-async function loadGasData() {
-  if (!GAS_URL || GAS_URL === 'YOUR_GAS_WEBAPP_URL_HERE') return;
-  try {
-    const res  = await fetch(`${GAS_URL}?action=approved`);
-    const json = await res.json();
-    if (json.parks && json.parks.length > 0) {
-      json.parks.forEach(p => {
-        curated[p.name] = p;
-      });
-      console.log(`✓ GASから${json.parks.length}件の承認済みデータを取得`);
-    }
-    if (json.updated) {
-      gasUpdated = new Date(json.updated);
-      updateLastUpdated();
-    }
-  } catch(e) {
-    console.warn('GASデータ取得エラー（parks-data.jsのみ使用）:', e);
-  }
-}
+/* ═══════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════ */
+let map, clusterer, placesService;
+let placesMarkers = {};          // place_id → AdvancedMarkerElement
+let curated = {};                // 公園名 → parkData エントリ
+const activeFilters = { catchball: false };
 let searchTimeout = null;
 let currentLocationMarker = null;
-let boundaryLayer = null;
-let prefBoundaryLayer = null;   // 埼玉県全域（常時表示）
-let saitamaCityLayer = null;    // さいたま市全域（常時表示）
+let currentUserLatLng = null;    // { lat, lng }
+let prefBoundaryData = null;     // google.maps.Data（埼玉県境界）
+let cityBoundaryData = null;     // google.maps.Data（市区町村境界）
+let gasUpdated = null;
+let _saitamaRings = null;        // Nominatim から取得した正確な境界リング群
 
-// 埼玉県の正確な境界ボックス
+/* ═══════════════════════════════════════════════
+   埼玉県判定
+═══════════════════════════════════════════════ */
 const SAITAMA_BOUNDS = {
-  minLat: 35.7520,
-  maxLat: 36.2870,
-  minLng: 138.9750,
-  maxLng: 139.9260
+  minLat: 35.7520, maxLat: 36.2870, minLng: 138.9750, maxLng: 139.9260
 };
-
-// 埼玉県の多角形境界（より正確な判定用）
+// フォールバック用の粗い近似ポリゴン（Nominatim 未取得時のみ使用）
 const SAITAMA_POLYGON = [
   [35.9900,138.9750],[36.1500,139.0500],[36.2870,139.1500],
   [36.2870,139.3500],[36.2200,139.5000],[36.2870,139.6500],
@@ -615,68 +669,120 @@ function pointInPolygon(lat, lng, polygon) {
 }
 
 function isInSaitama(lat, lng) {
-  // まず境界ボックスで高速チェック
   if (lat < SAITAMA_BOUNDS.minLat || lat > SAITAMA_BOUNDS.maxLat ||
       lng < SAITAMA_BOUNDS.minLng || lng > SAITAMA_BOUNDS.maxLng) return false;
-  // 多角形で精密チェック
+  // Nominatim から取得した正確な境界を使用（取得済みなら）
+  if (_saitamaRings) return _saitamaRings.some(ring => pointInPolygon(lat, lng, ring));
   return pointInPolygon(lat, lng, SAITAMA_POLYGON);
 }
 
-/* ═══ parks-data.js をインデックス化 ═══ */
+/* parks-data.js をインデックス化 */
 parkData.forEach(p => { curated[p.name] = p; });
 
-/* ═══ MAP INIT ═══ */
-function addTileLayer(type) {
-  if (googleMutantLayer) map.removeLayer(googleMutantLayer);
-  googleMutantLayer = L.gridLayer.googleMutant({ type, maxZoom: 20 });
-  map.addLayer(googleMutantLayer);
-}
-
+/* ═══════════════════════════════════════════════
+   MAP INIT（ネイティブ Google Maps）
+═══════════════════════════════════════════════ */
 async function initMap() {
-  map = L.map('map').setView([35.8617, 139.6455], 11);
-  addTileLayer('roadmap');
+  try {
+  map = new google.maps.Map(document.getElementById('map'), {
+    center: { lat: 35.8617, lng: 139.6455 },
+    zoom: 11,
+    mapTypeId: 'roadmap',
+    // DEMO_MAP_ID: AdvancedMarkerElement を使うために必要。
+    // 本番運用時は Google Cloud Console で独自 Map ID を発行して置き換えてください。
+    mapId: 'DEMO_MAP_ID',
+    mapTypeControl: false,   // 独自ボタンで制御
+    fullscreenControl: false,
+    streetViewControl: false,
+    zoomControl: true,
+    zoomControlOptions: { position: google.maps.ControlPosition.LEFT_BOTTOM },
+  });
 
-  clusterGroup = L.markerClusterGroup({ chunkedLoading: true });
-  map.addLayer(clusterGroup);
+  // PlacesService はマップに直接アタッチ
+  placesService = new google.maps.places.PlacesService(map);
 
-  // PlacesService 用の非表示 Google Map
-  placesDiv = document.createElement('div');
-  document.body.appendChild(placesDiv);
-  const gmap = new google.maps.Map(placesDiv);
-  placesService = new google.maps.places.PlacesService(gmap);
+  // MarkerClusterer（@googlemaps/markerclusterer）
+  if (typeof markerclusterer === 'undefined') {
+    // CDN 読み込み失敗時はクラスタリングなしで動作
+    clusterer = { addMarker(m){m.map=map}, addMarkers(ms){ms.forEach(m=>m.map=map)}, removeMarker(m){m.map=null}, clearMarkers(){Object.values(placesMarkers).forEach(m=>m.map=null)} };
+  } else {
+    clusterer = new markerclusterer.MarkerClusterer({ map, markers: [] });
+  }
 
   setupMapTypeButtons();
   setupEventListeners();
 
-  // 埼玉県の境界線を初期表示
-  loadFixedBoundary('埼玉県', 'pref');
+  // map.controls にボタンを登録（Googleコントロールとの重なり防止）
+  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(
+    document.getElementById('park-map-type-bar')
+  );
+  map.controls[google.maps.ControlPosition.LEFT_TOP].push(
+    document.getElementById('park-action-btns')
+  );
 
-  // GASから承認済みデータを取得（parks-data.jsを上書き優先）
-  await loadGasData();
+  // 埼玉県境界線を常時表示
+  loadFixedBoundary();
 
-  // 登録済み公園を全件配置（Text Search）
+  // ローディングオーバーレイを非表示
+  const _ov = document.getElementById('loading-overlay');
+  if (_ov) { _ov.classList.add('fade-out'); setTimeout(() => _ov.classList.add('hidden'), 400); }
+
+  // 登録済み公園を全件配置（TextSearch）
   placeRegisteredParks();
 
-  // 追加の近隣検索（登録外の公園も表示）
+  // 初期表示範囲の近隣公園を検索
   searchParksInView();
-  map.on('moveend', () => {
+
+  // 地図移動後に再検索（idle = パン・ズーム完了後）
+  map.addListener('idle', () => {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
       searchParksInView();
       renderParkList();
     }, 600);
   });
+
+  // GAS から承認済みデータ取得（バックグラウンド・ノンブロッキング）
+  loadGasData();
+  } catch(err) {
+    console.error('initMap エラー:', err);
+    document.getElementById('map').innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:#6a6a6a;font-size:13px"><div style="font-size:32px">⚠️</div><div>地図の読み込みに失敗しました</div><div style="font-size:11px;color:#aaa">${err.message}</div></div>`;
+  }
 }
 
-/* ═══ 登録済み公園を Text Search で全件配置 ═══ */
+/* ═══════════════════════════════════════════════
+   GAS からデータ取得
+═══════════════════════════════════════════════ */
+async function loadGasData() {
+  if (!GAS_URL || GAS_URL === 'YOUR_GAS_WEBAPP_URL_HERE') return;
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 5000);
+    const res  = await fetch(`${GAS_URL}?action=approved`, { signal: controller.signal });
+    clearTimeout(timer);
+    const json = await res.json();
+    if (json.parks && json.parks.length > 0) {
+      json.parks.forEach(p => { curated[p.name] = p; });
+      console.log(`✓ GASから${json.parks.length}件の承認済みデータを取得`);
+    }
+    if (json.updated) {
+      gasUpdated = new Date(json.updated);
+      updateLastUpdated();
+    }
+  } catch(e) {
+    console.warn('GASデータ取得エラー（parks-data.jsのみ使用）:', e);
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   登録済み公園を TextSearch で全件配置
+═══════════════════════════════════════════════ */
 async function placeRegisteredParks() {
-  // lat/lngがない登録公園を対象（catchball定義済み）
   const targets = parkData.filter(p => p.catchball !== undefined && !p.lat);
-  const total = targets.length;
-  let done = 0;
+  const total   = targets.length;
+  let   done    = 0;
   const loadingEl = document.getElementById('loading-parks');
 
-  // 10件ずつ並列処理
   const BATCH = 10;
   for (let i = 0; i < targets.length; i += BATCH) {
     const batch = targets.slice(i, i + BATCH);
@@ -684,7 +790,6 @@ async function placeRegisteredParks() {
       const query = `${p.name} ${p.city || ''} 埼玉県`;
       placesService.textSearch({ query, language: 'ja' }, (results, status) => {
         if (status === 'OK' && results && results[0]) {
-          // 登録公園専用配置：name不一致・city不一致でも parkData の情報で強制配置
           addRegisteredParkToMap(results[0], p);
         } else {
           console.warn(`❌ 未発見: ${p.name}（${p.city}）status=${status}`);
@@ -696,81 +801,78 @@ async function placeRegisteredParks() {
         resolve();
       });
     })));
-    // バッチ間に少し待機（API制限対策）
     await new Promise(r => setTimeout(r, 200));
   }
 
   const notFound = window._notFoundParks || [];
-  if (loadingEl) loadingEl.textContent = notFound.length > 0 ? `${total - notFound.length}/${total}` : `完了`;
+  if (loadingEl) loadingEl.textContent = notFound.length > 0 ? `${total - notFound.length}/${total}` : '完了';
   console.log(`\n=== 配置完了 ===`);
   console.log(`✅ 配置成功: ${total - notFound.length}件`);
   if (notFound.length > 0) {
     console.warn(`❌ 未発見 ${notFound.length}件:`);
-    notFound.forEach(n => console.warn(' ', n));
+    notFound.forEach(n => console.warn('  ', n));
   }
   updateStats();
   renderParkList();
 }
 
-/* 登録済み公園専用マーカー配置（名前不一致でもparkDataの情報を使用）*/
+/* 登録済み公園専用マーカー配置（名前不一致でも parkData の情報を使用）*/
 function addRegisteredParkToMap(place, parkEntry) {
-  // 既存マーカーが登録済み情報なしの青マーカーなら上書き
   if (placesMarkers[place.place_id]) {
     const existing = placesMarkers[place.place_id];
-    if (existing._parkInfo && existing._parkInfo.catchball !== undefined) return; // 既に登録済み情報あり
-    // 青マーカーを除去して緑で上書き
-    clusterGroup.removeLayer(existing);
+    // 既に登録済み情報あり → スキップ
+    if (existing._parkInfo && existing._parkInfo.catchball !== undefined) return;
+    // 情報なし青マーカー → 除去して上書き
+    clusterer.removeMarker(existing);
+    delete placesMarkers[place.place_id];
   }
 
   const lat = place.geometry.location.lat();
   const lng = place.geometry.location.lng();
   if (!isInSaitama(lat, lng)) return;
 
-  // parkDataのエントリをそのまま使用（API名称に左右されない）
-  const info = parkEntry;
-  const name = parkEntry.name;
-
-  const markerHtml = makeMarkerHtml(true);
-
-  const icon = L.divIcon({ html: markerHtml, iconSize: [32,42], iconAnchor: [16,42], className: '' });
-  const parkInfo = { name, lat, lng, address: place.vicinity || place.formatted_address || '', place_id: place.place_id, ...info };
-  const marker = L.marker([lat, lng], { icon })
-    .on('click', () => showParkModal(parkInfo));
-  marker._parkInfo = parkInfo;
-  placesMarkers[place.place_id] = marker;
-
-  // curatedも更新（名前でマッチさせるため）
-  curated[place.name] = info;
-
-  if (activeFilters.catchball && info.catchball !== true) return;
-  clusterGroup.addLayer(marker);
-  console.log(`✅ 登録配置: ${name}（${info.city}）→ API名: ${place.name}`);
-}
-
-/* ═══ PLACES API 検索 ═══ */
-function searchParksInView() {
-  const center = map.getCenter();
-
-  // 埼玉県外なら検索しない
-  if (!isInSaitama(center.lat, center.lng)) return;
-
-  const bounds = map.getBounds();
-  const ne = bounds.getNorthEast();
-
-  // 中心から北東端までの距離（m）= 検索半径
-  const R = 6371000;
-  const dLat = (ne.lat - center.lat) * Math.PI / 180;
-  const dLng = (ne.lng - center.lng) * Math.PI / 180 * Math.cos(center.lat * Math.PI / 180);
-  const radius = Math.min(Math.sqrt(dLat*dLat + dLng*dLng) * R, 50000);
-
-  const request = {
-    location: new google.maps.LatLng(center.lat, center.lng),
-    radius: radius,
-    type: 'park',
-    language: 'ja'
+  const parkInfo = {
+    name: parkEntry.name,
+    lat, lng,
+    address: place.vicinity || place.formatted_address || '',
+    place_id: place.place_id,
+    ...parkEntry
   };
 
-  placesService.nearbySearch(request, handlePlacesResults);
+  const marker = createMarker(lat, lng, parkInfo);
+  placesMarkers[place.place_id] = marker;
+  curated[place.name] = parkEntry;
+
+  if (!activeFilters.catchball || parkEntry.catchball === true) {
+    clusterer.addMarker(marker);
+  }
+  console.log(`✅ 登録配置: ${parkEntry.name}（${parkEntry.city}）→ API名: ${place.name}`);
+}
+
+/* ═══════════════════════════════════════════════
+   PLACES API 近隣検索
+═══════════════════════════════════════════════ */
+function searchParksInView() {
+  const center = map.getCenter();
+  if (!center) return;
+  const lat = center.lat(), lng = center.lng();
+  if (!isInSaitama(lat, lng)) return;
+
+  const bounds = map.getBounds();
+  if (!bounds) return;
+  const ne = bounds.getNorthEast();
+
+  const R    = 6371000;
+  const dLat = (ne.lat() - lat) * Math.PI / 180;
+  const dLng = (ne.lng() - lng) * Math.PI / 180 * Math.cos(lat * Math.PI / 180);
+  const radius = Math.min(Math.sqrt(dLat*dLat + dLng*dLng) * R, 20000);
+
+  placesService.nearbySearch({
+    location: new google.maps.LatLng(lat, lng),
+    radius,
+    type: 'park',
+    language: 'ja'
+  }, handlePlacesResults);
 }
 
 function handlePlacesResults(results, status, pagination) {
@@ -788,111 +890,95 @@ function addPlaceToMap(place) {
 
   const lat = place.geometry.location.lat();
   const lng = place.geometry.location.lng();
-
-  // 埼玉県外はスキップ
   if (!isInSaitama(lat, lng)) return;
-  const name = place.name;
 
-  // parks-data.js に登録済みの公園かチェック
+  const name = place.name;
   const info = curated[name];
 
-  // city が指定されている場合、vicinity（住所）が一致しない公園は誤マッチとしてスキップ
+  // city 指定あり・vicinity 不一致は誤マッチ
   if (info && info.city) {
     const vicinity = place.vicinity || '';
     if (!vicinity.includes(info.city)) return;
   }
 
-  const catchballState = info ? info.catchball : undefined;
-  const markerHtml = makeMarkerHtml(catchballState);
+  const parkInfo = {
+    name, lat, lng,
+    address: place.vicinity || place.formatted_address || '',
+    place_id: place.place_id,
+    ...info
+  };
 
-  const icon = L.divIcon({
-    html: markerHtml,
-    iconSize: [32, 42],
-    iconAnchor: [16, 42],
-    className: ''
-  });
-
-  const parkInfo = { name, lat, lng, address: place.vicinity || place.formatted_address || '', place_id: place.place_id, ...info };
-  const marker = L.marker([lat, lng], { icon })
-    .on('click', () => showParkModal(parkInfo));
-
-  // マーカーに公園情報を直接持たせる
-  marker._parkInfo = parkInfo;
-
+  const marker = createMarker(lat, lng, parkInfo);
   placesMarkers[place.place_id] = marker;
 
-  // デバッグログ：マッチ結果をコンソールに出力
-  if (info) {
-    console.log(`✅ マッチ: ${name}（${info.city || ''}）`);
+  if (info) console.log(`✅ マッチ: ${name}（${info.city || ''}）`);
+
+  if (!activeFilters.catchball || (info && info.catchball === true)) {
+    clusterer.addMarker(marker);
   }
-  addMarkerIfVisible(marker); // フィルター状態を見て追加
 }
 
-/* ═══ フィルター適用 ═══ */
-/* ═══ マーカーHTML生成（Airbnb風 丸みのあるピン） ═══ */
+/* ═══════════════════════════════════════════════
+   マーカー生成（AdvancedMarkerElement）
+   ネイティブ Google Maps なのでピン位置が正確
+═══════════════════════════════════════════════ */
+function createMarker(lat, lng, parkInfo) {
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = makeMarkerHtml(parkInfo.catchball);
+  const content = wrapper.firstElementChild;
+  content.style.cursor = 'pointer';
+  content.addEventListener('click', (e) => {
+    e.stopPropagation();
+    showParkModal(parkInfo);
+  });
+
+  const marker = new google.maps.marker.AdvancedMarkerElement({
+    position: { lat, lng },
+    content,
+    title: parkInfo.name,
+  });
+  marker._parkInfo = parkInfo;
+  return marker;
+}
+
+/* Airbnb 風ピン HTML */
 function makeMarkerHtml(catchball) {
   let bg, shadow, label;
-  if (catchball === true)  { bg='#00a854'; shadow='rgba(0,168,84,0.4)'; label='⚾'; }
+  if (catchball === true)       { bg='#00a854'; shadow='rgba(0,168,84,0.4)';  label='⚾'; }
   else if (catchball === false) { bg='#ff385c'; shadow='rgba(255,56,92,0.4)'; label='✕'; }
-  else if (catchball === null)  { bg='#c45500'; shadow='rgba(196,85,0,0.4)'; label='?'; }
-  else { bg='#717171'; shadow='rgba(0,0,0,0.2)'; label='●'; }
-
+  else if (catchball === null)  { bg='#c45500'; shadow='rgba(196,85,0,0.4)';  label='?'; }
+  else                          { bg='#717171'; shadow='rgba(0,0,0,0.2)';     label='●'; }
   return `
-    <div style="position:relative;width:32px;height:42px;filter:drop-shadow(0 2px 6px ${shadow})">
-      <div style="
-        position:absolute;top:0;left:0;
-        width:32px;height:32px;
-        border-radius:50% 50% 50% 0;
-        transform:rotate(-45deg);
-        background:${bg};
-        border:2px solid #fff;
-      "></div>
-      <div style="
-        position:absolute;top:6px;left:6px;
-        font-size:14px;line-height:1;
-        color:#fff;font-weight:700;
-      ">${label}</div>
+    <div style="position:relative;width:32px;height:42px;filter:drop-shadow(0 2px 6px ${shadow});cursor:pointer">
+      <div style="position:absolute;top:0;left:0;width:32px;height:32px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:${bg};border:2px solid #fff"></div>
+      <div style="position:absolute;top:6px;left:6px;font-size:14px;line-height:1;color:#fff;font-weight:700">${label}</div>
     </div>`;
 }
 
+/* ═══════════════════════════════════════════════
+   フィルター適用
+═══════════════════════════════════════════════ */
 function applyFilters() {
-  clusterGroup.clearLayers();
+  // clusterer.clearMarkers() は各マーカーの .map を null にしてクリア
+  clusterer.clearMarkers();
 
-  Object.values(placesMarkers).forEach(marker => {
+  const visible = Object.values(placesMarkers).filter(marker => {
     const info = marker._parkInfo;
-
-    // catchball フィルターON → catchball:true の公園のみ
-    if (activeFilters.catchball && info.catchball !== true) return;
-
-    clusterGroup.addLayer(marker);
+    if (activeFilters.catchball && info.catchball !== true) return false;
+    return true;
   });
 
+  clusterer.addMarkers(visible);
   updateStats();
   renderParkList();
 }
 
-/* ═══ POPUP / MODAL ═══ */
-function makePopup(park) {
-  let cbBg, cbColor, cbText;
-  if (park.catchball === true)       { cbBg='rgba(5,150,105,0.15)';  cbColor='#108c3d'; cbText='✓ キャッチボール可'; }
-  else if (park.catchball === false) { cbBg='rgba(229,48,48,0.15)';  cbColor='#dc2626'; cbText='✕ 不可・要確認'; }
-  else if (park.catchball === null)  { cbBg='rgba(249,115,22,0.15)'; cbColor='#ea580c'; cbText='? 判定不明（報告あり）'; }
-  else                               { cbBg='#f1f5f9'; cbColor='#64748d'; cbText='キャッチボール情報未登録'; }
-
-  const gmapUrl = park.place_id
-    ? `https://www.google.com/maps/place/?q=place_id:${park.place_id}`
-    : `https://www.google.com/maps/search/${encodeURIComponent((park.address || park.name) + ' ' + (park.city || ''))}`;
-  return `<div style="padding:8px;min-width:180px">
-    <strong>${park.name}</strong>
-    <div style="font-size:11px;margin:4px 0"><a href="${gmapUrl}" target="_blank" style="color:#3b82f6;text-decoration:none">${park.address || park.city || '地図で見る'} ↗</a></div>
-    <div style="padding:3px 8px;background:${cbBg};border-radius:3px;font-size:10px;font-weight:600;color:${cbColor};margin-bottom:4px">${cbText}</div>
-    ${park.toilet !== undefined ? `<div style="font-size:10px">トイレ: ${park.toilet ? 'あり' : 'なし'} ／ 駐車場: ${park.parking ? 'あり' : 'なし'}</div>` : ''}
-  </div>`;
-}
-
+/* ═══════════════════════════════════════════════
+   MODAL
+═══════════════════════════════════════════════ */
 function renderModalContent(park, toilet, parking) {
-  const toiletHtml   = toilet  !== null ? `<div class="park-row"><span class="park-row-label">トイレ</span><span class="park-row-value">${toilet  ? 'あり' : 'なし'}</span></div>` : '';
-  const parkingHtml  = parking !== null ? `<div class="park-row"><span class="park-row-label">駐車場</span><span class="park-row-value">${parking ? 'あり' : 'なし'}</span></div>` : '';
+  const toiletHtml  = toilet  !== null ? `<div class="park-row"><span class="park-row-label">トイレ</span><span class="park-row-value">${toilet  ? 'あり' : 'なし'}</span></div>` : '';
+  const parkingHtml = parking !== null ? `<div class="park-row"><span class="park-row-label">駐車場</span><span class="park-row-value">${parking ? 'あり' : 'なし'}</span></div>` : '';
   const gmapUrl = park.place_id
     ? `https://www.google.com/maps/place/?q=place_id:${park.place_id}`
     : `https://www.google.com/maps/search/${encodeURIComponent((park.address || park.name) + ' ' + (park.city || ''))}`;
@@ -904,12 +990,13 @@ function renderModalContent(park, toilet, parking) {
   else                               { cbStyle='background:#f7f7f7;color:#6a6a6a'; cbText='情報未登録'; }
 
   document.getElementById('modal-park-content').innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;margin-bottom:14px;${cbStyle}">
+      <span style="font-size:18px">${park.catchball===true?'⚾':park.catchball===false?'✕':'?'}</span>
+      <span style="font-weight:700;font-size:13px">${cbText}</span>
+    </div>
     <div class="park-row">
       <span class="park-row-label">住所</span>
-      <span class="park-row-value"><a href="${gmapUrl}" target="_blank" style="color:#ff385c;text-decoration:none">${park.address || park.city || '地図で見る'} ↗</a></span>
-    </div>
-    <div style="margin:10px 0">
-      <span class="park-badge-large" style="${cbStyle};font-weight:600;font-size:12px;border-radius:14px">${cbText}</span>
+      <span class="park-row-value"><a href="${gmapUrl}" target="_blank" style="color:var(--action);text-decoration:none">${park.address || park.city || '地図で見る'} ↗</a></span>
     </div>
     ${park.area ? `<div class="park-row"><span class="park-row-label">広さ</span><span class="park-row-value">${park.area}</span></div>` : ''}
     ${toiletHtml}
@@ -941,13 +1028,12 @@ function renderModalContent(park, toilet, parking) {
 async function showParkModal(park) {
   document.getElementById('modal-park-name').textContent = park.name;
 
-  // まず既知の値で即時表示
   const initToilet  = park.toilet  !== undefined ? park.toilet  : null;
   const initParking = park.parking !== undefined ? park.parking : null;
   renderModalContent(park, initToilet, initParking);
   setupModalLinks(park);
 
-  // place_id があれば Places API（新）でトイレ・駐車場を取得
+  // place_id があれば Places API (New) でトイレ・駐車場を補完
   if (park.place_id && (initToilet === null || initParking === null)) {
     try {
       const res = await fetch(
@@ -958,7 +1044,6 @@ async function showParkModal(park) {
       const parking = data.parkingOptions
         ? Object.values(data.parkingOptions).some(v => v === true)
         : null;
-      // innerHTML再生成後にリンクを再設定
       renderModalContent(park, toilet, parking);
       setupModalLinks(park);
     } catch(e) {
@@ -985,10 +1070,11 @@ function closeParkModal() {
   document.getElementById('park-modal').classList.remove('open');
 }
 
-/* ═══ STATS / LIST ═══ */
+/* ═══════════════════════════════════════════════
+   STATS / LIST
+═══════════════════════════════════════════════ */
 function updateStats() {
   const total = Object.keys(placesMarkers).length;
-  // 地図上にマッチ表示済みの登録公園数（catchball登録あり）
   const matchedRegistered = Object.values(placesMarkers)
     .filter(m => m._parkInfo && m._parkInfo.catchball !== undefined && m._parkInfo.catchball !== null)
     .length;
@@ -997,29 +1083,27 @@ function updateStats() {
 }
 
 function renderParkList() {
-  const list = document.getElementById('park-list');
+  const list       = document.getElementById('park-list');
   const searchTerm = document.getElementById('hdr-search-input').value.toLowerCase();
-  const bounds = map.getBounds();
+  const bounds     = map.getBounds();
+  if (!bounds) return;
   const sortMode = document.getElementById('sort-select')?.value || 'name';
-  const userPos = currentLocationMarker ? currentLocationMarker.getLatLng() : null;
 
-  // 表示範囲内 + フィルター条件に合うマーカーを抽出
   let filtered = Object.values(placesMarkers)
     .filter(marker => {
       const p = marker._parkInfo;
       if (!p) return false;
-      if (!bounds.contains([p.lat, p.lng])) return false;
+      if (!bounds.contains(new google.maps.LatLng(p.lat, p.lng))) return false;
       if (activeFilters.catchball && p.catchball !== true) return false;
       if (searchTerm && !p.name.toLowerCase().includes(searchTerm)) return false;
       return true;
     })
     .map(m => m._parkInfo);
 
-  // ソート
-  if (sortMode === 'near' && userPos) {
+  if (sortMode === 'near' && currentUserLatLng) {
     filtered.sort((a, b) => {
-      const da = Math.hypot(a.lat - userPos.lat, a.lng - userPos.lng);
-      const db = Math.hypot(b.lat - userPos.lat, b.lng - userPos.lng);
+      const da = Math.hypot(a.lat - currentUserLatLng.lat, a.lng - currentUserLatLng.lng);
+      const db = Math.hypot(b.lat - currentUserLatLng.lat, b.lng - currentUserLatLng.lng);
       return da - db;
     });
   } else {
@@ -1035,36 +1119,41 @@ function renderParkList() {
   }
 
   filtered.forEach(park => {
-    const cbClass = park.catchball === true ? 'catchball' : park.catchball === false ? 'no-catchball' : 'unknown-catchball';
-    const cbText  = park.catchball === true ? '✓ 可' : park.catchball === false ? '✕ 不可' : '? 不明';
-    // 報告件数バッジ
-    const reportBadge = park.reports > 0
-      ? `<span style="font-size:9px;color:var(--ink-3);margin-left:4px">📝 ${park.reports}件</span>`
-      : '';
-    // 近い順のとき距離表示
+    const cbClass = park.catchball === true ? 'cb-yes' : park.catchball === false ? 'cb-no' : park.catchball === null ? 'cb-unknown' : '';
+    const badgeClass = park.catchball === true ? 'catchball' : park.catchball === false ? 'no-catchball' : 'unknown-catchball';
+    const cbText = park.catchball === true ? '✓ 可' : park.catchball === false ? '✕ 不可' : '? 不明';
     let distText = '';
-    if (sortMode === 'near' && userPos) {
-      const dx = (park.lat - userPos.lat) * 111000;
-      const dy = (park.lng - userPos.lng) * 111000 * Math.cos(userPos.lat * Math.PI / 180);
+    if (sortMode === 'near' && currentUserLatLng) {
+      const dx   = (park.lat - currentUserLatLng.lat) * 111000;
+      const dy   = (park.lng - currentUserLatLng.lng) * 111000 * Math.cos(currentUserLatLng.lat * Math.PI / 180);
       const dist = Math.round(Math.sqrt(dx*dx + dy*dy));
-      distText = `<span style="font-size:9px;color:var(--ink-3);margin-left:4px">${dist < 1000 ? dist+'m' : (dist/1000).toFixed(1)+'km'}</span>`;
+      distText = dist < 1000 ? dist+'m' : (dist/1000).toFixed(1)+'km';
     }
     const item = document.createElement('li');
-    item.className = 'park-item';
+    item.className = `park-item${cbClass ? ' '+cbClass : ''}`;
     item.innerHTML = `
-      <div class="park-item-name">${park.name}${reportBadge}${distText}</div>
-      <div class="park-item-addr">${park.address || park.city || ''}</div>
-      <span class="park-item-badge ${cbClass}">${cbText}</span>
+      <div class="park-item-top">
+        <div class="park-item-name">${park.name}</div>
+        <span class="park-item-badge ${badgeClass}">${cbText}</span>
+      </div>
+      <div class="park-item-meta">
+        <span class="park-item-addr">${park.address || park.city || ''}</span>
+        ${park.reports > 0 ? `<span style="font-size:9px;color:var(--ink-3)">📝 ${park.reports}件</span>` : ''}
+        ${distText ? `<span class="park-item-dist">${distText}</span>` : ''}
+      </div>
     `;
     item.onclick = () => {
-      map.setView([park.lat, park.lng], 16);
+      map.setCenter({ lat: park.lat, lng: park.lng });
+      map.setZoom(16);
       showParkModal(park);
     };
     list.appendChild(item);
   });
 }
 
-/* ═══ 最終更新日表示 ═══ */
+/* ═══════════════════════════════════════════════
+   最終更新日表示
+═══════════════════════════════════════════════ */
 function updateLastUpdated() {
   const el = document.getElementById('last-updated');
   if (!el || !gasUpdated) return;
@@ -1073,77 +1162,92 @@ function updateLastUpdated() {
   el.style.display = 'block';
 }
 
-
-/* ═══ CITY BOUNDARY ═══ */
-function fetchBoundary(name, query) {
+/* ═══════════════════════════════════════════════
+   境界線（google.maps.Data レイヤー）
+═══════════════════════════════════════════════ */
+function fetchBoundary(query) {
   const q = encodeURIComponent(query);
   const url = `https://nominatim.openstreetmap.org/search?q=${q}&format=json&polygon_geojson=1&limit=1&countrycodes=jp`;
-  return fetch(url, { headers: { 'Accept-Language': 'ja' } })
+  return fetch(url, { headers: { 'Accept-Language': 'ja', 'User-Agent': 'saitama-park-map/1.0' } })
     .then(r => r.json())
     .then(data => {
       if (!data || data.length === 0 || !data[0].geojson) throw new Error('no data');
-      return data[0].geojson;
+      const geom = data[0].geojson;
+      // addGeoJson() は Feature/FeatureCollection が必要。生 Geometry をラップする
+      if (geom.type === 'Feature' || geom.type === 'FeatureCollection') return geom;
+      return { type: 'Feature', geometry: geom, properties: {} };
     });
 }
 
-// 埼玉県・さいたま市の常時表示境界線
-function loadFixedBoundary(name, type) {
-  const query = name === '埼玉県' ? '埼玉県' : 'さいたま市 埼玉県';
-  const styles = {
-    pref: {  // 埼玉県：濃いめのグレーブラウンの実線
-      color: '#78716c', weight: 2, opacity: 0.7,
-      fillColor: '#78716c', fillOpacity: 0.05, dashArray: null
+function loadFixedBoundary() {
+  fetchBoundary('埼玉県').then(geojson => {
+    // 正確な境界リングを isInSaitama() に登録（GeoJSON は [lng,lat]、内部は [lat,lng]）
+    const geom = geojson.geometry || geojson;
+    if (geom.type === 'Polygon') {
+      _saitamaRings = [geom.coordinates[0].map(([lng, lat]) => [lat, lng])];
+    } else if (geom.type === 'MultiPolygon') {
+      _saitamaRings = geom.coordinates.map(poly => poly[0].map(([lng, lat]) => [lat, lng]));
     }
-  };
-  fetchBoundary(name, query)
-    .then(geojson => {
-      const layer = L.geoJSON(geojson, { style: styles[type] }).addTo(map);
-      if (type === 'pref') prefBoundaryLayer = layer;
-      else saitamaCityLayer = layer;
-    })
-    .catch(e => console.warn(`${name}境界線取得エラー:`, e));
+
+    prefBoundaryData = new google.maps.Data();
+    prefBoundaryData.addGeoJson(geojson);
+    prefBoundaryData.setStyle({
+      strokeColor: '#78716c',
+      strokeWeight: 2,
+      strokeOpacity: 0.7,
+      fillColor:    '#78716c',
+      fillOpacity:  0.05,
+    });
+    prefBoundaryData.setMap(map);
+  }).catch(e => console.warn('埼玉県境界線取得エラー:', e));
 }
 
-function clearBoundary() {
-  if (boundaryLayer) {
-    map.removeLayer(boundaryLayer);
-    boundaryLayer = null;
-  }
-}
-
-// 市区町村選択時の境界線（ユーザー操作）
 function showCityBoundary(cityName) {
-  clearBoundary();
-  const query = cityName + ' 埼玉県';
-  fetchBoundary(cityName, query)
-    .then(geojson => {
-      boundaryLayer = L.geoJSON(geojson, {
-        style: {
-          color: '#f59e0b',   // アンバー：目立つが主張しすぎない
-          weight: 2,
-          opacity: 0.8,
-          fillColor: '#f59e0b',
-          fillOpacity: 0.07,
-          dashArray: '7 4'
-        }
-      }).addTo(map);
-    })
-    .catch(e => console.warn('境界線取得エラー:', e));
+  if (cityBoundaryData) {
+    cityBoundaryData.setMap(null);
+    cityBoundaryData = null;
+  }
+  fetchBoundary(cityName + ' 埼玉県').then(geojson => {
+    cityBoundaryData = new google.maps.Data();
+    cityBoundaryData.addGeoJson(geojson);
+    cityBoundaryData.setStyle({
+      strokeColor: '#1a56db',
+      strokeWeight: 2,
+      strokeOpacity: 0.8,
+      fillColor:    '#1a56db',
+      fillOpacity:  0.07,
+    });
+    cityBoundaryData.setMap(map);
+  }).catch(e => console.warn('境界線取得エラー:', e));
 }
 
-/* ═══ MAP TYPE BUTTONS ═══ */
+/* ═══════════════════════════════════════════════
+   MAP TYPE ボタン
+═══════════════════════════════════════════════ */
 function setupMapTypeButtons() {
   document.querySelectorAll('.map-type-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      addTileLayer(btn.dataset.type);
+      map.setMapTypeId(btn.dataset.type);
       document.querySelectorAll('.map-type-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
     });
   });
 }
 
-/* ═══ EVENT LISTENERS ═══ */
+const _MAP_TYPES = ['roadmap','satellite','hybrid'];
+window.cycleMapType = function() {
+  if (!map) return;
+  const cur = map.getMapTypeId();
+  const next = _MAP_TYPES[(_MAP_TYPES.indexOf(cur) + 1) % _MAP_TYPES.length];
+  map.setMapTypeId(next);
+  document.querySelectorAll('.map-type-btn').forEach(b => b.classList.toggle('active', b.dataset.type === next));
+};
+
+/* ═══════════════════════════════════════════════
+   EVENT LISTENERS
+═══════════════════════════════════════════════ */
 function setupEventListeners() {
+  // フィルター
   document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', function() {
       const filter = this.dataset.filter;
@@ -1153,87 +1257,177 @@ function setupEventListeners() {
     });
   });
 
+  // 公園名検索
   document.getElementById('hdr-search-input').addEventListener('input', function() {
     document.getElementById('hdr-search-clear').classList.toggle('show', this.value.length > 0);
     renderParkList();
   });
-
   document.getElementById('hdr-search-clear').addEventListener('click', function() {
     document.getElementById('hdr-search-input').value = '';
     this.classList.remove('show');
     renderParkList();
   });
 
+  // ハンバーガーメニュー
   document.getElementById('hbg').addEventListener('click', function() {
     document.getElementById('sidebar').classList.toggle('open');
     this.classList.toggle('open');
   });
 
+  // モーダル背景クリックで閉じる
   document.getElementById('park-modal').addEventListener('click', function(e) {
     if (e.target === this) closeParkModal();
   });
 
+  // ソート
   document.getElementById('sort-select').addEventListener('change', renderParkList);
 
-  // 市町村選択
+  // サイドバー内検索（モバイル用）
+  const sbSearch = document.getElementById('sidebar-search-input');
+  const sbClear  = document.getElementById('sidebar-search-clear');
+  const hdrInput = document.getElementById('hdr-search-input');
+  sbSearch.addEventListener('input', function() {
+    hdrInput.value = this.value;
+    sbClear.classList.toggle('show', this.value.length > 0);
+    document.getElementById('hdr-search-clear').classList.toggle('show', this.value.length > 0);
+    renderParkList();
+  });
+  sbClear.addEventListener('click', function() {
+    sbSearch.value = '';
+    hdrInput.value = '';
+    this.classList.remove('show');
+    document.getElementById('hdr-search-clear').classList.remove('show');
+    renderParkList();
+  });
+  // ヘッダー検索とサイドバー検索を双方向同期
+  hdrInput.addEventListener('input', function() {
+    sbSearch.value = this.value;
+    sbClear.classList.toggle('show', this.value.length > 0);
+  });
+
+  // 市区町村選択
   document.getElementById('city-select').addEventListener('change', function() {
     if (!this.value) {
-      clearBoundary();
+      if (cityBoundaryData) { cityBoundaryData.setMap(null); cityBoundaryData = null; }
       return;
     }
     const [lat, lng, zoom] = this.value.split(',').map(Number);
     const cityName = this.options[this.selectedIndex].text;
-    map.setView([lat, lng], zoom);
+    map.setCenter({ lat, lng });
+    map.setZoom(zoom);
     showCityBoundary(cityName);
   });
 
   // 現在地ボタン
-  document.getElementById('gps-btn').addEventListener('click', function() {
+  const gpsBtn = document.getElementById('gps-btn');
+
+  const gpsSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;flex-shrink:0"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8" stroke-dasharray="4 2"/></svg>`;
+
+  gpsBtn.addEventListener('click', function() {
     if (!navigator.geolocation) {
       alert('このブラウザは位置情報に対応していません');
       return;
     }
     this.classList.add('locating');
     this.textContent = '取得中...';
+
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
+      pos => {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
+        currentUserLatLng = { lat, lng };
 
-        // 現在地マーカー更新
-        if (currentLocationMarker) map.removeLayer(currentLocationMarker);
-        currentLocationMarker = L.marker([lat, lng], {
-          icon: L.divIcon({
-            html: '<div class="current-location-marker"></div>',
-            iconSize: [16, 16],
-            className: ''
-          }),
-          zIndexOffset: 1000
-        }).addTo(map).bindPopup('現在地').openPopup();
+        // 既存の現在地マーカーを除去
+        if (currentLocationMarker) currentLocationMarker.map = null;
 
-        // 埼玉県内なら移動、県外なら警告
-        if (isInSaitama(lat, lng)) {
-          map.setView([lat, lng], 14);
-        } else {
-          map.setView([lat, lng], 14);
+        const locContent = document.createElement('div');
+        locContent.className = 'current-location-marker';
+        currentLocationMarker = new google.maps.marker.AdvancedMarkerElement({
+          position: { lat, lng },
+          map,
+          content: locContent,
+          title: '現在地',
+        });
+
+        map.setCenter({ lat, lng });
+        map.setZoom(14);
+
+        if (!isInSaitama(lat, lng)) {
           setTimeout(() => alert('現在地は埼玉県外です。埼玉県内のみ公園データを表示します。'), 300);
         }
 
-        const btn = document.getElementById('gps-btn');
-        btn.classList.remove('locating');
-        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8" stroke-dasharray="4 2"/></svg> 現在地`;
+        gpsBtn.classList.remove('locating');
+        gpsBtn.innerHTML = `${gpsSvg} 現在地`;
       },
-      (err) => {
-        const btn = document.getElementById('gps-btn');
-        btn.classList.remove('locating');
-        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8" stroke-dasharray="4 2"/></svg> 現在地`;
+      () => {
+        gpsBtn.classList.remove('locating');
+        gpsBtn.innerHTML = `${gpsSvg} 現在地`;
         alert('位置情報の取得に失敗しました。\nブラウザの位置情報の許可を確認してください。');
       },
       { timeout: 10000, enableHighAccuracy: true }
     );
   });
 }
+
+// 全域表示
+window.parkResetView = function() {
+  map.setCenter({ lat: 35.8617, lng: 139.6455 });
+  map.setZoom(11);
+};
+
+// キャッチボール可フィルタートグル（ボタンと連動）
+window.parkToggleCatchball = function() {
+  const btn = document.getElementById('pbtn-catchball');
+  const filterBtn = document.querySelector('.filter-btn[data-filter="catchball"]');
+  activeFilters.catchball = !activeFilters.catchball;
+  if (btn) btn.classList.toggle('active', activeFilters.catchball);
+  if (filterBtn) filterBtn.classList.toggle('on', activeFilters.catchball);
+  applyFilters();
+};
+
+// 一覧パネルトグル（モバイル用 - サイドバー開閉）
+window.parkToggleList = function() {
+  const sb = document.getElementById('sidebar');
+  const hbg = document.getElementById('hbg');
+  const btn = document.getElementById('pbnav-list');
+  const isOpen = sb.classList.toggle('open');
+  hbg.classList.toggle('open', isOpen);
+  if (btn) btn.classList.toggle('active', isOpen);
+};
+
+// 検索を開く（PC: ヘッダー検索フォーカス / モバイル: サイドバーを開いて検索欄にフォーカス）
+window.parkOpenSearch = function() {
+  const isMobile = window.innerWidth <= 768;
+  if (isMobile) {
+    const sb = document.getElementById('sidebar');
+    const hbg = document.getElementById('hbg');
+    sb.classList.add('open');
+    hbg.classList.add('open');
+    setTimeout(() => document.getElementById('sidebar-search-input').focus(), 350);
+  } else {
+    document.getElementById('hdr-search-input').focus();
+  }
+};
 </script>
 
+<!-- モバイルボトムナビ -->
+<div id="parks-bnav">
+  <button class="bnav-btn" id="pbnav-list" onclick="window.parkToggleList()">
+    <span class="bnav-icon">📋</span>
+    <span>一覧</span>
+  </button>
+  <button class="bnav-btn" onclick="window.parkOpenSearch()">
+    <span class="bnav-icon">🔍</span>
+    <span>検索</span>
+  </button>
+  <button class="bnav-btn" onclick="document.getElementById('hbg').click()">
+    <span class="bnav-icon">☰</span>
+    <span>絞込</span>
+  </button>
+  <button class="bnav-btn" onclick="document.getElementById('gps-btn').click()">
+    <span class="bnav-icon">📍</span>
+    <span>現在地</span>
+  </button>
+</div>
 </body>
 </html>

@@ -10,12 +10,13 @@
   <meta name="twitter:title" content="埼玉県野球競技者人口マップ">
   <meta name="twitter:description" content="埼玉県63市町村・2,143チームの野球競技者データを地図で可視化。">
   <meta name="description" content="埼玉県63市町村・2,143チームの野球競技者データを地図で可視化。少年野球チーム検索、参加率ランキング、市区町村比較など。">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>埼玉県野球競技者人口マップ | 埼玉県野球協議会</title>
 <!-- Google Maps + MarkerClusterer -->
 <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
+<!-- API キー（.gitignore 済み・GitHub には上げない） -->
+<script src="parks.config.js"></script>
 <script>
-  const API_KEY = 'AIzaSyDwTAz9qqQPnbARWe_vd8Vo2LXgDygCyN0';
   window.initMapCallback = function() { initMap(); };
   const _s = document.createElement('script');
   _s.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places,marker,visualization&callback=initMapCallback&loading=async`;
@@ -23,33 +24,34 @@
   document.head.appendChild(_s);
 </script>
 <style>
-/* ═══ COLOR SYSTEM (Stripe-inspired) ═══
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+/* ═══ COLOR SYSTEM (Airbnb-inspired, baseball blue accent) ═══
   Data identity (categories — unchanged):
     elem=#3b82f6  jhs=#059669  hs=#d97706  univ=#7c3aed  club=#dc2626  ind=#64748b
-  UI roles (Stripe palette):
-    action=#533afd (Stripe purple)  action-h=#4434d4  caution=#b45309  danger=#dc2626
-    surface=#f6f9fc  surface-1=#fff  surface-2=#f0f4f8  border=#e5edf5  border-2=#d6d9fc
-    ink=#061b31 (deep navy)  ink-2=#273951  ink-3=#64748d
-  Stripe shadow formula: rgba(50,50,93,0.25) 0 30px 45px -30px, rgba(0,0,0,0.1) 0 18px 36px -18px
+  UI roles:
+    action=#1a56db (baseball blue)  action-h=#1648c0
+    surface=#f7f7f7  surface-1=#fff  surface-2=#f2f2f2
+    border=#dddddd  border-2=#c8d8f0
+    ink=#222222  ink-2=#3f3f3f  ink-3=#6a6a6a
 */
-:root{--elem:#3b82f6;--jhs:#059669;--hs:#d97706;--univ:#7c3aed;--club:#dc2626;--ind:#64748b;--action:#533afd;--action-h:#4434d4;--caution:#b45309;--danger:#dc2626;--green:#059669;--surface:#f6f9fc;--surface-1:#fff;--surface-2:#f0f4f8;--border:#e5edf5;--border-2:#d6d9fc;--ink:#061b31;--ink-2:#273951;--ink-3:#64748d}
+:root{--elem:#3b82f6;--jhs:#059669;--hs:#d97706;--univ:#7c3aed;--club:#dc2626;--ind:#64748b;--action:#1a56db;--action-h:#1648c0;--caution:#c45500;--danger:#dc2626;--green:#00a854;--surface:#f7f7f7;--surface-1:#fff;--surface-2:#f2f2f2;--border:#dddddd;--border-2:#c8d8f0;--ink:#222222;--ink-2:#3f3f3f;--ink-3:#6a6a6a;--shadow-card:rgba(0,0,0,0.02) 0px 0px 0px 1px,rgba(0,0,0,0.04) 0px 2px 6px,rgba(0,0,0,0.1) 0px 4px 8px;--shadow-hover:rgba(0,0,0,0.08) 0px 4px 12px}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);color:var(--ink);height:100vh;display:flex;flex-direction:column;overflow:hidden;-webkit-font-smoothing:antialiased}
 
 /* ── HEADER ── */
-#header{background:var(--surface-1);padding:0 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);box-shadow:rgba(0,55,112,0.06) 0 1px 0;flex-shrink:0;z-index:1100;min-height:48px}
-#hbg{display:none;flex-direction:column;justify-content:center;gap:4px;width:32px;height:32px;cursor:pointer;padding:4px}
-#hbg span{display:block;height:2px;background:var(--ink);border-radius:1px;transition:.3s}
+#header{background:var(--surface-1);padding:0 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);box-shadow:0 1px 2px rgba(0,0,0,0.04);flex-shrink:0;z-index:1100;min-height:56px}
+#hbg{display:none;flex-direction:column;justify-content:center;gap:5px;width:32px;height:32px;cursor:pointer;padding:4px;background:none;border:none}
+#hbg span{display:block;height:1.5px;background:var(--ink);border-radius:2px;transition:.3s}
 #hbg.open span:nth-child(1){transform:rotate(45deg) translate(4px,4px)}
 #hbg.open span:nth-child(2){opacity:0}
 #hbg.open span:nth-child(3){transform:rotate(-45deg) translate(4px,-4px)}
-.hdr-brand{display:flex;flex-direction:column;gap:0;min-width:120px}
-.hdr-logo{font-size:13px;font-weight:700;color:var(--ink);letter-spacing:-.02em;white-space:nowrap}
-.hdr-sub{font-size:10px;color:var(--ink-3);letter-spacing:.02em;white-space:nowrap}
+.hdr-brand{display:flex;flex-direction:column;gap:1px;min-width:130px}
+.hdr-logo{font-size:14px;font-weight:700;color:var(--action);letter-spacing:-.3px;white-space:nowrap}
+.hdr-sub{font-size:10px;color:var(--ink-3);letter-spacing:.01em;white-space:nowrap}
 .hdr-stat{display:flex;align-items:center;gap:0;margin-left:auto}
 .hdr-kpi{text-align:center;padding:0 14px}
-.hdr-kpi-val{font-size:18px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1;letter-spacing:-.02em}
-.hdr-kpi-lbl{font-size:9px;color:var(--ink-3);margin-top:2px;letter-spacing:.04em;text-transform:uppercase}
+.hdr-kpi-val{font-size:20px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1;letter-spacing:-.5px}
+.hdr-kpi-lbl{font-size:9px;color:var(--ink-3);margin-top:3px;letter-spacing:.02em}
 .hdr-kpi-sep{width:1px;height:24px;background:var(--border);flex-shrink:0}
 .hdr-cats{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
 .hdr-cat-badge{display:inline-flex;align-items:baseline;gap:1px;font-size:11px;font-weight:600;padding:2px 7px;border-radius:4px;color:#fff;line-height:1;white-space:nowrap}
@@ -67,27 +69,27 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
 #map-container{flex:1;position:relative;display:flex;min-width:0}
 
 /* ── SIDEBAR ── */
-#sidebar{width:272px;background:var(--surface-1);border-left:1px solid var(--border);overflow-y:auto;flex-shrink:0;z-index:1000;transition:transform .3s}
-#sidebar::-webkit-scrollbar{width:3px}
-#sidebar::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:2px}
-.s-section{padding:12px 14px;border-bottom:1px solid var(--border)}
-.s-title{font-size:10px;font-weight:600;color:var(--ink-3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
+#sidebar{width:280px;background:var(--surface-1);border-left:1px solid var(--border);overflow-y:auto;flex-shrink:0;z-index:1000;transition:transform .3s}
+#sidebar::-webkit-scrollbar{width:4px}
+#sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.s-section{padding:14px 16px;border-bottom:1px solid var(--border)}
+.s-title{font-size:11px;font-weight:700;color:var(--ink);letter-spacing:.01em;margin-bottom:10px}
 
 /* ── VIEW/INDEX BUTTONS ── */
-.view-btns{display:flex;gap:3px}
-.vbtn{flex:1;padding:8px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:4px;color:var(--ink-2);font-size:11px;cursor:pointer;text-align:center;transition:.15s;font-family:inherit}
-.vbtn:hover{background:rgba(83,58,253,0.08);border-color:var(--border)}
-.vbtn.on{background:var(--action);border-color:var(--action);color:#fff}
-.vbtn.on:hover{background:var(--action-h)}
-.idx-btns{display:flex;gap:3px;margin-top:6px}
-.ibtn{flex:1;padding:8px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:4px;color:var(--ink-2);font-size:11px;cursor:pointer;text-align:center;transition:.15s;line-height:1.3;font-family:inherit}
-.ibtn:hover{background:rgba(83,58,253,0.08);border-color:var(--border)}
+.view-btns{display:flex;gap:4px}
+.vbtn{flex:1;padding:9px 12px;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;color:var(--ink-2);font-size:12px;font-weight:500;cursor:pointer;text-align:center;transition:.15s;font-family:inherit}
+.vbtn:hover{border-color:var(--ink);background:var(--surface-2)}
+.vbtn.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.vbtn.on:hover{background:var(--ink-2)}
+.idx-btns{display:flex;gap:4px;margin-top:6px}
+.ibtn{flex:1;padding:9px 12px;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;color:var(--ink-2);font-size:12px;font-weight:500;cursor:pointer;text-align:center;transition:.15s;line-height:1.3;font-family:inherit}
+.ibtn:hover{border-color:var(--ink);background:var(--surface-2)}
 .ibtn.on{background:var(--action);border-color:var(--action);color:#fff}
 .ibtn.on:hover{background:var(--action-h)}
 
 /* ── CATEGORY FILTER ── */
 .cat-btns{display:flex;flex-wrap:wrap;gap:3px}
-.cat-btn{padding:3px 7px;border-radius:4px;font-size:10px;cursor:pointer;border:1px solid;opacity:.4;transition:.15s;font-weight:600;color:#fff}
+.cat-btn{padding:4px 9px;border-radius:14px;font-size:10px;cursor:pointer;border:1.5px solid;opacity:.4;transition:.15s;font-weight:600;color:#fff}
 .cat-btn.on{opacity:1}
 .cb-elem{border-color:var(--elem);background:var(--elem)}.cb-elem.on{background:var(--elem)}
 .cb-jhs{border-color:var(--jhs);background:var(--jhs)}.cb-jhs.on{background:var(--jhs)}
@@ -104,12 +106,12 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
 #city-filter-name{font-size:11px;color:var(--ink);flex:1;font-weight:500}
 #city-filter-count{font-size:10px;color:var(--ink-2)}
 .cfbar-close{background:none;border:none;color:var(--ink-3);cursor:pointer;font-size:14px;padding:4px 8px;min-width:32px;min-height:32px}
-#city-select{width:100%;padding:5px 8px;background:var(--surface-1);border:1px solid var(--border);border-radius:4px;color:var(--ink);font-size:11px;margin-top:6px;cursor:pointer;font-family:inherit}
+#city-select{width:100%;padding:6px 10px;background:var(--surface-1);border:1.5px solid var(--border);border-radius:8px;color:var(--ink);font-size:12px;font-weight:500;margin-top:6px;cursor:pointer;font-family:inherit}
 
 /* ── RANKING ── */
 #rank-cat-select{width:100%;padding:4px 6px;background:var(--surface-1);border:1px solid var(--border);border-radius:4px;color:var(--ink);font-size:11px;margin-bottom:6px;cursor:pointer;font-family:inherit}
 #rank-list{display:flex;flex-direction:column;gap:0;list-style:none;margin:0;padding:0}
-.rank-item{display:flex;flex-direction:column;gap:3px;padding:7px 8px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;border-radius:0;margin-bottom:0}
+.rank-item{display:flex;flex-direction:column;gap:3px;padding:9px 10px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;border-radius:0;margin-bottom:0}
 .rank-item:last-child{border-bottom:none}
 .rank-item:hover{background:var(--surface-2)}
 .rank-item.top3-item{background:transparent}
@@ -133,7 +135,7 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
 .team-filter-row input[type=checkbox]{accent-color:var(--action)}
 .search-wrap{position:relative;display:flex;align-items:center}
 .search-wrap #team-search{width:100%;padding:6px 28px 6px 10px;background:var(--surface-1);border:1px solid var(--border);border-radius:4px;color:var(--ink);font-size:12px;font-family:inherit}
-.search-wrap #team-search:focus{border-color:var(--action);outline:2px solid var(--action);outline-offset:2px}
+.search-wrap #team-search:focus{border-color:var(--action);outline:2px solid rgba(26,86,219,0.2);outline-offset:2px}
 #search-clear{display:none;position:absolute;right:6px;background:none;border:none;color:var(--ink-3);cursor:pointer;font-size:14px;line-height:1;padding:0}
 #search-clear.show{display:block}
 
@@ -155,13 +157,13 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
 .tlp-tab-count{font-size:9px;font-weight:400;color:var(--ink-3);margin-left:3px}
 
 /* ── TEAM LIST PANEL ── */
-#team-list-panel{position:fixed;bottom:0;left:0;right:272px;height:40vh;background:var(--surface-1);border-top:1px solid var(--border);z-index:2000;transform:translateY(100%);transition:transform .3s;display:flex;flex-direction:column}
+#team-list-panel{position:fixed;bottom:0;left:0;right:280px;height:40vh;background:var(--surface-1);border-top:1px solid var(--border);z-index:2000;transform:translateY(100%);transition:transform .3s;display:flex;flex-direction:column;box-shadow:var(--shadow-card)}
 #team-list-panel.open{transform:translateY(0)}
 .tlp-header{padding:8px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0}
 .tlp-header h3{font-size:13px;font-weight:600;flex:1}
 #tlp-count{font-size:11px;color:var(--ink-3)}
-.tlp-close{background:var(--surface-2);border:1px solid var(--border);color:var(--ink-2);cursor:pointer;font-size:14px;font-weight:700;border-radius:4px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.15s}
-.tlp-close:hover{background:rgba(83,58,253,0.1);border-color:var(--border);color:var(--action)}
+.tlp-close{background:var(--surface-2);border:none;color:var(--ink-2);cursor:pointer;font-size:16px;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.15s}
+.tlp-close:hover{background:var(--border);color:var(--ink)}
 #tlp-sort{padding:3px 6px;background:var(--surface-2);border:1px solid var(--border);border-radius:4px;color:var(--ink-2);font-size:10px;cursor:pointer;flex-shrink:0;font-family:inherit}
 #tlp-body{overflow-y:auto;flex:1;padding:4px 8px}
 #tlp-search-row{padding:6px 10px;border-bottom:1px solid var(--border);position:relative;flex-shrink:0}
@@ -180,7 +182,7 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
 .tlp-sd-meta{font-size:10px;color:var(--ink-3);flex-shrink:0}
 
 /* ── NEARBY PANEL ── */
-#nearby-panel{position:fixed;bottom:0;right:272px;width:300px;max-height:50vh;background:var(--surface-1);border-top:1px solid var(--border);border-left:1px solid var(--border);z-index:2000;transform:translateY(100%);transition:transform .3s;display:flex;flex-direction:column;border-radius:0}
+#nearby-panel{position:fixed;bottom:0;right:280px;width:300px;max-height:50vh;background:var(--surface-1);border-top:1px solid var(--border);border-left:1px solid var(--border);z-index:2000;transform:translateY(100%);transition:transform .3s;display:flex;flex-direction:column;border-radius:0;box-shadow:var(--shadow-card)}
 #nearby-panel.open{transform:translateY(0)}
 .nbp-header{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0}
 .nbp-header h3{font-size:13px;font-weight:600;flex:1}
@@ -190,10 +192,10 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
 /* ── MODALS ── */
 #chart-modal{display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.25)}
 #chart-modal.open{display:flex;align-items:center;justify-content:center}
-.chart-box{background:var(--surface-1);border:1px solid var(--border);border-radius:6px;padding:16px;width:90%;max-width:480px;max-height:80vh;overflow-y:auto;box-shadow:rgba(50,50,93,0.25) 0 30px 45px -30px,rgba(0,0,0,0.1) 0 18px 36px -18px}
+.chart-box{background:var(--surface-1);border:1px solid var(--border);border-radius:20px;padding:20px;width:90%;max-width:480px;max-height:80vh;overflow-y:auto;box-shadow:var(--shadow-card)}
 #cmp-modal{display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.3)}
 #cmp-modal.open{display:flex;align-items:center;justify-content:center}
-.cmp-box{background:var(--surface-1);border-radius:6px;padding:18px;width:96%;max-width:780px;max-height:88vh;overflow-y:auto;box-shadow:rgba(50,50,93,0.25) 0 30px 45px -30px,rgba(0,0,0,0.1) 0 18px 36px -18px}
+.cmp-box{background:var(--surface-1);border-radius:20px;padding:20px;width:96%;max-width:780px;max-height:88vh;overflow-y:auto;box-shadow:var(--shadow-card)}
 .cmp-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .cmp-title{font-size:15px;font-weight:700;color:var(--ink)}
 .cmp-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink-3);padding:2px 6px}
@@ -218,11 +220,24 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
 .cmp-winner{font-size:9px;font-weight:700;padding:1px 5px;border-radius:4px;margin-left:4px}
 .cmp-winner.a{background:#eff6ff;color:var(--action)}.cmp-winner.b{background:#fff7ed;color:var(--hs)}
 
+/* ── BOTTOM SHEET HANDLE ── */
+.bs-handle{width:36px;height:4px;background:var(--border-2);border-radius:2px;margin:10px auto 2px;flex-shrink:0}
+
+/* ── MOBILE FAB ── */
+#mob-fab-wrap{display:none;position:fixed;bottom:64px;right:12px;z-index:901;flex-direction:column-reverse;align-items:center;gap:10px}
+#mob-fab{width:50px;height:50px;border-radius:50%;background:var(--action);color:#fff;border:none;font-size:24px;cursor:pointer;box-shadow:0 3px 14px rgba(83,58,253,.45);display:flex;align-items:center;justify-content:center;transition:transform .25s;touch-action:manipulation;line-height:1}
+#mob-fab.open{transform:rotate(45deg)}
+#mob-fab-menu{display:none;flex-direction:column-reverse;align-items:center;gap:8px}
+#mob-fab-menu.open{display:flex}
+.mfi{width:44px;height:44px;border-radius:50%;background:var(--surface-1);border:1px solid var(--border);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.14);touch-action:manipulation;transition:.15s}
+.mfi:active{background:var(--surface-2)}
+.mfi.active{background:var(--action);border-color:var(--action);color:#fff}
+
 /* ── BOTTOM NAV ── */
-#bnav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface-1);border-top:1px solid var(--border);z-index:1500;height:52px;display:none;align-items:stretch}
+#bnav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface-1);border-top:1px solid var(--border);z-index:1500;height:calc(52px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);align-items:stretch}
 .bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;background:none;border:none;color:var(--ink-3);font-size:9px;cursor:pointer;position:relative;padding:4px 0;font-family:inherit}
 .bnav-btn:active{background:var(--surface-2)}
-.bnav-btn.active{color:var(--action)}
+.bnav-btn.active{color:var(--action);font-weight:600}
 .bnav-icon{font-size:18px}
 .bnav-badge{position:absolute;top:4px;right:calc(50% - 16px);background:var(--danger);color:#fff;border-radius:8px;font-size:9px;font-weight:700;padding:1px 4px;display:none}
 .bnav-badge.show{display:block}
@@ -234,9 +249,9 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
 
 /* ── HEADER SEARCH ── */
 #hdr-search-wrap{position:relative;display:flex;align-items:center;margin-left:8px;flex-shrink:0}
-#hdr-search-input{padding:5px 26px 5px 10px;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--ink);font-size:12px;width:180px;outline:none;transition:.15s;font-family:inherit}
+#hdr-search-input{padding:7px 28px 7px 12px;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);color:var(--ink);font-size:13px;font-weight:500;width:180px;outline:none;transition:.2s;font-family:inherit}
 #hdr-search-input::placeholder{color:var(--ink-3)}
-#hdr-search-input:focus{border-color:var(--action);outline:2px solid var(--action);outline-offset:2px;width:220px;background:var(--surface-1)}
+#hdr-search-input:focus{border-color:var(--ink);box-shadow:0 0 0 2px rgba(34,34,34,0.08);width:220px;background:var(--surface-1)}
 #hdr-search-clear{position:absolute;right:6px;background:none;border:none;color:var(--ink-3);cursor:pointer;font-size:13px;display:none;padding:0;line-height:1}
 #hdr-search-clear.show{display:block}
 #hdr-search-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface-1);border:1px solid var(--border);border-radius:4px;box-shadow:rgba(50,50,93,0.15) 0 8px 20px -8px,rgba(0,0,0,0.08) 0 4px 10px -4px;z-index:9000;max-height:320px;overflow-y:auto;display:none}
@@ -297,10 +312,14 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
 .pu-teams-title{font-size:10px;color:var(--ink-3);margin-bottom:4px;font-weight:600}
 
 /* ── POPUP: team ── */
-.team-popup-wrap{padding:6px 4px;min-width:190px;max-width:250px}
-.pu-team-name{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:6px;line-height:1.3}
-.team-popup-tags{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px}
-.pu-tag{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;color:#fff}
+/* ── チームポップアップ ── */
+.team-popup-wrap{min-width:220px;max-width:280px;font-family:inherit}
+.pu-header{display:flex;align-items:flex-start;gap:8px;padding:12px 14px 10px;border-bottom:1px solid var(--border)}
+.pu-header-icon{font-size:20px;line-height:1;flex-shrink:0;margin-top:1px}
+.pu-team-name{font-size:14px;font-weight:700;color:var(--ink);line-height:1.3}
+.pu-city{font-size:11px;color:var(--ink-3);margin-top:2px}
+.team-popup-tags{display:flex;flex-wrap:wrap;gap:4px;padding:8px 14px 6px}
+.pu-tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;color:#fff}
 .pu-tag.tag-f,.tag-f{background:#d946a8}
 .tag-elem{background:var(--elem)}
 .tag-jhs{background:var(--jhs)}
@@ -308,31 +327,46 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
 .tag-univ{background:var(--univ)}
 .tag-club{background:var(--club)}
 .tag-independent{background:var(--ind)}
-.pu-sns-link{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:var(--surface-2);border-radius:4px;color:var(--ink-2);text-decoration:none;font-size:11px;margin:2px;border:1px solid var(--border);transition:.15s}
-.pu-sns-link:hover{background:var(--border);color:var(--ink)}
-.pu-sns-link.pu-sns-hp{border-left:2px solid var(--action)}
-.pu-sns-link.pu-sns-x{border-left:2px solid var(--ink-3)}
-.pu-sns-link.pu-sns-ig{border-left:2px solid #e1306c}
-.pu-sns-link.pu-sns-other{border-left:2px solid var(--ink-3)}
-.pu-sns-row{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
-.team-popup-rows{display:flex;flex-direction:column;gap:3px;margin-bottom:6px}
-.team-popup-row{display:flex;gap:6px;font-size:11px;color:var(--ink-2)}
-.team-popup-row span:first-child{color:var(--ink-3);font-weight:500;flex-shrink:0;width:52px}
+.team-popup-rows{display:flex;flex-direction:column;gap:0;padding:0 14px 8px}
+.team-popup-row{display:flex;gap:8px;font-size:11px;padding:4px 0;border-bottom:1px solid var(--surface-2)}
+.team-popup-row:last-child{border-bottom:none}
+.team-popup-row span:first-child{color:var(--ink-3);font-weight:600;flex-shrink:0;width:52px;font-size:10px;padding-top:1px}
 .team-popup-row span:last-child{flex:1;word-break:break-all;color:var(--ink)}
-.team-popup-note{font-size:10px;color:var(--ink-3);margin-top:4px;padding-top:4px;border-top:1px solid var(--border)}
+.pu-sns-row{display:flex;flex-wrap:wrap;gap:5px;padding:8px 14px;border-top:1px solid var(--border)}
+.pu-sns-link{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;background:var(--surface-2);border-radius:6px;color:var(--ink-2);text-decoration:none;font-size:11px;font-weight:500;border:1px solid var(--border);transition:.15s}
+.pu-sns-link:hover{background:var(--border-2);color:var(--action)}
+.pu-sns-link.pu-sns-hp{border-left:3px solid var(--action)}
+.pu-sns-link.pu-sns-x{border-left:3px solid #000}
+.pu-sns-link.pu-sns-ig{border-left:3px solid #e1306c}
+.pu-sns-link.pu-sns-other{border-left:3px solid var(--ink-3)}
+.team-popup-note{font-size:10px;color:var(--ink-3);padding:6px 14px 10px;border-top:1px solid var(--border)}
 
 /* ── BACKDROP ── */
 #backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:1040}
 #backdrop.show{display:block}
 
 /* ── MAP FLOAT BUTTONS ── */
-#btn-nearby{position:absolute;bottom:80px;right:10px;z-index:800;background:var(--surface-1);border:1px solid var(--border);color:var(--ink-2);border-radius:4px;width:36px;height:36px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.1)}
-#btn-nearby:hover{border-color:var(--ink-3);color:var(--ink)}
-#btn-area-filter{position:absolute;bottom:216px;right:10px;z-index:800;background:var(--surface-1);border:1px solid var(--border);color:var(--ink-2);border-radius:4px;width:36px;height:36px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.1);transition:.15s}
-#btn-area-filter.active{background:var(--action);border-color:var(--action);color:#fff}
-#btn-area-filter-clear{position:absolute;bottom:258px;right:10px;z-index:800;background:var(--surface-1);border:1px solid var(--border);color:var(--ink-3);border-radius:4px;width:36px;height:36px;font-size:14px;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.1)}
-#btn-area-filter-clear.show{display:flex}
+/* ── 地図アクションボタン（LEFT_TOP / map.controls） ── */
+#map-float-btns{display:none!important}
+#map-action-btns{display:flex;flex-direction:column;gap:5px;margin:10px 0 0 10px}
+.mab{display:flex;align-items:center;gap:8px;padding:7px 14px 7px 10px;background:rgba(255,255,255,.96);border:1.5px solid var(--border);border-radius:8px;color:var(--ink-2);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;white-space:nowrap;backdrop-filter:blur(8px);box-shadow:var(--shadow-card);transition:.15s;text-align:left}
+.mab:hover{border-color:var(--ink);box-shadow:var(--shadow-hover);color:var(--ink)}
+.mab-icon{font-size:15px;flex-shrink:0;line-height:1}
+.mab-label{line-height:1}
+#btn-area-filter.active .mab-label::before{content:'✓ '}
+#btn-area-filter.active{background:var(--action)!important;border-color:var(--action)!important;color:#fff!important}
+#btn-area-filter-clear{display:none}
+#btn-area-filter-clear.show{display:flex!important}
 #btn-nearby.locating{opacity:.5;pointer-events:none}
+/* map-type-bar（map.controls TOP_RIGHT） */
+#map-type-bar{display:flex;gap:4px;background:rgba(255,255,255,.96);border:1.5px solid var(--border);border-radius:10px;padding:4px;box-shadow:var(--shadow-card);backdrop-filter:blur(8px);margin:10px 10px 0 0}
+.mtype-btn{border:none;background:transparent;color:var(--ink-3);font-size:12px;font-weight:500;padding:5px 10px;border-radius:7px;cursor:pointer;font-family:inherit;white-space:nowrap;transition:.12s}
+.mtype-btn:hover{background:var(--surface-2);color:var(--ink)}
+.mtype-btn.active{background:var(--ink);color:#fff}
+/* サイドバー内の地図タイプボタン（PC・モバイル共通で表示） */
+#sidebar-maptype{display:block}
+.smtype-btn{flex:1;border:1.5px solid var(--border);background:var(--surface-1);color:var(--ink-2);font-size:12px;font-weight:500;padding:8px 4px;border-radius:8px;cursor:pointer;font-family:inherit;white-space:nowrap;transition:.12s;touch-action:manipulation}
+.smtype-btn.active{background:var(--ink);border-color:var(--ink);color:#fff}
 #loc-tap-banner{display:none;position:absolute;top:50px;left:50%;transform:translateX(-50%);z-index:1200;background:rgba(0,0,0,.8);color:#fff;padding:10px 20px;border-radius:4px;font-size:13px;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.2);pointer-events:auto;max-width:90%}
 #loc-tap-banner.show{display:block}
 #loc-tap-banner small{display:block;margin-top:4px;font-size:10px;color:rgba(255,255,255,.6)}
@@ -340,51 +374,67 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
 #loc-tap-cancel:hover{background:rgba(255,255,255,.1)}
 @keyframes fadePulse{0%,100%{opacity:1}50%{opacity:.85}}
 #map-container.tap-mode{cursor:crosshair}
-#btn-show-list{position:absolute;bottom:122px;right:10px;z-index:800;background:var(--surface-1);border:1px solid var(--border);color:var(--ink-2);border-radius:4px;width:36px;height:36px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.1)}
-#btn-show-list:hover{border-color:var(--ink-3);color:var(--ink)}
-#btn-reset-view{position:absolute;bottom:168px;right:10px;z-index:800;background:var(--surface-1);border:1px solid var(--border);color:var(--ink-3);border-radius:4px;width:36px;height:36px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.1)}
-#btn-reset-view:hover{border-color:var(--ink-3);color:var(--ink)}
+/* btn-show-list / btn-reset-view は #map-btn-col 内で共通スタイル適用 */
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 
 /* ── MOBILE ── */
 @media(max-width:768px){
+  /* ── ヘッダー ── */
   #hbg{display:flex}
-  #header{padding:0 10px;min-height:44px;gap:6px}
-  .hdr-brand{min-width:unset;max-width:90px}
-  .hdr-logo{font-size:11px;line-height:1.2}
+  #header{padding:0 10px;min-height:52px;gap:8px}
+  .hdr-brand{min-width:unset;flex:1}
+  .hdr-logo{font-size:13px}
   .hdr-sub{display:none}
-  .hdr-stat{gap:0;flex-wrap:nowrap}
-  .hdr-kpi{padding:0 8px}
-  .hdr-kpi-val{font-size:15px}
-  .hdr-kpi-lbl{font-size:8px}
-  .hdr-kpi-sep{height:18px}
-  .hdr-cats{gap:2px}
-  .hdr-cat-badge{font-size:10px;padding:1px 5px}
-  .hdr-cat-lbl{font-size:7px}
-  #sidebar{position:fixed;top:44px;left:0;bottom:52px;width:100%!important;z-index:1050;transform:translateX(-100%);transition:transform .3s;box-shadow:2px 0 12px rgba(0,0,0,.1)}
-  #sidebar.hidden{transform:translateX(-100%)}
-  #sidebar:not(.hidden){transform:translateX(0)}
+  .hdr-stat{display:none} /* KPI・バッジはモバイルで非表示 */
+
+  /* ── サイドバー → ボトムシート ── */
+  #sidebar{
+    position:fixed;top:auto!important;bottom:calc(52px + env(safe-area-inset-bottom));left:0;right:0;
+    width:100%!important;height:78vh;
+    z-index:1050;
+    transform:translateY(100%);
+    transition:transform .35s cubic-bezier(0.32,0.72,0,1);
+    box-shadow:0 -6px 32px rgba(0,0,0,.18);
+    border-radius:18px 18px 0 0;
+    border-left:none;
+  }
+  #sidebar.hidden{transform:translateY(100%)}
+  #sidebar:not(.hidden){transform:translateY(0)}
+
+  /* ── ボトムナビ ── */
   #bnav{display:flex}
-  .bnav-btn{font-size:9px;padding:4px 0}
-  .bnav-icon{font-size:18px}
-  #btn-nearby,#btn-show-list,#btn-reset-view{width:40px;height:40px;font-size:18px}
-  #btn-nearby{bottom:64px}
-  #btn-show-list{bottom:110px}
-  #btn-reset-view{bottom:156px}
-  #btn-area-filter{bottom:202px;width:40px;height:40px;font-size:16px;border-radius:4px;padding:0}
-  #btn-area-filter-clear{bottom:248px;width:40px;height:40px;font-size:14px;border-radius:4px;padding:0}
+  .bnav-btn{font-size:10px;padding:5px 0;touch-action:manipulation}
+  .bnav-icon{font-size:22px;line-height:1.1}
+
+  /* ── FAB（地図操作ボタン群） ── */
+  #mob-fab-wrap{display:flex;bottom:calc(64px + env(safe-area-inset-bottom))}
+  /* アクションボタンはモバイルでは非表示（bnav・FABで代替） */
+  #map-action-btns{display:none!important}
+
+  /* ── 地図タイプ切替 → サイドバーに移動 ── */
+  #map-type-bar{display:none}
+  #sidebar-maptype{display:block}
   #map-float-btns{display:none}
-  #team-list-panel{bottom:52px;right:0;height:45vh;border-radius:0}
+
+  /* ── チームリストパネル ── */
+  #team-list-panel{bottom:calc(52px + env(safe-area-inset-bottom));right:0;height:50vh;border-radius:18px 18px 0 0;left:0}
+  #team-list-panel.full{height:92vh}
   .tlp-header{padding:10px 14px}
   .tlp-header h3{font-size:14px}
-  .tlp-tab{padding:8px 12px;font-size:12px}
+  .tlp-tab{padding:10px 12px;font-size:12px;touch-action:manipulation}
   #tlp-body{padding:6px}
-  .tlp-close{width:36px;height:36px;font-size:15px}
-  #nearby-panel{width:100%;right:0;border-radius:0;border-left:none;bottom:52px}
-  .team-popup-wrap{max-width:calc(100vw - 60px)}
+  .tlp-close{width:44px;height:44px;font-size:16px;touch-action:manipulation}
+  .tlp-item{padding:10px 8px;touch-action:manipulation}
+
+  /* ── 近傍パネル ── */
+  #nearby-panel{width:100%;right:0;border-radius:18px 18px 0 0;border-left:none;bottom:calc(52px + env(safe-area-inset-bottom))}
+
+  /* その他 */
+  .team-popup-wrap{max-width:calc(100vw - 40px)}
   .chart-box{width:95%;max-height:85vh;padding:12px}
   .rank-city{font-size:11px}
   .rank-val{font-size:12px}
+  button{touch-action:manipulation}
 }
 
 /* ── TOOLTIP ── */
@@ -446,7 +496,7 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
 .skip-link:focus{top:8px}
 
 /* ── LOADING ── */
-#loading-overlay{position:fixed;inset:0;z-index:9999;background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;transition:opacity .4s}
+#loading-overlay{position:fixed;inset:0;z-index:9999;background:var(--surface-1);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;transition:opacity .4s}
 #loading-overlay.fade-out{opacity:0;pointer-events:none}
 #loading-overlay.hidden{display:none}
 .loading-ball{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--action);border-radius:50%;animation:spin .8s linear infinite}
@@ -515,52 +565,68 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
 <div id="app">
   <div id="map-container" style="position:relative;flex:1;display:flex;">
     <div id="map" style="flex:1;z-index:1;" role="application" aria-label="埼玉県野球競技者人口地図"></div>
+    <!-- 地図タイプ切り替え -->
+    <div id="map-type-bar">
+      <button class="mtype-btn active" data-mtype="roadmap" onclick="window.setMapType('roadmap')">地図</button>
+      <button class="mtype-btn" data-mtype="satellite" onclick="window.setMapType('satellite')">航空写真</button>
+      <button class="mtype-btn" data-mtype="hybrid" onclick="window.setMapType('hybrid')">ハイブリッド</button>
+    </div>
     <!-- 現在地タップモード案内 -->
     <div id="loc-tap-banner">
       📍 地図をタップして現在地を設定してください
       <small>位置情報の取得ができなかったため、地図上で位置を指定できます</small>
       <div><button id="loc-tap-cancel" onclick="window.cancelTapMode()">キャンセル</button></div>
     </div>
-    <!-- 近傍ボタン -->
-    <button id="btn-nearby" onclick="searchNearby()" title="近くのチームを探す" aria-label="近くのチームを探す">📍</button>
-    <button id="btn-show-list" onclick="toggleTeamList()" title="チーム一覧を開く" aria-label="チーム一覧を開く">📋</button>
-    <button id="btn-reset-view" onclick="window.resetMapView()" title="全域表示" aria-label="埼玉県全域を表示">🗺️</button>
-    <!-- エリア絞り込みボタン -->
-    <button id="btn-area-filter" aria-label="地図範囲でフィルター" onclick="toggleAreaFilter()" title="エリアで絞る（現在の地図範囲内のみ表示）">🔲</button>
-    <button id="btn-area-filter-clear" aria-label="エリアフィルターをクリア" onclick="clearAreaFilter()" title="エリア絞り込みを解除">↩️</button>
-    <!-- 地図上フローティングボタン -->
-    <div id="map-float-btns">
-      <button class="map-float-btn" onclick="searchNearby()">
-        <span class="mfb-icon">·⋮·</span>
-        <span class="mfb-label">近くのチーム<br><small>（少年野球）</small></span>
+    <!-- 地図アクションボタン（LEFT_TOP に map.controls で登録） -->
+    <div id="map-action-btns">
+      <button class="mab" id="btn-nearby" onclick="searchNearby()" aria-label="近くのチームを探す">
+        <span class="mab-icon">📍</span><span class="mab-label">近くのチームを探す</span>
       </button>
-      <button class="map-float-btn" onclick="bnavToggleList()">
-        <span class="mfb-icon">≡</span>
-        <span class="mfb-label">チームリスト</span>
+      <button class="mab" id="btn-show-list" onclick="toggleTeamList()" aria-label="チームリストを開く">
+        <span class="mab-icon">📋</span><span class="mab-label">チームリスト</span>
+      </button>
+      <button class="mab" id="btn-reset-view" onclick="window.resetMapView()" aria-label="全域を表示">
+        <span class="mab-icon">🗺️</span><span class="mab-label">全域を表示</span>
+      </button>
+      <button class="mab" id="btn-area-filter" onclick="toggleAreaFilter()" aria-label="この範囲で絞込">
+        <span class="mab-icon">🔲</span><span class="mab-label">この範囲で絞込</span>
+      </button>
+      <button class="mab" id="btn-area-filter-clear" onclick="clearAreaFilter()" aria-label="絞込を解除">
+        <span class="mab-icon">↩️</span><span class="mab-label">絞込を解除</span>
       </button>
     </div>
   </div>
   <!-- SIDEBAR -->
   <div id="sidebar">
+    <div class="bs-handle" onclick="closeSidebar()" title="閉じる"></div>
+    <!-- 地図の種類（最上部に配置） -->
+    <div class="s-section" id="sidebar-maptype">
+      <div class="s-title">地図の種類</div>
+      <div style="display:flex;gap:4px;">
+        <button class="smtype-btn active" data-mtype="roadmap" onclick="window.setMapType('roadmap')">地図</button>
+        <button class="smtype-btn" data-mtype="satellite" onclick="window.setMapType('satellite')">航空写真</button>
+        <button class="smtype-btn" data-mtype="hybrid" onclick="window.setMapType('hybrid')">ハイブリッド</button>
+      </div>
+    </div>
     <!-- 表示切替 -->
     <div class="s-section">
-      <div class="s-title">表示モード</div>
+      <div class="s-title">表示スタイル</div>
 
-      <!-- ① 指標選択（最初に選ぶ） -->
-      <div class="idx-btns" style="margin-bottom:8px;">
-        <button class="ibtn on" id="idx-abs" onclick="setIndex('abs')">競技者数</button>
-        <button class="ibtn" id="idx-rate" onclick="setIndex('rate')" title="小学生カテゴリのみ対応">参加率<br><span style="font-size:8px;font-weight:400;opacity:0.85;">（小学生のみ）</span></button>
-      </div>
-
-      <!-- ② 地図スタイル選択 -->
-      <div class="ctrl-label" style="font-size:9px;color:#999;margin-bottom:3px;">表示スタイル</div>
+      <!-- ① 地図スタイル選択 -->
       <div class="view-btns" style="margin-bottom:8px;">
         <button class="vbtn on" id="btn-choro" onclick="setView('choro')">地域別</button>
         <button class="vbtn" id="btn-heat" onclick="setView('heat')">ヒートマップ</button>
         <button class="vbtn" id="btn-bubble" onclick="setView('bubble')">バブル</button>
       </div>
 
-      <!-- ③ 性別選択（競技者数のみ有効） -->
+      <!-- ② 指標選択 -->
+      <div class="ctrl-label" style="font-size:9px;color:#999;margin-bottom:3px;">指標</div>
+      <div class="idx-btns" style="margin-bottom:8px;">
+        <button class="ibtn on" id="idx-abs" onclick="setIndex('abs')">競技者数</button>
+        <button class="ibtn" id="idx-rate" onclick="setIndex('rate')" title="小学生カテゴリのみ対応">参加率<br><span style="font-size:8px;font-weight:400;opacity:0.85;">（小学生のみ）</span></button>
+      </div>
+
+      <!-- ③ 性別選択 -->
       <div id="gender-wrap">
         <div class="ctrl-label" style="font-size:9px;color:#999;margin-bottom:3px;">性別</div>
         <div class="gender-btns">
@@ -715,9 +781,11 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
 </div><!-- /app -->
 <!-- チーム一覧パネル -->
 <div id="team-list-panel">
+  <div class="bs-handle" id="tlp-handle" onclick="mobTlpCycleSize()" style="cursor:pointer" title="サイズを変更"></div>
   <div class="tlp-header">
     <h3>⚾ チーム一覧</h3>
     <span id="tlp-count"></span>
+    <button id="tlp-expand" onclick="mobTlpCycleSize()" style="display:none;background:none;border:none;font-size:18px;cursor:pointer;padding:4px 8px;color:var(--ink-3)" title="展開/縮小">▲</button>
     <select id="tlp-sort" onchange="setTlpSort(this.value)">
       <option value="cat">カテゴリ順</option>
       <option value="name">チーム名順</option>
@@ -788,21 +856,30 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
   </div>
 </div>
 <!-- ボトムナビ（モバイル） -->
+<!-- モバイル FAB（地図操作ボタン群） -->
+<div id="mob-fab-wrap">
+  <button id="mob-fab" onclick="mobFabToggle()" aria-label="地図操作">＋</button>
+  <div id="mob-fab-menu">
+    <button class="mfi" id="mfi-area" onclick="toggleAreaFilter();mobFabClose()" title="エリア絞込">🔲</button>
+    <button class="mfi" id="mfi-area-clear" onclick="clearAreaFilter();mobFabClose()" title="エリア解除" style="display:none">↩️</button>
+    <button class="mfi" onclick="window.resetMapView();mobFabClose()" title="全域表示">🗺️</button>
+  </div>
+</div>
 <div id="bnav">
-  <button class="bnav-btn" onclick="toggleSidebar()">
-    <span class="bnav-icon">☰</span>
-    <span>フィルター</span>
+  <button class="bnav-btn" onclick="mobOpenSearch()">
+    <span class="bnav-icon">🔍</span>
+    <span>検索</span>
   </button>
-  <button class="bnav-btn" onclick="bnavCycleView()">
-    <span class="bnav-icon">🗺️</span>
-    <span id="bnav-view-label">地域別</span>
-  </button>
-  <button class="bnav-btn" onclick="bnavToggleList()">
+  <button class="bnav-btn" id="bnav-list" onclick="bnavToggleList()">
     <span class="bnav-icon">📋</span>
     <span>チーム</span>
     <span class="bnav-badge" id="bnav-badge"></span>
   </button>
-  <button class="bnav-btn" id="bnav-list" onclick="searchNearby()">
+  <button class="bnav-btn" onclick="toggleSidebar()">
+    <span class="bnav-icon">☰</span>
+    <span>絞込</span>
+  </button>
+  <button class="bnav-btn" onclick="searchNearby()">
     <span class="bnav-icon">📍</span>
     <span>近く</span>
   </button>
@@ -910,7 +987,11 @@ let heatLayer       = null; let _gmDataLayer = null; let _gmBubbleItems = [];
 let markerGroup     = null;
 let showPins        = true;
 let teamPinLayers   = [];
-let teamClusterGroup = null;
+let _pinDataCache = [];   // {lat,lng,t} per filtered pin
+let _clusterMarkers = []; // currently rendered markers (individual or cluster)
+let _pinInfoWindow  = null;
+let _cityInfoWindow = null; // choroLayer/popupLayer 共通IW（ピンクリック時に閉じる）
+let _markerClicked  = false; // mousedownで先行セット → Dataレイヤーclick抑制
 let teamActiveCats  = new Set(['elem']);
 let teamGender      = 'all';
 let teamListOpen    = false;
@@ -1160,7 +1241,15 @@ window.initMap = function() {
     fullscreenControl: false,
     streetViewControl: false,
     zoomControl: true,
+    zoomControlOptions: { position: google.maps.ControlPosition.LEFT_BOTTOM },
   });
+  // ボタンをGoogleマップのコントロールレイヤーに登録（重なり防止）
+  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(
+    document.getElementById('map-type-bar')
+  );
+  map.controls[google.maps.ControlPosition.LEFT_TOP].push(
+    document.getElementById('map-action-btns')
+  );
   const SAITAMA_BOUNDS = new google.maps.LatLngBounds(
     {lat: 35.77, lng: 138.95},
     {lat: 36.28, lng: 139.92}
@@ -1190,18 +1279,13 @@ window.initMap = function() {
       el.style.cssText=`width:${r*2}px;height:${r*2}px;border-radius:50%;background:${col};opacity:.7;border:1px solid rgba(255,255,255,.35);cursor:pointer`;
       const m=new google.maps.marker.AdvancedMarkerElement({position:{lat:d.lat,lng:d.lng},content:el,title:d.city,map});
       m._data=d;
-      m.addListener('click',()=>{iw.setContent(popupHTML(d));iw.open(map,m);});
+      m.addEventListener('gmp-click',()=>{iw.setContent(popupHTML(d));iw.open({map, anchor: m});});
       bubbleMarkers.push(m);
     });
   }
   function removeBubble(){bubbleMarkers.forEach(m=>m.map=null);bubbleMarkers=[];}
   // ── CHORO ──
   // ヒートマップ/バブル用・透明ポップアップオーバーレイ
-  let _popupInfoWindow = null;
-  function _getPopupIW() {
-    if (!_popupInfoWindow) _popupInfoWindow = new google.maps.InfoWindow();
-    return _popupInfoWindow;
-  }
   function initPopupLayer() {
     if (popupLayer) { popupLayer.setMap(null); popupLayer = null; }
     const geo = useWardView ? geoDataWard : geoDataCity;
@@ -1209,13 +1293,14 @@ window.initMap = function() {
     popupLayer.addGeoJson(geo);
     popupLayer.setStyle({ fillOpacity: 0, strokeOpacity: 0, strokeWeight: 0 });
     popupLayer.addListener('click', function(event) {
+      if (_markerClicked) return;
       const name = event.feature.getProperty('name') || '';
       const d = cityMap[name];
       if (!d) return;
-      const iw = _getPopupIW();
-      iw.setContent(popupHTML(d));
-      iw.setPosition(event.latLng);
-      iw.open(map);
+      if (!_cityInfoWindow) _cityInfoWindow = new google.maps.InfoWindow();
+      _cityInfoWindow.setContent(popupHTML(d));
+      _cityInfoWindow.setPosition(event.latLng);
+      _cityInfoWindow.open(map);
       _filterCityOnly(d.city);
       setTimeout(_panForPopup, 300);
     });
@@ -1243,7 +1328,8 @@ window.initMap = function() {
     _choroRateSortedCache = activeData.map(d=>calcRate(d)).filter(v=>v>0).sort((a,b)=>a-b);
     _choroRateMaxCache = Math.max(1, ...activeData.map(d => calcRate(d)));
     const geo = useWardView ? geoDataWard : geoDataCity;
-    const iw = new google.maps.InfoWindow();
+    if (!_cityInfoWindow) _cityInfoWindow = new google.maps.InfoWindow();
+    const iw = _cityInfoWindow;
     choroLayer = new google.maps.Data({map});
     choroLayer.addGeoJson(geo);
     choroLayer.setStyle(function(feature){
@@ -1263,6 +1349,7 @@ window.initMap = function() {
       choroLayer.revertStyle(event.feature);
     });
     choroLayer.addListener('click', function(event){
+      if (_markerClicked) return;
       const name = event.feature.getProperty('name') || '';
       const d = cityMap[name];
       if(!d) return;
@@ -1477,21 +1564,31 @@ window.initMap = function() {
   // ═══════════════════════════════════════
   // 表示エリア絞り込み
   // ═══════════════════════════════════════
+  function _syncFabArea() {
+    const aBtn = document.getElementById('mfi-area');
+    const clr  = document.getElementById('mfi-area-clear');
+    if (aBtn) aBtn.classList.toggle('active', areaFilterActive);
+    if (clr)  clr.style.display = areaFilterActive ? '' : 'none';
+  }
+
   window.toggleAreaFilter = function(){
     areaFilterActive = !areaFilterActive;
     const btn = document.getElementById('btn-area-filter');
     const clearBtn = document.getElementById('btn-area-filter-clear');
-    btn.classList.toggle('active', areaFilterActive);
-    clearBtn.classList.toggle('show', areaFilterActive);
+    if (btn) btn.classList.toggle('active', areaFilterActive);
+    if (clearBtn) clearBtn.classList.toggle('show', areaFilterActive);
+    _syncFabArea();
     update();
     _pushState();
   };
 
   window.clearAreaFilter = function(){
     areaFilterActive = false;
-    document.getElementById('btn-area-filter').classList.remove('active');
-    document.getElementById('btn-area-filter-clear').classList.remove('show');
-
+    const btn = document.getElementById('btn-area-filter');
+    const clearBtn = document.getElementById('btn-area-filter-clear');
+    if (btn) btn.classList.remove('active');
+    if (clearBtn) clearBtn.classList.remove('show');
+    _syncFabArea();
     update();
     _pushState();
   };
@@ -1655,7 +1752,7 @@ window.initMap = function() {
             map.setCenter(marker.position); map.setZoom(15);
             setTimeout(() => {
               const _iw = new google.maps.InfoWindow({content: teamPopupHTML(t)});
-              _iw.open(map, marker);
+              _iw.open({map, anchor: marker});
             }, 300);
             found = true;
           }
@@ -1771,7 +1868,7 @@ window.initMap = function() {
               map.setCenter(marker.position); map.setZoom(15);
               setTimeout(() => {
                 const _iw = new google.maps.InfoWindow({content: teamPopupHTML(t)});
-                _iw.open(map, marker);
+                _iw.open({map, anchor: marker});
               }, 300);
             }
           });
@@ -1868,6 +1965,13 @@ window.initMap = function() {
 
   google.maps.event.addListener(map, 'idle', function(){
     if(areaFilterActive) update();
+  });
+  let _zoomDebounceTimer = null;
+  map.addListener('zoom_changed', function() {
+    clearTimeout(_zoomDebounceTimer);
+    _zoomDebounceTimer = setTimeout(() => {
+      if (showPins && _pinDataCache.length > 0) _drawPinsByZoom(map.getZoom());
+    }, 120);
   });
 
   function _pushState(){
@@ -4212,21 +4316,26 @@ window.initMap = function() {
       hasOldUrl ? `<a href="${t.url}"       target="_blank" rel="noopener" class="pu-sns-link pu-sns-hp">&#127760; HP</a>` : '',
     ].filter(Boolean).join('');
     return `<div class="team-popup-wrap">
-      <div class="pu-team-name">⚾ ${t.name}</div>
-      <div style="font-size:10px;color:#555;margin-bottom:4px;">📍 ${t.city}</div>
+      <div class="pu-header">
+        <div class="pu-header-icon">⚾</div>
+        <div>
+          <div class="pu-team-name">${t.name}</div>
+          <div class="pu-city">📍 ${t.city}</div>
+        </div>
+      </div>
       <div class="team-popup-tags">
         <span class="pu-tag tag-${t.cat}">${CAT_JP2[t.cat]}</span>
         ${t.gender==='female'?`<span class="pu-tag tag-f">女子</span>`:''}
-        ${hasBall?`<span class="pu-tag" style="background:#555;">${t.ball}</span>`:''}
+        ${t.gender==='mixed'?`<span class="pu-tag" style="background:#8844cc">混合</span>`:''}
+        ${hasBall?`<span class="pu-tag" style="background:var(--ink-3)">${t.ball}</span>`:''}
       </div>
-      <div class="team-popup-rows">
-
-        ${hasLeague  ? `<div class="team-popup-row"><span>所属</span><span style="font-size:10px;">${t.league}</span></div>` : ''}
+      ${(hasLeague||hasPlace||hasAddr||hasDays||hasContact)?`<div class="team-popup-rows">
+        ${hasLeague  ? `<div class="team-popup-row"><span>所属</span><span>${t.league}</span></div>` : ''}
         ${hasPlace   ? `<div class="team-popup-row"><span>活動場所</span><span>${t.place}</span></div>` : ''}
-        ${hasAddr    ? `<div class="team-popup-row"><span>住所</span><span style="font-size:10px;">${t.address}</span></div>` : ''}
+        ${hasAddr    ? `<div class="team-popup-row"><span>住所</span><span>${t.address}</span></div>` : ''}
         ${hasDays    ? `<div class="team-popup-row"><span>活動日</span><span>${t.days}</span></div>` : ''}
-        ${hasContact ? `<div class="team-popup-row"><span>連絡先</span><span style="font-size:10px;">${t.contact}</span></div>` : ''}
-      </div>
+        ${hasContact ? `<div class="team-popup-row"><span>連絡先</span><span>${t.contact}</span></div>` : ''}
+      </div>`:''}
       ${snsLinks ? `<div class="pu-sns-row">${snsLinks}</div>` : ''}
       ${hasNote  ? `<div class="team-popup-note">${t.note}</div>` : ''}
     </div>`;
@@ -4631,10 +4740,81 @@ window.initMap = function() {
     '越谷市立大袋小学校':1,
     '越谷市立蒲生小学校':1
   };
+  function _drawPinsByZoom(zoom) {
+    _clusterMarkers.forEach(m => { m.map = null; });
+    _clusterMarkers = [];
+    if (!showPins || _pinDataCache.length === 0) return;
+    if (zoom >= 11) {
+      // 個別マーカー表示
+      teamPinLayers = []; // ズーム変化時も再同期
+      _pinDataCache.forEach(({lat, lng, t}) => {
+        const el = document.createElement('div');
+        el.innerHTML = makeTeamIconHTML(t.cat, t.gender, t.ball);
+        const content = el.firstElementChild || el;
+        // mousedown でフラグを立て、Data層のクリックを抑制
+        content.addEventListener('mousedown', () => {
+          _markerClicked = true;
+          setTimeout(() => { _markerClicked = false; }, 600);
+        }, true);
+        // DOM click でポップアップを開く（gmp-click より確実）
+        content.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (!_pinInfoWindow) return;
+          if (_cityInfoWindow) _cityInfoWindow.close();
+          _pinInfoWindow.setContent(teamPopupHTML(t));
+          _pinInfoWindow.setPosition({lat, lng});
+          _pinInfoWindow.open(map);
+        });
+        const m = new google.maps.marker.AdvancedMarkerElement({
+          position: {lat, lng}, content,
+          title: t.name, map,
+        });
+        m._teamName = t.name;
+        _clusterMarkers.push(m);
+        teamPinLayers.push(m);
+      });
+    } else {
+      // クラスター表示中は個別マーカーなし
+      teamPinLayers = [];
+      // 市区町村単位でグループ化
+      const groups = {};
+      _pinDataCache.forEach(({lat, lng, t}) => {
+        const key = t.city || '不明';
+        if (!groups[key]) groups[key] = {lat, lng, count: 0};
+        else { groups[key].lat = (groups[key].lat * groups[key].count + lat) / (groups[key].count + 1);
+               groups[key].lng = (groups[key].lng * groups[key].count + lng) / (groups[key].count + 1); }
+        groups[key].count++;
+      });
+      Object.entries(groups).forEach(([city, {lat, lng, count}]) => {
+        const size = count < 5 ? 36 : count < 15 ? 44 : 52;
+        const bg   = count < 5 ? '#3b82f6' : count < 15 ? '#f59e0b' : '#ef4444';
+        const div = document.createElement('div');
+        div.style.cssText = [
+          `width:${size}px;height:${size}px`, `background:${bg}`,
+          'border-radius:50%', 'border:2.5px solid #fff',
+          'display:flex;align-items:center;justify-content:center',
+          'color:#fff;font-size:13px;font-weight:700;font-family:inherit',
+          'box-shadow:0 2px 8px rgba(0,0,0,.25)', 'cursor:pointer',
+        ].join(';');
+        div.textContent = count;
+        div.addEventListener('mousedown', () => {
+          _markerClicked = true;
+          setTimeout(() => { _markerClicked = false; }, 600);
+        }, true);
+        const m = new google.maps.marker.AdvancedMarkerElement({
+          position: {lat, lng}, content: div, map,
+          zIndex: 1000 + count,
+        });
+        m.addEventListener('gmp-click', () => {
+          map.setCenter({lat, lng});
+          map.setZoom(Math.min((map.getZoom() || 9) + 2, 13));
+        });
+        _clusterMarkers.push(m);
+      });
+    }
+  }
+
   window.renderTeamPins = function renderTeamPins(){
-    // 既存クラスターグループを削除
-    if(teamClusterGroup){ teamClusterGroup.clearMarkers(); teamClusterGroup=null; }
-    teamPinLayers.forEach(m => m.map = null);
     teamPinLayers=[];
 
     const kw=(document.getElementById('team-search').value||'').trim();
@@ -4657,6 +4837,7 @@ window.initMap = function() {
     updateHeaderBadges();
 
     if(!showPins) {
+      _drawPinsByZoom(map.getZoom()); // 既存マーカーを消去
       document.getElementById('team-count').textContent='チーム数: 0件表示中';
       document.getElementById('hdr-teams').textContent = '－';
       updateBnavBadge(0);
@@ -4665,42 +4846,27 @@ window.initMap = function() {
 
     // ピン：小学生のみ
     const pinFiltered = teamData.filter(t => t.cat === 'elem' && baseFilter(t));
-    // クラスターグループ（@googlemaps/markerclusterer）
-    teamClusterGroup = new markerclusterer.MarkerClusterer({ map, markers: [] });
-    const iw = new google.maps.InfoWindow();
+    const LEAGUE_FALLBACK = {
+      '入間西':[35.856,139.330],'入間東':[35.830,139.490],
+      '比企':[36.050,139.350],'北葛':[36.120,139.720],
+      '南埼':[35.870,139.800],'白岡町':[36.017,139.678],
+      '埼玉県':[36.000,139.400]
+    };
+    _pinInfoWindow = _pinInfoWindow || new google.maps.InfoWindow({
+      pixelOffset: new google.maps.Size(0, -8)
+    });
+    _pinDataCache = [];
     pinFiltered.forEach(t => {
-      // placeフィールドがあればPLACE_COORDSで活動場所座標を使用
-      // 活動場所座標（ジオキャッシュ適用後）を優先、なければチーム住所座標
       const _pc = (t.place && t.place!=='-') ? PLACE_COORDS[t.place] : null;
-      // lat=0の場合: 連盟名→地域座標 または cityData座標にfallback
-      const LEAGUE_FALLBACK = {
-        '入間西':[35.856,139.330],'入間東':[35.830,139.490],
-        '比企':[36.050,139.350],'北葛':[36.120,139.720],
-        '南埼':[35.870,139.800],'白岡町':[36.017,139.678],
-        '埼玉県':[36.000,139.400]
-      };
       let _lat = _pc ? _pc[0] : t.lat;
       let _lng = _pc ? _pc[1] : t.lng;
       if(!_lat || !_lng) {
         const fb = LEAGUE_FALLBACK[t.city] || (cityMap[t.city] ? [cityMap[t.city].lat, cityMap[t.city].lng] : null);
         if(fb){ _lat=fb[0]; _lng=fb[1]; } else return;
       }
-      const el = document.createElement('div');
-      el.innerHTML = makeTeamIconHTML(t.cat, t.gender, t.ball);
-      const m = new google.maps.marker.AdvancedMarkerElement({
-        position: {lat: _lat, lng: _lng},
-        content: el,
-        title: t.name,
-      });
-      m._teamData = t;
-      m._teamName = t.name; // チームリストからのポップアップ呼び出し用
-      m.addListener('click', () => {
-        iw.setContent(teamPopupHTML(t));
-        iw.open(map, m);
-      });
-      teamPinLayers.push(m);
-      teamClusterGroup.addMarker(m);
+      _pinDataCache.push({lat: _lat, lng: _lng, t});
     });
+    _drawPinsByZoom(map.getZoom());
     document.getElementById('team-count').textContent=`少年野球ピン: ${pinFiltered.length}件表示中`;
     updateBnavBadge(pinFiltered.length);
     // ヘッダー統計更新（ピン数）
@@ -4751,7 +4917,7 @@ window.initMap = function() {
                 map.setCenter(marker.position); map.setZoom(15);
                 setTimeout(() => {
                   const _iw = new google.maps.InfoWindow({content: teamPopupHTML(t)});
-                  _iw.open(map, marker);
+                  _iw.open({map, anchor: marker});
                 }, 300);
               }
             });
@@ -4923,7 +5089,7 @@ window.initMap = function() {
               map.setCenter(target.position); map.setZoom(15);
               setTimeout(() => {
                 const _iw = new google.maps.InfoWindow({content: teamPopupHTML(t)});
-                _iw.open(map, target);
+                _iw.open({map, anchor: target});
               }, 300);
             }
           }, 450);
@@ -4991,8 +5157,7 @@ window.initMap = function() {
   renderTeamPins(); // チームピン初期表示（全関数定義後）
   initCitySelect();  // 市区町村ドロップダウン初期化
   window.togglePins=function(v){showPins=v;renderTeamPins();};
-  window.togglePins=window.togglePins; // グローバル参照
-  function togglePins(v){window.togglePins(v);}
+
   window.toggleTeamCat=function(cat,btn){
     teamActiveCats.has(cat)?teamActiveCats.delete(cat):teamActiveCats.add(cat);
     btn.classList.toggle('on');renderTeamPins();
@@ -5365,7 +5530,7 @@ window.initMap = function() {
                 map.setCenter(target.position); map.setZoom(15);
                 setTimeout(() => {
                   const _iw = new google.maps.InfoWindow({content: teamPopupHTML(t)});
-                  _iw.open(map, target);
+                  _iw.open({map, anchor: target});
                 }, 300);
               }
             }, 500);
@@ -5560,7 +5725,8 @@ window.initMap = function() {
           setTimeout(() => {
             const d = (useWardView ? [...wardData,...cityData.filter(x=>x.city!=='さいたま市')] : cityData).find(x=>x.city===selectedCity);
             if (d) {
-              const iw = _getPopupIW();
+              if (!_cityInfoWindow) _cityInfoWindow = new google.maps.InfoWindow();
+              const iw = _cityInfoWindow;
               iw.setContent(popupHTML(d));
               iw.setPosition(new google.maps.LatLng(entry.lat, entry.lng));
               iw.open(map);
@@ -5572,6 +5738,10 @@ window.initMap = function() {
       setTimeout(zoomAndPopup, 100);
     }
   }
+  window.setMapType = function(type) {
+    map.setMapTypeId(type);
+    document.querySelectorAll('.mtype-btn,.smtype-btn').forEach(b => b.classList.toggle('active', b.dataset.mtype === type));
+  };
   window.resetMapView = function() {
     const sidebarW = window.innerWidth > 768 ? 280 : 0;
     map.fitBounds(SAITAMA_BOUNDS, {
@@ -5605,14 +5775,7 @@ window.initMap = function() {
     window.applyCityFilter(cityName);
   };
   window.clearCityFilter = function() {
-    selectedCity = null;
-    selectedCityCat = null;
-    const _bar = document.getElementById('city-filter-bar');
-    if (_bar) _bar.classList.remove('show');
-    const _sel = document.getElementById('city-select');
-    if (_sel) _sel.value = '';
-    if (typeof window.setTlpTab === 'function') window.setTlpTab('all');
-    renderTeamPins();
+    window.applyCityFilter('');
   };
   // カテゴリ指定付き市区町村フィルター（バッジタップ）
   window.applyCityFilterByCat = function(cityName, cat) {
@@ -5646,10 +5809,10 @@ window.initMap = function() {
         setTimeout(() => {
           const d = cityMap[cityName];
           if (d) {
-            const iw = _getPopupIW();
-            iw.setContent(popupHTML(d));
-            iw.setPosition(new google.maps.LatLng(entry.lat, entry.lng));
-            iw.open(map);
+            if (!_cityInfoWindow) _cityInfoWindow = new google.maps.InfoWindow();
+            _cityInfoWindow.setContent(popupHTML(d));
+            _cityInfoWindow.setPosition(new google.maps.LatLng(entry.lat, entry.lng));
+            _cityInfoWindow.open(map);
           }
         }, 400);
       }
@@ -5705,12 +5868,75 @@ window.initMap = function() {
     backdrop.classList.remove('show');
     hbg.classList.remove('open');
   };
+
+  // ── モバイル検索：チームリストを開いて検索欄にフォーカス ──
+  window.mobOpenSearch = function() {
+    const panel = document.getElementById('team-list-panel');
+    if (!panel.classList.contains('open')) window.toggleTeamList();
+    const btn = document.getElementById('bnav-list');
+    if (btn) btn.classList.add('active');
+    setTimeout(() => {
+      const input = document.getElementById('tlp-search-input');
+      if (input) { input.focus(); input.scrollIntoView({behavior:'smooth'}); }
+    }, 320);
+  };
+
+  // ── FAB 展開/収縮 ──
+  window.mobFabToggle = function() {
+    const fab  = document.getElementById('mob-fab');
+    const menu = document.getElementById('mob-fab-menu');
+    const isOpen = menu.classList.toggle('open');
+    fab.classList.toggle('open', isOpen);
+    // エリア解除ボタンの表示制御
+    const clr = document.getElementById('mfi-area-clear');
+    if (clr) clr.style.display = areaFilterActive ? '' : 'none';
+    const aBtn = document.getElementById('mfi-area');
+    if (aBtn) aBtn.classList.toggle('active', areaFilterActive);
+  };
+  window.mobFabClose = function() {
+    document.getElementById('mob-fab')?.classList.remove('open');
+    document.getElementById('mob-fab-menu')?.classList.remove('open');
+  };
+
+  // ── チームリスト 3段階サイズ ──
+  window.mobTlpCycleSize = function() {
+    const panel = document.getElementById('team-list-panel');
+    const btn   = document.getElementById('tlp-expand');
+    if (!panel.classList.contains('open')) {
+      panel.classList.add('open');
+      panel.classList.remove('full');
+      if (btn) btn.textContent = '▲';
+    } else if (!panel.classList.contains('full')) {
+      panel.classList.add('full');
+      if (btn) btn.textContent = '▼';
+    } else {
+      panel.classList.remove('open','full');
+      if (btn) btn.textContent = '▲';
+      const listBtn = document.getElementById('bnav-list');
+      if (listBtn) listBtn.classList.remove('active');
+    }
+  };
+
+  // モバイルのみ展開ボタンを表示
+  if (window.isMobile && isMobile()) {
+    const eb = document.getElementById('tlp-expand');
+    if (eb) eb.style.display = '';
+  }
+
   applyMapPadding(false); // 初期高さを設定
   _restoreState();
 
   window.addEventListener('resize',()=>{
     applyMapPadding(teamListOpen);
-    if(!isMobile()){sidebar.classList.remove('hidden');backdrop.classList.remove('show');}
+    if(!isMobile()){
+      sidebar.classList.remove('hidden');
+      backdrop.classList.remove('show');
+      const eb = document.getElementById('tlp-expand');
+      if (eb) eb.style.display = 'none';
+    } else {
+      const eb = document.getElementById('tlp-expand');
+      if (eb) eb.style.display = '';
+    }
     update();
   });
 }; // end initMap
@@ -5719,7 +5945,7 @@ window.initMap = function() {
   // 活動場所ジオコーディング（国土地理院API）
   // ══════════════════════════════════════════════
   const GSI_API = 'https://msearch.gsi.go.jp/address-search/AddressSearch?q=';
-  const GEO_CACHE_KEY = 'saitama_place_coords_v2';
+  const GEO_CACHE_KEY = 'saitama_place_coords_v3'; // v3: Google Geocoder に切替
   const GEO_SAITAMA_BOUNDS = {latMin:35.6, latMax:36.4, lngMin:138.8, lngMax:140.1};
   let _geoCache = {};
 
@@ -5729,37 +5955,26 @@ window.initMap = function() {
   }
 
   async function _geocodeOne(placeName) {
-    // キャッシュ確認
     if (_geoCache[placeName]) return _geoCache[placeName];
-    try {
-      const q = encodeURIComponent(placeName + ' 埼玉');
-      const res = await fetch(GSI_API + q);
-      if (!res.ok) return null;
-      const data = await res.json();
-      if (!data || data.length === 0) {
-        // "埼玉"なしで再試行
-        const res2 = await fetch(GSI_API + encodeURIComponent(placeName));
-        if (!res2.ok) return null;
-        const data2 = await res2.json();
-        if (!data2 || data2.length === 0) return null;
-        const [lng, lat] = data2[0].geometry.coordinates;
-        if (!_inSaitama(lat, lng)) return null;
-        return [lat, lng];
-      }
-      const [lng, lat] = data[0].geometry.coordinates;
-      if (!_inSaitama(lat, lng)) {
-        // 範囲外 → "埼玉"なしで再試行
-        const res2 = await fetch(GSI_API + encodeURIComponent(placeName));
-        if (res2.ok) {
-          const data2 = await res2.json();
-          if (data2 && data2.length > 0) {
-            const [lng2, lat2] = data2[0].geometry.coordinates;
-            if (_inSaitama(lat2, lng2)) return [lat2, lng2];
-          }
+    const geocoder = new google.maps.Geocoder();
+    const _tryGeocode = (address) => new Promise(resolve => {
+      geocoder.geocode({ address, region: 'JP' }, (results, status) => {
+        if (status === 'OK' && results.length > 0) {
+          const loc = results[0].geometry.location;
+          resolve([loc.lat(), loc.lng()]);
+        } else {
+          resolve(null);
         }
-        return null;
-      }
-      return [lat, lng];
+      });
+    });
+    try {
+      // 「埼玉県」付きで検索
+      let coords = await _tryGeocode(placeName + ' 埼玉県');
+      if (coords && _inSaitama(coords[0], coords[1])) return coords;
+      // 埼玉県なしで再試行
+      coords = await _tryGeocode(placeName);
+      if (coords && _inSaitama(coords[0], coords[1])) return coords;
+      return null;
     } catch(e) { return null; }
   }
 
@@ -5776,14 +5991,14 @@ window.initMap = function() {
     } catch(e) { _geoCache = {}; }
   }
 
-  // PLACE_COORDSをジオキャッシュで上書きする
+  // PLACE_COORDSをジオキャッシュで上書き・追加する
   function _applyGeoCache() {
     const pc = window.PLACE_COORDS;
     if (!pc) return 0;
     let updated = 0;
     for (const [place, coords] of Object.entries(_geoCache)) {
-      if (coords && pc[place]) {
-        pc[place] = coords;
+      if (coords) {
+        pc[place] = coords; // 既存更新 + 新規追加
         updated++;
       }
     }
@@ -5829,7 +6044,7 @@ window.initMap = function() {
         _applyGeoCache();
         if (window.renderTeamPins) window.renderTeamPins(); // 20件ごとに部分更新
       }
-      await new Promise(r => setTimeout(r, 150)); // 150ms間隔
+      await new Promise(r => setTimeout(r, 200)); // 200ms間隔（Google Geocoder レート対策）
     }
     _saveGeoCache();
     _applyGeoCache();

@@ -1,0 +1,41 @@
+[
+  {
+    "id": 1,
+    "name": "浦和高速下緑地公園",
+    "address": "さいたま市浦和区北浦和1",
+    "lat": 35.8666,
+    "lng": 139.7211,
+    "catchball": true,
+    "area": "約2.5ha",
+    "toilet": true,
+    "parking": true,
+    "parkful_url": "https://parkful.net/parks/11201010001",
+    "notes": ""
+  },
+  {
+    "id": 2,
+    "name": "与野公園",
+    "address": "さいたま市中央区本町西1",
+    "lat": 35.8917,
+    "lng": 139.6383,
+    "catchball": true,
+    "area": "約2.0ha",
+    "toilet": true,
+    "parking": true,
+    "parkful_url": "https://parkful.net/parks/11201020001",
+    "notes": ""
+  },
+  {
+    "id": 3,
+    "name": "氷川公園",
+    "address": "さいたま市大宮区高鼻町",
+    "lat": 35.9083,
+    "lng": 139.6289,
+    "catchball": false,
+    "area": "約4.5ha",
+    "toilet": true,
+    "parking": false,
+    "parkful_url": "https://parkful.net/parks/11201030001",
+    "notes": "禁止事項あり"
+  }
+]
