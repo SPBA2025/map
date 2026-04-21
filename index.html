@@ -1513,12 +1513,14 @@ window.initMap = function() {
   }
   update();
   // 初期表示を埼玉県全域にフィット（サイドバー幅考慮）
-  setTimeout(() => {
+  const _fitSaitama = () => {
     const sidebarW = window.innerWidth > 768 ? 280 : 0;
     map.fitBounds(SAITAMA_BOUNDS, {
       left: sidebarW + 10, top: 10, right: 10, bottom: 10
     });
-  }, 100);
+  };
+  setTimeout(_fitSaitama, 300);
+  google.maps.event.addListenerOnce(map, 'idle', _fitSaitama);
   // ── CONTROLS ──
   // ── 凡例 動的更新 ──────────────────────────────────
   function updateLegend() {
