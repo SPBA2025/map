@@ -722,14 +722,6 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
         <input type="text" id="team-search" placeholder="チーム名・住所で検索..." oninput="onSearchInput()" onkeydown="if(event.key==='Enter'){event.preventDefault();onSearchInputJump();}">
         <button id="search-clear" onclick="clearSearch()" title="検索をクリア"><span class="msi" style="font-size:14px">close</span></button>
       </div>
-      <div style="display:flex;gap:12px;margin-top:6px;font-size:10px;color:#555;align-items:center;">
-        <span style="display:flex;align-items:center;gap:4px;">
-          <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#3b82f6;border:1.5px solid #fff;"></span>軟式
-        </span>
-        <span style="display:flex;align-items:center;gap:4px;">
-          <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#3b82f6;border:1.5px solid #1a1a1a;"></span>硬式（金枠）
-        </span>
-      </div>
     </div>
     <!-- 市町村絞り込み -->
     <div class="s-section">
@@ -4217,23 +4209,15 @@ window.initMap = function() {
   // ※ renderTeamPins()はbuildTeamList定義後に呼ぶ（後述）
   function makeTeamIconHTML(cat, gender, ball){
     const basecol = CAT_COLOR[cat] || '#888';
-    const isHard   = ball === '硬式';
 
     // 性別による色: female=ピンク, mixed=紫, male/both=カテゴリ色
     let col = basecol;
     if (gender === 'female') col = '#e0448a';
     else if (gender === 'mixed') col = '#8844cc';
 
-    // 内部マーク: 硬式=◇, female=♀, mixed=両丸
+    // 内部マーク: female=♀, mixed=両丸（硬式の◇マークは廃止）
     let inner = '';
-    if (isHard) {
-      inner = `<div style="
-        width:10px;height:10px;
-        background:rgba(255,255,255,0.95);
-        position:absolute;top:7px;left:7px;
-        clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);
-      "></div>`;
-    } else if (gender === 'female') {
+    if (gender === 'female') {
       inner = `<div style="
         width:7px;height:7px;border-radius:50%;
         background:rgba(255,255,255,0.9);
@@ -4248,16 +4232,13 @@ window.initMap = function() {
       "></div>`;
     }
 
-    // 枠線: 硬式=金色, female=白, mixed=白, male=白
-    const border = isHard ? '2.5px solid #1a1a1a' : '2.5px solid rgba(255,255,255,0.95)';
-
     return `<div style="
       position:relative;
       width:30px;height:30px;
       background:linear-gradient(135deg,${col},${col}cc);
       border-radius:50% 50% 50% 0;
       transform:rotate(-45deg);
-      border:${border};
+      border:2.5px solid rgba(255,255,255,0.95);
       box-shadow:0 3px 10px rgba(0,0,0,0.35),0 1px 3px rgba(0,0,0,0.2);
       cursor:pointer;
     ">${inner}</div>`;
@@ -4280,13 +4261,15 @@ window.initMap = function() {
     const hasIg     = has(t.ig);
     const hasOther  = has(t.other_url);
     const hasOldUrl = !hasHp && has(t.url);
-    // SNSリンク群
+    // SNSリンク群（アイコンは他セクションと統一: Material Symbols + ブランドSVG）
+    const X_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="display:inline-block;vertical-align:middle"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>';
+    const IG_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="display:inline-block;vertical-align:middle"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>';
     const snsLinks = [
-      hasHp     ? `<a href="${t.hp}"        target="_blank" rel="noopener" class="pu-sns-link pu-sns-hp">&#127760; HP</a>` : '',
-      hasX      ? `<a href="${t.x_url}"     target="_blank" rel="noopener" class="pu-sns-link pu-sns-x">X (Twitter)</a>` : '',
-      hasIg     ? `<a href="${t.ig}"        target="_blank" rel="noopener" class="pu-sns-link pu-sns-ig">&#128248; Instagram</a>` : '',
-      hasOther  ? `<a href="${t.other_url}" target="_blank" rel="noopener" class="pu-sns-link pu-sns-other">&#128279; Link</a>` : '',
-      hasOldUrl ? `<a href="${t.url}"       target="_blank" rel="noopener" class="pu-sns-link pu-sns-hp">&#127760; HP</a>` : '',
+      hasHp     ? `<a href="${t.hp}"        target="_blank" rel="noopener" class="pu-sns-link pu-sns-hp" style="display:inline-flex;align-items:center;gap:4px"><span class="msi" style="font-size:14px">public</span>HP</a>` : '',
+      hasX      ? `<a href="${t.x_url}"     target="_blank" rel="noopener" class="pu-sns-link pu-sns-x"  style="display:inline-flex;align-items:center;gap:4px;color:#000">${X_SVG}X</a>` : '',
+      hasIg     ? `<a href="${t.ig}"        target="_blank" rel="noopener" class="pu-sns-link pu-sns-ig" style="display:inline-flex;align-items:center;gap:4px;color:#e1306c">${IG_SVG}Instagram</a>` : '',
+      hasOther  ? `<a href="${t.other_url}" target="_blank" rel="noopener" class="pu-sns-link pu-sns-other" style="display:inline-flex;align-items:center;gap:4px"><span class="msi" style="font-size:14px">link</span>Link</a>` : '',
+      hasOldUrl ? `<a href="${t.url}"       target="_blank" rel="noopener" class="pu-sns-link pu-sns-hp" style="display:inline-flex;align-items:center;gap:4px"><span class="msi" style="font-size:14px">public</span>HP</a>` : '',
     ].filter(Boolean).join('');
     return `<div class="team-popup-wrap">
       <div class="pu-header">
