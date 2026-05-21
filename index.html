@@ -1257,7 +1257,9 @@ window.initMap = function() {
   }
   function isMobile(){
     const ua = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
-    return ua || isMobile();
+    // 元コード: return ua || isMobile();  ← 自分自身を再帰呼び出ししていて
+    // デスクトップで無限再帰 (Maximum call stack size exceeded) を起こしていた
+    return ua || window.innerWidth <= 768;
   }
   // ── Google Maps 初期化 ──
   const SAITAMA_BOUNDS_ARRAY = [[35.77, 138.95], [36.28, 139.92]];
