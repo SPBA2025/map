@@ -134,7 +134,6 @@ const parkData = [
   { id:120, name:'川久保公園',         city:'春日部市', catchball:true },
   { id:121, name:'内牧公園',           city:'春日部市', catchball:true },
   // 狭山市
-  { id:122, name:'県営）狭山稲荷山公園', city:'狭山市', catchball:true },
   { id:123, name:'狭山稲荷山公園',     city:'狭山市', catchball:true },
   { id:124, name:'鵜ノ木運動公園',     city:'狭山市', catchball:true },
   { id:125, name:'狭山台中央公園',     city:'狭山市', catchball:true },
@@ -180,7 +179,6 @@ const parkData = [
   { id:159, name:'芦原ちびっこ広場',   city:'戸田市', catchball:true },
   // 入間市
   { id:160, name:'富士見公園',         city:'入間市', catchball:true },
-  { id:161, name:'県営）彩の森入間公園', city:'入間市', catchball:true },
   { id:162, name:'彩の森入間公園',     city:'入間市', catchball:true },
   { id:163, name:'新光中央公園',       city:'入間市', catchball:true },
   // 朝霞市
@@ -197,7 +195,6 @@ const parkData = [
   { id:172, name:'舎人公園',           city:'桶川市', catchball:true },
   { id:173, name:'下日出谷中央公園',   city:'桶川市', catchball:true },
   // 久喜市
-  { id:174, name:'県営）権現堂公園',   city:'久喜市', catchball:true },
   { id:175, name:'権現堂公園',         city:'久喜市', catchball:true },
   { id:176, name:'森下緑地グラウンド', city:'久喜市', catchball:true },
   { id:177, name:'久喜市総合運動公園', city:'久喜市', catchball:true },
@@ -282,7 +279,6 @@ const parkData = [
   { id:236, name:'杉戸西近隣公園',     city:'杉戸町', catchball:true },
   { id:237, name:'倉松公園',           city:'杉戸町', catchball:true },
   // 松伏町
-  { id:238, name:'県営）まつぶし緑の丘公園', city:'松伏町', catchball:true },
   { id:239, name:'まつぶし緑の丘公園', city:'松伏町', catchball:true },
   { id:240, name:'田島東公園',         city:'松伏町', catchball:true },
   { id:241, name:'松伏記念公園',       city:'松伏町', catchball:true },
