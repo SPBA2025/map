@@ -296,7 +296,7 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
 @media(max-width:768px){#hdr-search-wrap{display:none}}
 
 /* ── POPUP: city ── */
-.pu-city{font-size:18px;font-weight:700;color:var(--ink);margin-bottom:8px;letter-spacing:-0.01em}
+.pu-city{display:block;font-size:22px;font-weight:700;color:var(--ink);margin-bottom:10px;letter-spacing:-0.02em;line-height:1.2}
 .pu-rate-chip{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;margin-left:6px}
 .pu-cell{text-align:center;padding:3px;background:var(--surface-2);border-radius:4px}
 .pu-cell-num{font-size:12px;font-weight:700;color:var(--ink)}
@@ -341,7 +341,7 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
 .pu-header{display:flex;align-items:flex-start;gap:8px;padding:12px 14px 10px;border-bottom:1px solid var(--border)}
 .pu-header-icon{font-size:20px;line-height:1;flex-shrink:0;margin-top:1px}
 .pu-team-name{font-size:14px;font-weight:700;color:var(--ink);line-height:1.3}
-.pu-city{font-size:11px;color:var(--ink-3);margin-top:2px}
+.pu-team-loc{font-size:11px;color:var(--ink-3);margin-top:2px}
 .team-popup-tags{display:flex;flex-wrap:wrap;gap:4px;padding:8px 14px 6px}
 .pu-tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;color:#fff}
 .pu-tag.tag-f,.tag-f{background:#d946a8}
@@ -4276,7 +4276,7 @@ window.initMap = function() {
         <div class="pu-header-icon"><span class="msi" style="font-size:18px">sports_baseball</span></div>
         <div>
           <div class="pu-team-name">${t.name}</div>
-          <div class="pu-city" style="display:inline-flex;align-items:center;gap:3px"><span class="msi" style="font-size:13px">place</span>${t.city}</div>
+          <div class="pu-team-loc" style="display:inline-flex;align-items:center;gap:3px"><span class="msi" style="font-size:13px">place</span>${t.city}</div>
         </div>
       </div>
       <div class="team-popup-tags">
