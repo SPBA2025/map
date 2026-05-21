@@ -21,7 +21,20 @@
 <script>
   const API_KEY = 'AIzaSyDwTAz9qqQPnbARWe_vd8Vo2LXgDygCyN0';
   const GAS_URL = 'https://script.google.com/macros/s/AKfycbyBqycA_v8614sI_4vWtqniSlValz6q-3BtfF-5iXyCKTeB3oScXR4RcRNR7ZYbQjFi/exec';
-  window.initMapCallback = function() { initMap(); };
+  // Google Maps コールバック: initMap がまだ定義されていない可能性があるため、
+  // DOMContentLoaded 後に安全に呼び出す
+  window.initMapCallback = function() {
+    if (typeof initMap === 'function') {
+      initMap();
+    } else if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function() {
+        if (typeof initMap === 'function') initMap();
+        else console.error('initMap が DOMContentLoaded 後も未定義です');
+      });
+    } else {
+      console.error('initMap が未定義のまま Google Maps コールバックが発火しました');
+    }
+  };
   const _s = document.createElement('script');
   _s.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places,marker,visualization&callback=initMapCallback&loading=async`;
   _s.async = true;
