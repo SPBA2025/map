@@ -11,6 +11,10 @@
 <meta name="description" content="埼玉県内の公園でキャッチボールができるかを地図で確認。">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>埼玉県公園マップ</title>
+<!-- Material Symbols (Rounded, outlined / weight 400) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&display=block">
 <!-- MarkerClusterer for Google Maps -->
 <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
 <!-- 公園データ（parks-data.js に追記してデータ更新）-->
@@ -74,7 +78,9 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
 #hbg.open span:nth-child(3){transform:rotate(-45deg) translate(4px,-4px)}
 
 .hdr-brand{display:flex;flex-direction:column;gap:1px;min-width:130px}
-.hdr-logo{font-size:14px;font-weight:700;color:var(--action);letter-spacing:-.3px;white-space:nowrap}
+.hdr-logo{font-size:14px;font-weight:700;color:var(--action);letter-spacing:-.3px;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+/* Material Symbols (Rounded) アイコン共通 */
+.msi{font-family:'Material Symbols Rounded';font-weight:400;font-style:normal;display:inline-block;line-height:1;letter-spacing:normal;text-transform:none;white-space:nowrap;font-feature-settings:'liga';-webkit-font-smoothing:antialiased;vertical-align:middle;user-select:none}
 .hdr-sub{font-size:10px;color:var(--ink-3);letter-spacing:.01em;white-space:nowrap}
 
 .hdr-stat{display:flex;align-items:center;gap:0;margin-left:auto}
@@ -411,7 +417,7 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
 <div id="header">
   <button id="hbg"><span></span><span></span><span></span></button>
   <div class="hdr-brand">
-    <div class="hdr-logo">⚾ 埼玉県野球協議会</div>
+    <div class="hdr-logo"><span class="msi" style="font-size:18px">sports_baseball</span>埼玉県野球協議会</div>
     <div class="hdr-sub">埼玉県公園マップ</div>
   </div>
   <div class="hdr-stat" style="margin-left:auto">
@@ -548,10 +554,10 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
 </div>
 <div id="park-action-btns" style="display:flex;flex-direction:column;gap:5px;margin:10px 0 0 10px">
   <button class="mab" id="pbtn-reset" onclick="window.parkResetView()">
-    <span class="mab-icon">🗺️</span><span class="mab-label">全域を表示</span>
+    <span class="mab-icon msi">map</span><span class="mab-label">全域を表示</span>
   </button>
   <button class="mab" id="pbtn-catchball" onclick="window.parkToggleCatchball()">
-    <span class="mab-icon">⚾</span><span class="mab-label">キャッチボール可のみ</span>
+    <span class="mab-icon msi">sports_baseball</span><span class="mab-label">キャッチボール可のみ</span>
   </button>
 </div>
 
@@ -580,7 +586,7 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
       <div class="s-title">凡例</div>
       <div class="leg-item">
         <div class="leg-dot" style="background:#00a854"></div>
-        <div class="leg-label">⚾ キャッチボール可</div>
+        <div class="leg-label" style="display:inline-flex;align-items:center;gap:4px"><span class="msi" style="font-size:14px">sports_baseball</span>キャッチボール可</div>
       </div>
       <div class="leg-item">
         <div class="leg-dot" style="background:#ff385c"></div>
@@ -746,7 +752,7 @@ async function initMap() {
   loadGasData();
   } catch(err) {
     console.error('initMap エラー:', err);
-    document.getElementById('map').innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:#6a6a6a;font-size:13px"><div style="font-size:32px">⚠️</div><div>地図の読み込みに失敗しました</div><div style="font-size:11px;color:#aaa">${err.message}</div></div>`;
+    document.getElementById('map').innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:#6a6a6a;font-size:13px"><span class="msi" style="font-size:36px;color:#c45500">warning</span><div>地図の読み込みに失敗しました</div><div style="font-size:11px;color:#aaa">${err.message}</div></div>`;
   }
 }
 
@@ -943,15 +949,15 @@ function createMarker(lat, lng, parkInfo) {
 
 /* Airbnb 風ピン HTML */
 function makeMarkerHtml(catchball) {
-  let bg, shadow, label;
-  if (catchball === true)       { bg='#00a854'; shadow='rgba(0,168,84,0.4)';  label='⚾'; }
-  else if (catchball === false) { bg='#ff385c'; shadow='rgba(255,56,92,0.4)'; label='✕'; }
-  else if (catchball === null)  { bg='#c45500'; shadow='rgba(196,85,0,0.4)';  label='?'; }
-  else                          { bg='#717171'; shadow='rgba(0,0,0,0.2)';     label='●'; }
+  let bg, shadow, icon;
+  if (catchball === true)       { bg='#00a854'; shadow='rgba(0,168,84,0.4)';  icon='sports_baseball'; }
+  else if (catchball === false) { bg='#ff385c'; shadow='rgba(255,56,92,0.4)'; icon='close'; }
+  else if (catchball === null)  { bg='#c45500'; shadow='rgba(196,85,0,0.4)';  icon='help'; }
+  else                          { bg='#717171'; shadow='rgba(0,0,0,0.2)';     icon='place'; }
   return `
     <div style="position:relative;width:32px;height:42px;filter:drop-shadow(0 2px 6px ${shadow});cursor:pointer">
       <div style="position:absolute;top:0;left:0;width:32px;height:32px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:${bg};border:2px solid #fff"></div>
-      <div style="position:absolute;top:6px;left:6px;font-size:14px;line-height:1;color:#fff;font-weight:700">${label}</div>
+      <div style="position:absolute;top:0;left:0;width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:#fff"><span class="msi" style="font-size:16px">${icon}</span></div>
     </div>`;
 }
 
@@ -983,15 +989,15 @@ function renderModalContent(park, toilet, parking) {
     ? `https://www.google.com/maps/place/?q=place_id:${park.place_id}`
     : `https://www.google.com/maps/search/${encodeURIComponent((park.address || park.name) + ' ' + (park.city || ''))}`;
 
-  let cbStyle, cbText;
-  if (park.catchball === true)       { cbStyle='background:rgba(0,168,84,0.1);color:#00a854'; cbText='✓ キャッチボール可'; }
-  else if (park.catchball === false) { cbStyle='background:rgba(255,56,92,0.1);color:#ff385c'; cbText='✕ 不可・要確認'; }
-  else if (park.catchball === null)  { cbStyle='background:rgba(196,85,0,0.1);color:#c45500'; cbText='? 判定不明（報告あり）'; }
-  else                               { cbStyle='background:#f7f7f7;color:#6a6a6a'; cbText='情報未登録'; }
+  let cbStyle, cbText, cbIcon;
+  if (park.catchball === true)       { cbStyle='background:rgba(0,168,84,0.1);color:#00a854';  cbText='キャッチボール可';        cbIcon='check_circle'; }
+  else if (park.catchball === false) { cbStyle='background:rgba(255,56,92,0.1);color:#ff385c'; cbText='不可・要確認';            cbIcon='cancel'; }
+  else if (park.catchball === null)  { cbStyle='background:rgba(196,85,0,0.1);color:#c45500';  cbText='判定不明（報告あり）';    cbIcon='help'; }
+  else                               { cbStyle='background:#f7f7f7;color:#6a6a6a';             cbText='情報未登録';              cbIcon='info'; }
 
   document.getElementById('modal-park-content').innerHTML = `
     <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;margin-bottom:14px;${cbStyle}">
-      <span style="font-size:18px">${park.catchball===true?'⚾':park.catchball===false?'✕':'?'}</span>
+      <span class="msi" style="font-size:22px">${cbIcon}</span>
       <span style="font-weight:700;font-size:13px">${cbText}</span>
     </div>
     <div class="park-row">
@@ -1009,9 +1015,9 @@ function renderModalContent(park, toilet, parking) {
         </div>
         ${park.reports > 0 ? `
         <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <span style="display:inline-flex;align-items:center;gap:3px;padding:3px 10px;background:rgba(0,168,84,0.1);border-radius:14px;color:#00a854;font-size:11px;font-weight:600">✓ できる ${park.yes_count || 0}票</span>
-          <span style="display:inline-flex;align-items:center;gap:3px;padding:3px 10px;background:rgba(255,56,92,0.1);border-radius:14px;color:#ff385c;font-size:11px;font-weight:600">✕ できない ${park.no_count || 0}票</span>
-          <span style="padding:3px 10px;background:rgba(196,85,0,0.1);border-radius:14px;color:#c45500;font-size:11px;font-weight:600">? 不明 ${park.unknown_count || 0}票</span>
+          <span style="display:inline-flex;align-items:center;gap:3px;padding:3px 10px;background:rgba(0,168,84,0.1);border-radius:14px;color:#00a854;font-size:11px;font-weight:600"><span class="msi" style="font-size:13px">check</span>できる ${park.yes_count || 0}票</span>
+          <span style="display:inline-flex;align-items:center;gap:3px;padding:3px 10px;background:rgba(255,56,92,0.1);border-radius:14px;color:#ff385c;font-size:11px;font-weight:600"><span class="msi" style="font-size:13px">close</span>できない ${park.no_count || 0}票</span>
+          <span style="display:inline-flex;align-items:center;gap:3px;padding:3px 10px;background:rgba(196,85,0,0.1);border-radius:14px;color:#c45500;font-size:11px;font-weight:600"><span class="msi" style="font-size:13px">help</span>不明 ${park.unknown_count || 0}票</span>
         </div>` : `<div style="font-size:12px;color:var(--ink-3)">まだ報告がありません。最初の報告者になりましょう！</div>`}
       </div>
       <a id="modal-report-link" href="#" target="_blank"
@@ -1121,7 +1127,9 @@ function renderParkList() {
   filtered.forEach(park => {
     const cbClass = park.catchball === true ? 'cb-yes' : park.catchball === false ? 'cb-no' : park.catchball === null ? 'cb-unknown' : '';
     const badgeClass = park.catchball === true ? 'catchball' : park.catchball === false ? 'no-catchball' : 'unknown-catchball';
-    const cbText = park.catchball === true ? '✓ 可' : park.catchball === false ? '✕ 不可' : '? 不明';
+    const cbText = park.catchball === true  ? '<span class="msi" style="font-size:11px;vertical-align:-1px">check</span> 可'
+                 : park.catchball === false ? '<span class="msi" style="font-size:11px;vertical-align:-1px">close</span> 不可'
+                                            : '<span class="msi" style="font-size:11px;vertical-align:-1px">help</span> 不明';
     let distText = '';
     if (sortMode === 'near' && currentUserLatLng) {
       const dx   = (park.lat - currentUserLatLng.lat) * 111000;
@@ -1138,7 +1146,7 @@ function renderParkList() {
       </div>
       <div class="park-item-meta">
         <span class="park-item-addr">${park.address || park.city || ''}</span>
-        ${park.reports > 0 ? `<span style="font-size:9px;color:var(--ink-3)">📝 ${park.reports}件</span>` : ''}
+        ${park.reports > 0 ? `<span style="font-size:9px;color:var(--ink-3);display:inline-flex;align-items:center;gap:2px"><span class="msi" style="font-size:11px">comment</span>${park.reports}件</span>` : ''}
         ${distText ? `<span class="park-item-dist">${distText}</span>` : ''}
       </div>
     `;
@@ -1413,19 +1421,19 @@ window.parkOpenSearch = function() {
 <!-- モバイルボトムナビ -->
 <div id="parks-bnav">
   <button class="bnav-btn" id="pbnav-list" onclick="window.parkToggleList()">
-    <span class="bnav-icon">📋</span>
+    <span class="bnav-icon msi">list</span>
     <span>一覧</span>
   </button>
   <button class="bnav-btn" onclick="window.parkOpenSearch()">
-    <span class="bnav-icon">🔍</span>
+    <span class="bnav-icon msi">search</span>
     <span>検索</span>
   </button>
   <button class="bnav-btn" onclick="document.getElementById('hbg').click()">
-    <span class="bnav-icon">☰</span>
+    <span class="bnav-icon msi">tune</span>
     <span>絞込</span>
   </button>
   <button class="bnav-btn" onclick="document.getElementById('gps-btn').click()">
-    <span class="bnav-icon">📍</span>
+    <span class="bnav-icon msi">my_location</span>
     <span>現在地</span>
   </button>
 </div>
