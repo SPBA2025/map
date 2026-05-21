@@ -36,7 +36,7 @@
     }
   };
   const _s = document.createElement('script');
-  _s.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places,marker,visualization&callback=initMapCallback&loading=async`;
+  _s.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places,marker&callback=initMapCallback&loading=async`;
   _s.async = true;
   document.head.appendChild(_s);
 </script>
@@ -639,7 +639,6 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
       <!-- ① 地図スタイル選択 -->
       <div class="view-btns" style="margin-bottom:8px;">
         <button class="vbtn on" id="btn-choro" onclick="setView('choro')">地域別</button>
-        <button class="vbtn" id="btn-heat" onclick="setView('heat')">ヒートマップ</button>
         <button class="vbtn" id="btn-bubble" onclick="setView('bubble')">バブル</button>
       </div>
 
@@ -710,13 +709,6 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
         <span class="msi" style="font-size:12px;vertical-align:-2px;color:#2563eb">push_pin</span> <strong style="color:#2563eb;">小学生</strong>カテゴリのみ対応<br>
         小学生競技者数 ÷ 児童数（公立小学校在籍）<br>
         <span style="color:#aaa;">出典：令和7年度埼玉県学校便覧</span>
-      </div>
-    </div>
-    <div class="leg-section" id="leg-heat" style="display:none">
-      <div class="leg-title">▍凡例（ヒートマップ）</div>
-      <div style="width:100%;height:18px;border-radius:6px;background:linear-gradient(90deg,rgba(0,0,255,.4),cyan,lime,yellow,red);margin-bottom:4px"></div>
-      <div style="display:flex;justify-content:space-between;font-size:9px;color:#999">
-        <span>少</span><span id="leg-heat-max">〜9,000人</span>
       </div>
     </div>
     <!-- チームフィルター -->
@@ -1007,7 +999,7 @@ let choroLayer      = null;
 let popupLayer      = null; // ヒートマップ/バブル時のポップアップ用透明オーバーレイ
 let bubbleLayer     = null;
 let bubbleMarkers   = [];
-let heatLayer       = null; let _gmDataLayer = null; let _gmBubbleItems = [];
+let _gmDataLayer = null; let _gmBubbleItems = [];
 let markerGroup     = null;
 let showPins        = true;
 let teamPinLayers   = [];
@@ -1028,7 +1020,6 @@ let _choroRateMaxCache = 1;
 let _choroSortedCache = [];
 let _choroRateSortedCache = [];
 let teamData        = [];
-// ── Canvas Heatmap ───────────────────────────────────
 // 小学生参加率（%）= 小学生競技者数 ÷ 児童数
 // 現在の表示モード（abs/rate）に応じた値を返す
 // ── Map init ─────────────────────────────────────────
@@ -1037,37 +1028,6 @@ window.onerror=function(msg,src,line,col,err){
   return false;
 };
 window.initMap = function() {
-  // Google Maps HeatmapLayer ラッパー
-  class HeatLayer {
-    constructor(pts){ this._pts = pts; this._layer = null; }
-    addTo(map){
-      const data = this._pts.map(([lat, lng, w]) => ({
-        location: new google.maps.LatLng(lat, lng),
-        weight: Math.max(0.01, w)
-      }));
-      this._layer = new google.maps.visualization.HeatmapLayer({
-        data,
-        radius: 40,
-        opacity: 0.75,
-        gradient: ['rgba(0,0,128,0)','#0000ff','#00ffff','#00ff00','#ffff00','#ff8800','#ff0000'],
-        map
-      });
-      return this;
-    }
-    remove(){
-      if(this._layer){ this._layer.setMap(null); this._layer = null; }
-    }
-    setData(pts){
-      this._pts = pts;
-      if(this._layer){
-        const data = pts.map(([lat, lng, w]) => ({
-          location: new google.maps.LatLng(lat, lng),
-          weight: Math.max(0.01, w)
-        }));
-        this._layer.setData(data);
-      }
-    }
-  }
   // さいたま市選択時に全区をマッチさせるヘルパー
   function _cityMatch(teamCity, filterCity) {
     return teamCity === filterCity ||
@@ -1288,14 +1248,6 @@ window.initMap = function() {
     const base=useWardView?[...wardData,...cityData.filter(d=>d.city!=='さいたま市')]:cityData;
     return Math.max(...base.map(getDisplayVal),1);
   }
-  // ── HEAT ──
-  function updateHeat(data){
-    const mx=maxVal();
-    const pts=data.map(d=>[d.lat,d.lng,getDisplayVal(d)/mx]);
-    if(!heatLayer){heatLayer=new HeatLayer(pts);heatLayer.addTo(map);}
-    else heatLayer.setData(pts);
-  }
-  function removeHeat(){if(heatLayer){heatLayer.remove();heatLayer=null;}}
   // ── BUBBLE ──
   function updateBubble(data){
     removeBubble();
@@ -1534,9 +1486,8 @@ window.initMap = function() {
     // ranking
     updateRanking(data);
     // layers
-    if(currentView==='heat'){removeChoro();removeBubble();updateHeat(data);showPopupLayer();}
-    else if(currentView==='choro'){removeHeat();removeBubble();hidePopupLayer();updateChoro();}
-    else{removeHeat();removeChoro();updateBubble(data);showPopupLayer();}
+    if(currentView==='choro'){removeBubble();hidePopupLayer();updateChoro();}
+    else{removeChoro();updateBubble(data);showPopupLayer();}
     // 凡例の動的最大値更新（choroが計算した後に呼ぶ）
     updateLegend();
     updateHeaderBadges();
@@ -1579,14 +1530,6 @@ window.initMap = function() {
         rateSec.appendChild(note);
       }
       note.textContent = `最大: ${maxRate.toFixed(1)}%（現在の表示条件）`;
-    }
-    // ヒートマップ凡例
-    const heatSec = document.getElementById('leg-heat');
-    if (heatSec) {
-      const note = heatSec.querySelector('small, [data-heat-note]') ||
-                   (() => { const s=document.createElement('div'); s.setAttribute('data-heat-note','1');
-                     s.style.cssText='font-size:9px;color:#999;margin-top:4px;'; heatSec.appendChild(s); return s; })();
-      note.textContent = `最大: ${Math.round(_choroMaxCache||0).toLocaleString()}人`;
     }
   }
   // ═══════════════════════════════════════
@@ -2088,11 +2031,9 @@ window.initMap = function() {
     _pushState();
   };
   function _updateLegendVisibility(){
-    const isHeat  = currentView==='heat';
     const isRate  = currentIndex==='rate';
-    document.getElementById('leg-choro').style.display = (!isHeat && !isRate) ? '' : 'none';
-    document.getElementById('leg-rate').style.display  = (!isHeat &&  isRate) ? '' : 'none';
-    document.getElementById('leg-heat').style.display  = ( isHeat)            ? '' : 'none';
+    document.getElementById('leg-choro').style.display = (!isRate) ? '' : 'none';
+    document.getElementById('leg-rate').style.display  = ( isRate) ? '' : 'none';
   }
   window.toggleCat=function(cat,btn){
     activeCats.has(cat)?activeCats.delete(cat):activeCats.add(cat);
@@ -5852,8 +5793,8 @@ window.initMap = function() {
   // ══════════════════════════════════════════
   // スマホ ボトムナビ制御
   // ══════════════════════════════════════════
-  const VIEW_LABELS = {heat:'ヒートマップ', choro:'色分け', bubble:'バブル'};
-  const VIEW_ORDER  = ['choro','heat','bubble'];
+  const VIEW_LABELS = {choro:'色分け', bubble:'バブル'};
+  const VIEW_ORDER  = ['choro','bubble'];
   window.bnavToggleList = function() {
     const panel = document.getElementById('team-list-panel');
     const isOpen = panel.classList.contains('open');
