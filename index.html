@@ -51,7 +51,7 @@
     border=#dddddd  border-2=#c8d8f0
     ink=#222222  ink-2=#3f3f3f  ink-3=#6a6a6a
 */
-:root{--elem:#3b82f6;--jhs:#059669;--hs:#d97706;--univ:#7c3aed;--club:#dc2626;--ind:#64748b;--action:#1a56db;--action-h:#1648c0;--caution:#c45500;--danger:#dc2626;--green:#00a854;--surface:#f7f7f7;--surface-1:#fff;--surface-2:#f2f2f2;--border:#dddddd;--border-2:#c8d8f0;--ink:#222222;--ink-2:#3f3f3f;--ink-3:#6a6a6a;--shadow-card:rgba(0,0,0,0.02) 0px 0px 0px 1px,rgba(0,0,0,0.04) 0px 2px 6px,rgba(0,0,0,0.1) 0px 4px 8px;--shadow-hover:rgba(0,0,0,0.08) 0px 4px 12px}
+:root{--elem:#3b82f6;--jhs:#059669;--hs:#d97706;--univ:#7c3aed;--club:#dc2626;--ind:#64748b;--action:#1a56db;--action-h:#1648c0;--caution:#c45500;--danger:#dc2626;--green:#00a854;--surface:#f7f7f7;--surface-1:#fff;--surface-2:#f2f2f2;--border:#dddddd;--border-2:#c8d8f0;--ink:#222222;--ink-2:#3f3f3f;--ink-3:#5a5a5a;--shadow-card:rgba(0,0,0,0.02) 0px 0px 0px 1px,rgba(0,0,0,0.04) 0px 2px 6px,rgba(0,0,0,0.1) 0px 4px 8px;--shadow-hover:rgba(0,0,0,0.08) 0px 4px 12px}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);color:var(--ink);height:100vh;display:flex;flex-direction:column;overflow:hidden;-webkit-font-smoothing:antialiased}
 /* Material Symbols (Rounded) アイコン共通 */
@@ -258,10 +258,11 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
 .mfi.active{background:var(--action);border-color:var(--action);color:#fff}
 
 /* ── BOTTOM NAV ── */
-#bnav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface-1);border-top:1px solid var(--border);z-index:1500;height:calc(52px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);align-items:stretch}
-.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;background:none;border:none;color:var(--ink-3);font-size:9px;cursor:pointer;position:relative;padding:4px 0;font-family:inherit}
-.bnav-btn:active{background:var(--surface-2)}
-.bnav-btn.active{color:var(--action);font-weight:600}
+#bnav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface-1);border-top:1px solid var(--border);z-index:1500;height:calc(64px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);align-items:stretch;box-shadow:0 -2px 8px rgba(0,0,0,0.04)}
+.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:none;border:none;color:var(--ink-2);font-size:10px;cursor:pointer;position:relative;padding:6px 0;font-family:inherit;transition:transform .12s ease, background-color .15s ease, color .15s ease}
+.bnav-btn:active{background:rgba(26,86,219,0.08);transform:scale(0.94)}
+.bnav-btn.active{color:var(--action);font-weight:700;background:rgba(26,86,219,0.06)}
+.bnav-btn.active::before{content:'';position:absolute;top:0;left:25%;right:25%;height:3px;background:var(--action);border-radius:0 0 3px 3px}
 .bnav-icon{font-size:18px}
 .bnav-badge{position:absolute;top:4px;right:calc(50% - 16px);background:var(--danger);color:#fff;border-radius:8px;font-size:9px;font-weight:700;padding:1px 4px;display:none}
 .bnav-badge.show{display:block}
@@ -523,12 +524,16 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
 .skip-link:focus{top:8px}
 
 /* ── LOADING ── */
-#loading-overlay{position:fixed;inset:0;z-index:9999;background:var(--surface-1);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;transition:opacity .4s}
+#loading-overlay{position:fixed;inset:0;z-index:9999;background:linear-gradient(180deg,var(--surface-1) 0%,#f4f6fb 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .4s}
 #loading-overlay.fade-out{opacity:0;pointer-events:none}
 #loading-overlay.hidden{display:none}
-.loading-ball{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--action);border-radius:50%;animation:spin .8s linear infinite}
-.loading-text{color:var(--ink-2);font-size:13px}
-.loading-sub{color:var(--ink-3);font-size:11px}
+.loading-brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;color:var(--action);margin-bottom:6px}
+.loading-brand .msi{font-size:22px;color:var(--action)}
+.loading-ball{width:44px;height:44px;border:3px solid #e5ecf8;border-top-color:var(--action);border-right-color:var(--action);border-radius:50%;animation:spin .9s cubic-bezier(0.45,0,0.55,1) infinite}
+.loading-text{color:var(--ink-2);font-size:14px;font-weight:600;letter-spacing:.02em}
+.loading-text::after{content:'';display:inline-block;width:1.6em;text-align:left;animation:dots 1.4s steps(4,end) infinite}
+@keyframes dots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}
+.loading-sub{color:var(--ink-3);font-size:11px;animation:ld-pulse 1.6s ease-in-out infinite}
 @keyframes ld-pulse{0%,100%{opacity:.5}50%{opacity:1}}
 #tile-error-toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--danger);color:#fff;padding:8px 16px;border-radius:4px;font-size:12px;z-index:9000;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;white-space:nowrap}
 #tile-error-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -549,8 +554,9 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
 
 <div id="tile-error-toast"><span class="msi" style="font-size:16px;vertical-align:-3px;margin-right:4px">public</span>地図タイルを読み込めませんでした</div>
 <div id="loading-overlay">
+  <div class="loading-brand"><span class="msi">sports_baseball</span>埼玉県野球協議会</div>
   <div class="loading-ball"></div>
-  <div class="loading-text">読み込み中…</div>
+  <div class="loading-text">読み込み中</div>
   <div class="loading-sub">地図データを準備しています</div>
 </div>
 <div id="header">
