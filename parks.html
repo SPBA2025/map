@@ -57,6 +57,10 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);color:var(--ink);height:100vh;display:flex;flex-direction:column;overflow:hidden;-webkit-font-smoothing:antialiased}
+/* キーボード操作時のみフォーカスリングを表示（アクセシビリティ） */
+*:focus{outline:none}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--red);outline-offset:2px;border-radius:6px}
+input:focus-visible{outline-offset:0}
 
 /* ── HEADER ── */
 #header{
@@ -152,8 +156,10 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
 .park-item-badge.unknown-catchball{background:var(--orange-dim);color:var(--orange)}
 
 /* ── MODAL ── */
-#park-modal{display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.3)}
-#park-modal.open{display:flex;align-items:center;justify-content:center}
+#park-modal{display:flex;align-items:center;justify-content:center;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.3);opacity:0;visibility:hidden;transition:opacity .22s ease,visibility .22s;pointer-events:none}
+#park-modal.open{opacity:1;visibility:visible;pointer-events:auto}
+#park-modal>div{transform:scale(0.96);transition:transform .25s cubic-bezier(0.32,0.72,0,1)}
+#park-modal.open>div{transform:scale(1)}
 .park-box{
   background:var(--surface-1);
   border-radius:20px;
@@ -251,11 +257,12 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
   font-weight:500;
   width:180px;
   outline:none;
-  transition:.2s;
+  transition:width .2s ease,border-color .15s,box-shadow .15s,background-color .15s;
   font-family:inherit;
 }
 #hdr-search-input::placeholder{color:var(--ink-3)}
-#hdr-search-input:focus{border-color:var(--ink);width:220px;box-shadow:0 0 0 2px rgba(34,34,34,0.08)}
+#hdr-search-input:hover{border-color:var(--ink-3);background:var(--surface-1)}
+#hdr-search-input:focus{border-color:var(--red);width:240px;box-shadow:0 0 0 3px rgba(255,56,92,0.15);background:var(--surface-1)}
 #hdr-search-clear{position:absolute;right:8px;background:none;border:none;color:var(--ink-3);cursor:pointer;font-size:14px;display:none;padding:0;line-height:1}
 #hdr-search-clear.show{display:block}
 

@@ -54,6 +54,10 @@
 :root{--elem:#3b82f6;--jhs:#059669;--hs:#d97706;--univ:#7c3aed;--club:#dc2626;--ind:#64748b;--action:#1a56db;--action-h:#1648c0;--caution:#c45500;--danger:#dc2626;--green:#00a854;--surface:#f7f7f7;--surface-1:#fff;--surface-2:#f2f2f2;--border:#dddddd;--border-2:#c8d8f0;--ink:#222222;--ink-2:#3f3f3f;--ink-3:#5a5a5a;--shadow-card:rgba(0,0,0,0.02) 0px 0px 0px 1px,rgba(0,0,0,0.04) 0px 2px 6px,rgba(0,0,0,0.1) 0px 4px 8px;--shadow-hover:rgba(0,0,0,0.08) 0px 4px 12px}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);color:var(--ink);height:100vh;display:flex;flex-direction:column;overflow:hidden;-webkit-font-smoothing:antialiased}
+/* キーボード操作時のみフォーカスリングを表示（アクセシビリティ） */
+*:focus{outline:none}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--action);outline-offset:2px;border-radius:6px}
+input:focus-visible{outline-offset:0}
 /* Material Symbols (Rounded) アイコン共通 */
 .msi{font-family:'Material Symbols Rounded';font-weight:400;font-style:normal;display:inline-block;line-height:1;letter-spacing:normal;text-transform:none;white-space:nowrap;font-feature-settings:'liga';-webkit-font-smoothing:antialiased;vertical-align:middle;user-select:none}
 /* ランクメダル（🥇🥈🥉の代替） */
@@ -214,11 +218,15 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
 #nbp-body{overflow-y:auto;flex:1;padding:4px 8px}
 
 /* ── MODALS ── */
-#chart-modal{display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.25)}
-#chart-modal.open{display:flex;align-items:center;justify-content:center}
+#chart-modal{display:flex;align-items:center;justify-content:center;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.25);opacity:0;visibility:hidden;transition:opacity .22s ease,visibility .22s;pointer-events:none}
+#chart-modal.open{opacity:1;visibility:visible;pointer-events:auto}
+#chart-modal>div{transform:scale(0.96);transition:transform .25s cubic-bezier(0.32,0.72,0,1)}
+#chart-modal.open>div{transform:scale(1)}
 .chart-box{background:var(--surface-1);border:1px solid var(--border);border-radius:20px;padding:20px;width:90%;max-width:480px;max-height:80vh;overflow-y:auto;box-shadow:var(--shadow-card)}
-#cmp-modal{display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.3)}
-#cmp-modal.open{display:flex;align-items:center;justify-content:center}
+#cmp-modal{display:flex;align-items:center;justify-content:center;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.3);opacity:0;visibility:hidden;transition:opacity .22s ease,visibility .22s;pointer-events:none}
+#cmp-modal.open{opacity:1;visibility:visible;pointer-events:auto}
+#cmp-modal>div{transform:scale(0.96);transition:transform .25s cubic-bezier(0.32,0.72,0,1)}
+#cmp-modal.open>div{transform:scale(1)}
 .cmp-box{background:var(--surface-1);border-radius:20px;padding:20px;width:96%;max-width:780px;max-height:88vh;overflow-y:auto;box-shadow:var(--shadow-card)}
 .cmp-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .cmp-title{font-size:15px;font-weight:700;color:var(--ink)}
@@ -277,9 +285,10 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
 
 /* ── HEADER SEARCH ── */
 #hdr-search-wrap{position:relative;display:flex;align-items:center;margin-left:8px;flex-shrink:0}
-#hdr-search-input{padding:7px 28px 7px 12px;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);color:var(--ink);font-size:13px;font-weight:500;width:180px;outline:none;transition:.2s;font-family:inherit}
+#hdr-search-input{padding:7px 28px 7px 12px;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);color:var(--ink);font-size:13px;font-weight:500;width:180px;outline:none;transition:width .2s ease,border-color .15s,box-shadow .15s,background-color .15s;font-family:inherit}
 #hdr-search-input::placeholder{color:var(--ink-3)}
-#hdr-search-input:focus{border-color:var(--ink);box-shadow:0 0 0 2px rgba(34,34,34,0.08);width:220px;background:var(--surface-1)}
+#hdr-search-input:hover{border-color:var(--ink-3);background:var(--surface-1)}
+#hdr-search-input:focus{border-color:var(--action);box-shadow:0 0 0 3px rgba(26,86,219,0.15);width:240px;background:var(--surface-1)}
 #hdr-search-clear{position:absolute;right:6px;background:none;border:none;color:var(--ink-3);cursor:pointer;font-size:13px;display:none;padding:0;line-height:1}
 #hdr-search-clear.show{display:block}
 #hdr-search-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface-1);border:1px solid var(--border);border-radius:4px;box-shadow:rgba(50,50,93,0.15) 0 8px 20px -8px,rgba(0,0,0,0.08) 0 4px 10px -4px;z-index:9000;max-height:320px;overflow-y:auto;display:none}
