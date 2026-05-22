@@ -314,10 +314,13 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
 }
 #sort-select:focus{border-color:var(--ink)}
 
-#parks-bnav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface-1);border-top:1px solid var(--border);z-index:1500;height:calc(64px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);align-items:stretch;box-shadow:0 -2px 8px rgba(0,0,0,0.04)}
-.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:none;border:none;color:var(--ink-2);font-size:10px;font-weight:500;cursor:pointer;font-family:inherit;touch-action:manipulation;position:relative;padding:6px 0;transition:transform .12s ease, background-color .15s ease, color .15s ease}
-.bnav-btn:active{background:rgba(255,56,92,0.08);transform:scale(0.94)}
-.bnav-btn.active{color:var(--red);font-weight:700;background:rgba(255,56,92,0.06)}
+#parks-bnav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface-1);border-top:1px solid var(--border);z-index:1500;height:calc(64px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);align-items:stretch;box-shadow:0 -2px 12px rgba(0,0,0,0.06)}
+.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;color:var(--ink-2);font-size:11px;font-weight:500;cursor:pointer;font-family:inherit;touch-action:manipulation;position:relative;padding:8px 0;transition:transform .12s ease, background-color .15s ease, color .15s ease}
+.bnav-btn .bnav-icon{font-size:24px}
+.bnav-btn:not(:last-child)::after{content:'';position:absolute;right:0;top:18%;bottom:18%;width:1px;background:var(--border)}
+.bnav-btn:active{background:rgba(255,56,92,0.1);transform:scale(0.94)}
+.bnav-btn.active{color:var(--red);font-weight:700;background:rgba(255,56,92,0.07)}
+.bnav-btn.active .bnav-icon{font-size:26px}
 .bnav-btn.active::before{content:'';position:absolute;top:0;left:25%;right:25%;height:3px;background:var(--red);border-radius:0 0 3px 3px}
 .bnav-icon{font-size:18px;line-height:1.1}
 
@@ -350,6 +353,17 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
 .bs-handle{width:36px;height:4px;background:var(--border-2);border-radius:2px;margin:10px auto 2px;cursor:pointer;flex-shrink:0}
 
 /* ── SIDEBAR SEARCH (モバイル用) ── */
+/* モバイル専用 マップ上部 検索バー */
+#mobile-top-search{display:none}
+@media(max-width:768px){
+  #mobile-top-search{display:flex;position:absolute;top:8px;left:10px;right:10px;background:var(--surface-1);border-radius:24px;box-shadow:0 3px 12px rgba(0,0,0,0.18),0 1px 3px rgba(0,0,0,0.08);padding:9px 14px;align-items:center;gap:8px;z-index:500;max-width:520px;margin:0 auto}
+  #mobile-top-search .mts-icon{color:var(--ink-3);flex-shrink:0}
+  #mobile-top-search input{flex:1;border:none;outline:none;background:none;font-size:14px;font-family:inherit;color:var(--ink);min-width:0}
+  #mobile-top-search input::placeholder{color:var(--ink-3)}
+  #mobile-top-search input:focus{outline:none}
+  #mobile-top-search button.mts-clear{display:none;background:var(--surface-2);border:none;color:var(--ink-2);width:22px;height:22px;border-radius:50%;cursor:pointer;font-size:14px;padding:0;align-items:center;justify-content:center;flex-shrink:0}
+  #mobile-top-search button.mts-clear.show{display:flex}
+}
 #sidebar-search-wrap{display:none;padding:8px 14px;border-bottom:1px solid var(--border);position:relative;align-items:center;gap:6px}
 #sidebar-search-input{flex:1;padding:8px 28px 8px 10px;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);color:var(--ink);font-size:13px;font-family:inherit;outline:none;transition:.2s}
 #sidebar-search-input:focus{border-color:var(--action);box-shadow:0 0 0 2px rgba(26,86,219,0.1)}
@@ -571,6 +585,13 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);c
 <!-- MAIN -->
 <div id="app">
   <div id="map"></div>
+
+  <!-- モバイル専用 マップ上部 検索バー -->
+  <div id="mobile-top-search">
+    <span class="msi mts-icon" style="font-size:20px">search</span>
+    <input id="mobile-top-search-input" type="search" placeholder="公園名で検索..." aria-label="公園名で検索">
+    <button class="mts-clear" id="mobile-top-search-clear" aria-label="検索をクリア"><span class="msi" style="font-size:14px">close</span></button>
+  </div>
 
   <!-- SIDEBAR -->
   <div id="sidebar">
@@ -1301,24 +1322,42 @@ function setupEventListeners() {
   const sbSearch = document.getElementById('sidebar-search-input');
   const sbClear  = document.getElementById('sidebar-search-clear');
   const hdrInput = document.getElementById('hdr-search-input');
+  // マップ上部のモバイル検索バー
+  const mtsInput = document.getElementById('mobile-top-search-input');
+  const mtsClear = document.getElementById('mobile-top-search-clear');
+  const syncAllSearch = (val) => {
+    hdrInput.value = val;
+    sbSearch.value = val;
+    if (mtsInput) mtsInput.value = val;
+    const hasVal = val.length > 0;
+    sbClear.classList.toggle('show', hasVal);
+    document.getElementById('hdr-search-clear').classList.toggle('show', hasVal);
+    if (mtsClear) mtsClear.classList.toggle('show', hasVal);
+  };
   sbSearch.addEventListener('input', function() {
-    hdrInput.value = this.value;
-    sbClear.classList.toggle('show', this.value.length > 0);
-    document.getElementById('hdr-search-clear').classList.toggle('show', this.value.length > 0);
+    syncAllSearch(this.value);
     renderParkList();
   });
   sbClear.addEventListener('click', function() {
-    sbSearch.value = '';
-    hdrInput.value = '';
-    this.classList.remove('show');
-    document.getElementById('hdr-search-clear').classList.remove('show');
+    syncAllSearch('');
     renderParkList();
   });
   // ヘッダー検索とサイドバー検索を双方向同期
   hdrInput.addEventListener('input', function() {
-    sbSearch.value = this.value;
-    sbClear.classList.toggle('show', this.value.length > 0);
+    syncAllSearch(this.value);
   });
+  // モバイル上部検索バーの連動
+  if (mtsInput) {
+    mtsInput.addEventListener('input', function() {
+      syncAllSearch(this.value);
+      renderParkList();
+    });
+    mtsClear.addEventListener('click', function() {
+      syncAllSearch('');
+      renderParkList();
+      mtsInput.focus();
+    });
+  }
 
   // 市区町村選択
   document.getElementById('city-select').addEventListener('change', function() {
