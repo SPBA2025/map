@@ -2,6 +2,8 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+  <link rel="canonical" href="https://map.saitamabaseball.com/">
+  <meta property="og:url" content="https://map.saitamabaseball.com/">
   <meta property="og:title" content="埼玉県野球競技者人口マップ">
   <meta property="og:description" content="埼玉県63市町村・2,143チームの野球競技者データを地図で可視化。少年野球チーム検索、参加率ランキング、市区町村比較など。">
   <meta property="og:type" content="website">
@@ -51,9 +53,29 @@
     border=#dddddd  border-2=#c8d8f0
     ink=#222222  ink-2=#3f3f3f  ink-3=#6a6a6a
 */
-:root{--elem:#3b82f6;--jhs:#059669;--hs:#d97706;--univ:#7c3aed;--club:#dc2626;--ind:#64748b;--action:#1a56db;--action-h:#1648c0;--caution:#c45500;--danger:#dc2626;--green:#00a854;--surface:#f7f7f7;--surface-1:#fff;--surface-2:#f2f2f2;--border:#dddddd;--border-2:#c8d8f0;--ink:#222222;--ink-2:#3f3f3f;--ink-3:#5a5a5a;--shadow-card:rgba(0,0,0,0.02) 0px 0px 0px 1px,rgba(0,0,0,0.04) 0px 2px 6px,rgba(0,0,0,0.1) 0px 4px 8px;--shadow-hover:rgba(0,0,0,0.08) 0px 4px 12px}
+:root{--elem:#3b82f6;--jhs:#059669;--hs:#d97706;--univ:#7c3aed;--club:#dc2626;--ind:#64748b;--action:#1a56db;--action-h:#1648c0;--caution:#c45500;--danger:#dc2626;--green:#00a854;--surface:#f7f7f7;--surface-1:#fff;--surface-2:#f2f2f2;--border:#dddddd;--border-2:#c8d8f0;--ink:#222222;--ink-2:#3f3f3f;--ink-3:#5a5a5a;--navy:#001f5b;--gold:#c9a84c;--shadow-card:rgba(0,0,0,0.02) 0px 0px 0px 1px,rgba(0,0,0,0.04) 0px 2px 6px,rgba(0,0,0,0.1) 0px 4px 8px;--shadow-hover:rgba(0,0,0,0.08) 0px 4px 12px}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);color:var(--ink);height:100vh;display:flex;flex-direction:column;overflow:hidden;-webkit-font-smoothing:antialiased}
+/* ── SITE HEADER / FOOTER（協議会戻り動線）─────── */
+#site-header{position:sticky;top:0;left:0;right:0;background:var(--navy);color:#fff;padding:0 16px;height:48px;display:flex;align-items:center;gap:10px;z-index:1100;box-shadow:0 2px 8px rgba(0,0,0,0.12);flex-shrink:0}
+#site-header a.site-header-link{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;min-height:44px;min-width:44px;padding:4px 8px;border-radius:6px;transition:background-color .15s}
+#site-header a.site-header-link:hover{background:rgba(255,255,255,0.1)}
+#site-header .site-logo{width:30px;height:30px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;color:var(--navy);flex-shrink:0}
+#site-header .site-logo .msi{font-size:19px}
+#site-header .site-title{font-weight:700;font-size:14px;letter-spacing:.02em;white-space:nowrap}
+#site-header .site-sub{font-size:11px;color:rgba(255,255,255,0.7);margin-left:4px;border-left:1px solid rgba(255,255,255,0.25);padding-left:8px}
+#site-header .site-spacer{flex:1}
+#site-header .site-back{color:rgba(255,255,255,0.85);text-decoration:none;font-size:12px;display:inline-flex;align-items:center;gap:4px;padding:6px 10px;border-radius:6px;transition:background-color .15s}
+#site-header .site-back:hover{background:rgba(255,255,255,0.1);color:#fff}
+#site-header .site-back .msi{font-size:16px}
+@media(max-width:560px){#site-header .site-sub{display:none}#site-header .site-back-text{display:none}}
+#site-footer{background:var(--navy);color:rgba(255,255,255,0.85);padding:14px 16px;font-size:12px;text-align:center;flex-shrink:0}
+#site-footer .ft-links{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin-bottom:6px}
+#site-footer .ft-links a{color:#fff;text-decoration:none;opacity:.85;transition:opacity .15s;padding:4px 6px;border-radius:4px}
+#site-footer .ft-links a:hover{opacity:1;text-decoration:underline}
+#site-footer .ft-links button{background:none;border:none;color:#fff;cursor:pointer;opacity:.85;font-size:12px;font-family:inherit;padding:4px 6px;border-radius:4px;transition:opacity .15s}
+#site-footer .ft-links button:hover{opacity:1;text-decoration:underline}
+#site-footer .ft-copy{color:rgba(255,255,255,0.6);font-size:11px}
 /* キーボード操作時のみフォーカスリングを表示（アクセシビリティ） */
 *:focus{outline:none}
 button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--action);outline-offset:2px;border-radius:6px}
@@ -421,6 +443,11 @@ input:focus-visible{outline-offset:0}
 @media(max-width:768px){
   /* ── ヘッダー ── */
   #hbg{display:flex}
+  #site-header{height:44px;padding:0 12px}
+  #site-header .site-logo{width:28px;height:28px}
+  #site-header .site-logo .msi{font-size:18px}
+  #site-header .site-title{font-size:13px}
+  #site-footer{display:none} /* モバイルではボトムナビと重なるため非表示。プライバシー等はCookieバナーやサイドバー経由でアクセス */
   #header{padding:0 10px;min-height:52px;gap:8px}
   .hdr-brand{min-width:unset;flex:1}
   .hdr-logo{font-size:13px}
@@ -560,6 +587,19 @@ input:focus-visible{outline-offset:0}
 </style>
 </head>
 <body>
+<!-- SITE HEADER (協議会戻り動線) -->
+<header id="site-header" role="banner">
+  <a class="site-header-link" id="site-header-link" href="https://www.saitamabaseball.com" aria-label="埼玉県野球協議会のトップへ">
+    <span class="site-logo"><span class="msi">sports_baseball</span></span>
+    <span class="site-title">埼玉県野球協議会</span>
+    <span class="site-sub">競技者人口マップ</span>
+  </a>
+  <span class="site-spacer"></span>
+  <a class="site-back" id="site-back" href="https://www.saitamabaseball.com" aria-label="協議会サイトに戻る">
+    <span class="msi">arrow_back</span><span class="site-back-text">協議会サイトへ</span>
+  </a>
+</header>
+
 <!-- HEADER -->
 <a href="#map" class="skip-link" tabindex="1">地図にスキップ</a>
 <a href="#sidebar" class="skip-link" tabindex="2">メニューにスキップ</a>
@@ -1298,6 +1338,8 @@ window.initMap = function() {
       _cityInfoWindow.open(map);
       _filterCityOnly(d.city);
       setTimeout(_panForPopup, 300);
+      // アナリティクス: 市町村ポップアップ表示
+      if (window.Analytics) window.Analytics.municipalityView(d.city);
     });
   }
   function showPopupLayer() {
@@ -1953,6 +1995,11 @@ window.initMap = function() {
 
   google.maps.event.addListener(map, 'idle', function(){
     if(areaFilterActive) update();
+    // アナリティクス: 地図移動完了でズーム＋中心座標を記録
+    if (window.Analytics) {
+      const c = map.getCenter();
+      window.Analytics.mapZoom(map.getZoom(), c ? {lat: c.lat(), lng: c.lng()} : null);
+    }
   });
   let _zoomDebounceTimer = null;
   map.addListener('zoom_changed', function() {
@@ -1986,6 +2033,7 @@ window.initMap = function() {
     if(state.area==='1') window.toggleAreaFilter();
   }
   window.setIndex=function(idx){
+    if (window.Analytics) window.Analytics.filterChange('index', idx);
     currentIndex=idx;
     ['abs','rate'].forEach(x=>document.getElementById('idx-'+x).classList.remove('on'));
     document.getElementById('idx-'+idx).classList.add('on');
@@ -2036,6 +2084,7 @@ window.initMap = function() {
     _pushState();
   };
   window.setView=function(mode){
+    if (window.Analytics) window.Analytics.filterChange('view_style', mode);
     currentView=mode;
     document.querySelectorAll('.vbtn').forEach(b=>b.classList.remove('on'));
     document.getElementById('btn-'+mode).classList.add('on');
@@ -2051,9 +2100,11 @@ window.initMap = function() {
   window.toggleCat=function(cat,btn){
     activeCats.has(cat)?activeCats.delete(cat):activeCats.add(cat);
     btn.classList.toggle('on');
+    if (window.Analytics) window.Analytics.filterChange('category', cat + ':' + (activeCats.has(cat) ? 'on' : 'off'));
     update();
   };
   window.setGender=function(g){
+    if (window.Analytics) window.Analytics.filterChange('gender', g);
     currentGender=g;
     ['all','male','fem'].forEach(x=>{
       const el=document.getElementById('gb-'+x);
@@ -4741,6 +4792,7 @@ window.initMap = function() {
           _pinInfoWindow.setContent(teamPopupHTML(t));
           _pinInfoWindow.setPosition({lat, lng});
           _pinInfoWindow.open(map);
+          if (window.Analytics) window.Analytics.teamPinClick(t);
         });
         const m = new google.maps.marker.AdvancedMarkerElement({
           position: {lat, lng}, content,
@@ -4857,6 +4909,7 @@ window.initMap = function() {
 
 
   // ── 検索クリアボタン制御 ──────────────────────────────
+  let _searchEventTimer;
   window.onSearchInput = function() {
     const val = document.getElementById('team-search').value;
     const btn = document.getElementById('search-clear');
@@ -4872,6 +4925,21 @@ window.initMap = function() {
       const hdrClear = document.getElementById('hdr-search-clear');
       if (hdrClear) hdrClear.classList.toggle('show', kw.length > 0);
     }
+    // アナリティクス: 検索イベント（debounce 700ms）
+    clearTimeout(_searchEventTimer);
+    _searchEventTimer = setTimeout(() => {
+      if (kw.length < 2) return; // 短すぎる入力は無視
+      const matched = teamData.filter(t => {
+        const s = (t.name + ' ' + (t.city||'') + ' ' + (t.league||'')).toLowerCase();
+        return s.includes(kw.toLowerCase());
+      });
+      if (window.Analytics) {
+        window.Analytics.keywordSearch(kw, matched.length);
+        if (matched.length === 0) {
+          window.Analytics.emptyResult(kw, 'team_search');
+        }
+      }
+    }, 700);
   };
   // サイドバー検索で1件に絞り込まれた場合にポップアップ表示
   window.onSearchInputJump = function() {
@@ -5162,6 +5230,7 @@ window.initMap = function() {
   window.openChartModal = function(cityName) {
     const d = cityMap[cityName];
     if (!d) return;
+    if (window.Analytics) window.Analytics.modalOpen('chart', {city: cityName});
     const modal = document.getElementById('chart-modal');
     document.getElementById('chart-title').textContent = cityName + ' 野球人口詳細';
     const rate = d.children ? ((d.elem_m||0)+(d.elem_f||0)) / d.children * 100 : null;
@@ -5282,6 +5351,8 @@ window.initMap = function() {
     if (!nameA || !nameB) { body.innerHTML = '<div style="text-align:center;color:#999;padding:20px;font-size:12px;">2つの市町村を選択してください</div>'; return; }
     const dA = cityMap[nameA], dB = cityMap[nameB];
     if (!dA || !dB) return;
+    // アナリティクス: 市町村比較イベント
+    if (window.Analytics) window.Analytics.cityCompare(nameA, nameB);
 
     const totalA = CMP_CATS.reduce((s,c)=>s+(dA[c+'_m']||0)+(dA[c+'_f']||0),0);
     const totalB = CMP_CATS.reduce((s,c)=>s+(dB[c+'_m']||0)+(dB[c+'_f']||0),0);
@@ -5391,6 +5462,7 @@ window.initMap = function() {
   };
 
   window.openCmpModal = function(defaultCity) {
+    if (window.Analytics) window.Analytics.modalOpen('compare', {city: defaultCity || ''});
     _cmpInitSelects(defaultCity);
     document.getElementById('cmp-modal').classList.add('open');
     window.renderCmp();
@@ -5612,10 +5684,11 @@ window.initMap = function() {
       _enterTapMode();
     };
 
-    if (!navigator.geolocation) { runWithTapMode(); return; }
+    if (!navigator.geolocation) { runWithTapMode(); if (window.Analytics) window.Analytics.gpsUse('unavailable'); return; }
 
     btn.classList.add('locating');
     btn.innerHTML = '<span class="msi" style="font-size:18px">hourglass_empty</span>';
+    if (window.Analytics) window.Analytics.gpsUse('requested');
 
     const timer = setTimeout(() => { runWithTapMode(); }, 10000);
 
@@ -5623,11 +5696,13 @@ window.initMap = function() {
       pos => {
         clearTimeout(timer);
         _cachedUserLoc = { lat: pos.coords.latitude, lng: pos.coords.longitude, _ts: Date.now() };
+        if (window.Analytics) window.Analytics.gpsUse('granted');
         _doNearbySearch(pos.coords.latitude, pos.coords.longitude, false);
       },
       (err) => {
         clearTimeout(timer);
         console.warn('Geolocation error:', err.code, err.message);
+        if (window.Analytics) window.Analytics.gpsUse(err.code === 1 ? 'denied' : 'unavailable');
         runWithTapMode();
       },
       { enableHighAccuracy: true, timeout: 8000, maximumAge: 300000 }
@@ -6044,6 +6119,60 @@ window.initMap = function() {
     setTimeout(function() { runGeocodingAll(); }, 2500);
   })();
 
+  // ── アナリティクス: 外部SNSリンク・チームリスト項目クリックを捕捉 ──
+  document.addEventListener('click', function(e) {
+    if (!window.Analytics) return;
+    // 外部SNSリンク
+    const link = e.target.closest('.pu-sns-link, .pu-sns-row a, [data-ext-link]');
+    if (link) {
+      let type = 'other';
+      if (link.classList.contains('pu-sns-hp') || link.title === 'HP') type = 'hp';
+      else if (link.classList.contains('pu-sns-x') || link.title.startsWith('X')) type = 'x';
+      else if (link.classList.contains('pu-sns-ig') || link.title === 'Instagram') type = 'instagram';
+      else if (link.classList.contains('pu-sns-other') || link.title === 'Link') type = 'other';
+      window.Analytics.externalLink(link.href, type);
+      return;
+    }
+    // チーム一覧パネル / 近傍パネルの項目クリック
+    const listItem = e.target.closest('.tlp-item, .nbp-item');
+    if (listItem) {
+      const name = listItem.querySelector('.tlp-name, .nbp-name')?.textContent?.trim() || '';
+      const city = listItem.querySelector('.tlp-city, .nbp-city')?.textContent?.trim() || '';
+      const listType = listItem.classList.contains('nbp-item') ? 'nearby' : 'team';
+      window.Analytics.listItemClick(listType, {id:'', name, city});
+    }
+  }, true);
+
+</script>
+
+<!-- SITE FOOTER -->
+<footer id="site-footer" role="contentinfo">
+  <div class="ft-links">
+    <a id="footer-contact" href="https://www.saitamabaseball.com/contact-8">お問い合わせ</a>
+    <a href="/privacy.html">プライバシーポリシー</a>
+    <a id="footer-saitamabaseball" href="https://www.saitamabaseball.com">協議会サイト</a>
+    <button type="button" onclick="window.openCookieSettings && window.openCookieSettings()">Cookie設定</button>
+  </div>
+  <div class="ft-copy">© 一般社団法人 埼玉県野球協議会</div>
+</footer>
+
+<!-- 設定ファイルとアナリティクス基盤の読み込み -->
+<script src="config.js"></script>
+<script src="analytics.js"></script>
+<script src="cookie-consent.js"></script>
+<script>
+(function(){
+  const cfg = window.APP_CONFIG || {};
+  const setHref = (id, url) => { const el = document.getElementById(id); if (el && url) el.href = url; };
+  setHref('site-header-link', cfg.SAITAMA_BASEBALL_URL);
+  setHref('site-back', cfg.SAITAMA_BASEBALL_URL);
+  setHref('footer-saitamabaseball', cfg.SAITAMA_BASEBALL_URL);
+  setHref('footer-contact', cfg.CONTACT_URL);
+  if (cfg.LOGO_URL) {
+    const logo = document.querySelector('#site-header .site-logo');
+    if (logo) logo.innerHTML = '<img src="' + cfg.LOGO_URL + '" alt="埼玉県野球協議会" style="width:30px;height:30px;border-radius:50%;object-fit:cover">';
+  }
+})();
 </script>
 </body>
 </html>

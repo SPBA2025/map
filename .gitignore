@@ -1,8 +1,10 @@
 # === セキュリティ関連 ===
-# Google Maps API キーは絶対に GitHub に上げない
+# Google Maps API キーを含むローカル設定（旧 parks.config.js 方式）
+# 現状は parks.html / index.html に直書き＋リファラー制限で運用
 parks.config.js
-config.js
 *.secret.js
+# 注: config.js は GA4/Clarity ID 用の公開可能な設定なので除外しない
+# config.js は git 管理する
 
 # === システムファイル ===
 .DS_Store
