@@ -27,6 +27,13 @@ window.APP_CONFIG = {
   // 協議会ロゴ画像URL（取得したら実URLに差し替え。未設定時は Material Symbols + テキスト表示）
   LOGO_URL: '',
 
+  // 連絡先メール（フッター表示用）
+  CONTACT_EMAIL: 'info@saitamabaseball.com',
+
+  // SNSアカウント（空文字なら非表示）
+  INSTAGRAM_URL: '',
+  X_URL: '',
+
   // ─── サイト本体 ──────────────────────────────
   // 公開URL（canonical等で使用）
   SITE_URL: 'https://map.saitamabaseball.com',
