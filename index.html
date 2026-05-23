@@ -144,9 +144,37 @@ input:focus-visible{outline-offset:0}
 #map-container{flex:1;position:relative;display:flex;min-width:0}
 
 /* ── SIDEBAR ── */
-#sidebar{width:280px;background:var(--surface-1);border-left:1px solid var(--border);overflow-y:auto;flex-shrink:0;z-index:1000;transition:transform .3s}
+#sidebar{width:280px;background:var(--surface-1);border-left:1px solid var(--border);overflow-y:auto;flex-shrink:0;z-index:1000;transition:width .3s cubic-bezier(0.32,0.72,0,1),margin .3s cubic-bezier(0.32,0.72,0,1)}
 #sidebar::-webkit-scrollbar{width:4px}
 #sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+/* PC折りたたみ：マップ領域を最大化 */
+@media (min-width:769px){
+  #sidebar.pc-collapsed{width:0;border-left:none;overflow:hidden}
+  #sidebar.pc-collapsed > *{opacity:0;pointer-events:none;transition:opacity .15s}
+}
+/* サイドバー折りたたみトグル（PC専用） */
+#sidebar-collapse-btn{position:fixed;top:50%;right:280px;transform:translateY(-50%);width:24px;height:48px;background:#1b2842;color:#f8f2e6;border:none;border-radius:8px 0 0 8px;cursor:pointer;z-index:1500;display:flex;align-items:center;justify-content:center;box-shadow:-2px 0 8px rgba(27,40,66,0.15);transition:right .3s cubic-bezier(0.32,0.72,0,1),background-color .15s}
+#sidebar-collapse-btn:hover{background:#c8202e}
+#sidebar-collapse-btn .msi{font-size:18px;transition:transform .3s}
+#sidebar-collapse-btn.collapsed{right:0}
+#sidebar-collapse-btn.collapsed .msi{transform:rotate(180deg)}
+@media (max-width:768px){#sidebar-collapse-btn{display:none}}
+/* フローティング凡例（折りたたみ時のみ表示） */
+#float-legend{position:fixed;bottom:14px;right:14px;background:rgba(248,242,230,0.95);backdrop-filter:blur(8px);border:1px solid rgba(27,40,66,0.12);border-radius:10px;padding:10px 12px;z-index:600;box-shadow:0 4px 14px rgba(27,40,66,0.12);min-width:140px;opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .25s,transform .25s}
+#sidebar.pc-collapsed ~ #float-legend{opacity:1;pointer-events:auto;transform:translateY(0)}
+#float-legend .fl-title{font-size:10px;font-weight:700;color:#1b2842;margin-bottom:6px;display:flex;align-items:center;gap:4px}
+#float-legend .fl-title::before{content:"▍";color:#c8202e}
+#float-legend .fl-bar{height:10px;border-radius:5px;background:linear-gradient(90deg,rgb(235,245,255),rgb(130,200,200),rgb(80,180,120),rgb(200,230,80),rgb(255,200,0),rgb(255,110,0),rgb(200,0,0));margin-bottom:4px}
+#float-legend .fl-labels{display:flex;justify-content:space-between;font-size:9px;color:#5a6c8c}
+@media (max-width:768px){#float-legend{display:none}}
+/* フローティング KPI カード */
+#float-kpi{position:fixed;top:calc(40px + 46px + 14px);left:14px;background:rgba(248,242,230,0.95);backdrop-filter:blur(8px);border:1px solid rgba(27,40,66,0.12);border-radius:10px;padding:10px 14px;z-index:600;box-shadow:0 4px 14px rgba(27,40,66,0.12);display:flex;align-items:center;gap:14px;transition:left .3s cubic-bezier(0.32,0.72,0,1)}
+#float-kpi .fk-item{text-align:center}
+#float-kpi .fk-num{font-size:18px;font-weight:700;color:#1b2842;line-height:1;font-feature-settings:"tnum" 1}
+#float-kpi .fk-lbl{font-size:9px;color:#5a6c8c;margin-top:3px;letter-spacing:.02em}
+#float-kpi .fk-sep{width:1px;height:28px;background:rgba(27,40,66,0.15)}
+/* マップアクションボタンと重ならないようにフローティングKPIは少し下げる */
+@media (max-width:768px){#float-kpi{display:none}}
 .s-section{padding:14px 16px;border-bottom:1px solid var(--border)}
 .s-title{font-size:11px;font-weight:700;color:var(--ink);letter-spacing:.01em;margin-bottom:10px}
 
@@ -877,6 +905,28 @@ input:focus-visible{outline-offset:0}
       <span style="font-size:8px;">地図: <a href="https://maps.google.com" target="_blank" rel="noopener" style="color:#999;">Google Maps</a></span>
     </div>
   </div><!-- /sidebar -->
+  <!-- サイドバー折りたたみトグル（PC専用） -->
+  <button id="sidebar-collapse-btn" type="button" onclick="window.toggleSidebarPC && window.toggleSidebarPC()" aria-label="サイドバーを折りたたむ" title="サイドバーを折りたたむ / 展開">
+    <span class="msi">chevron_right</span>
+  </button>
+  <!-- フローティング凡例（サイドバー折りたたみ時のみ表示） -->
+  <div id="float-legend" aria-label="凡例">
+    <div class="fl-title" id="fl-title">競技者数</div>
+    <div class="fl-bar" id="fl-bar"></div>
+    <div class="fl-labels"><span>少</span><span>多</span></div>
+  </div>
+  <!-- フローティング KPI カード -->
+  <div id="float-kpi" aria-label="主要指標">
+    <div class="fk-item">
+      <div class="fk-num" id="fk-team-num">—</div>
+      <div class="fk-lbl">表示中チーム</div>
+    </div>
+    <div class="fk-sep"></div>
+    <div class="fk-item">
+      <div class="fk-num" id="fk-city-num">—</div>
+      <div class="fk-lbl">市町村</div>
+    </div>
+  </div>
   <!-- バックドロップ -->
   <div id="backdrop" onclick="closeSidebar()"></div>
 </div><!-- /app -->
@@ -6013,6 +6063,81 @@ window.initMap = function() {
     backdrop.classList.remove('show');
     hbg.classList.remove('open');
   };
+
+  // ── PC サイドバー折りたたみ（マップ領域を最大化）──
+  const PC_COLLAPSE_KEY = 'pcSidebarCollapsed';
+  window.toggleSidebarPC = function() {
+    const collapsed = sidebar.classList.toggle('pc-collapsed');
+    const btn = document.getElementById('sidebar-collapse-btn');
+    if (btn) {
+      btn.classList.toggle('collapsed', collapsed);
+      btn.setAttribute('aria-label', collapsed ? 'サイドバーを開く' : 'サイドバーを閉じる');
+      btn.setAttribute('title', collapsed ? 'サイドバーを開く' : 'サイドバーを閉じる');
+    }
+    try { localStorage.setItem(PC_COLLAPSE_KEY, collapsed ? '1' : '0'); } catch(e) {}
+    // Google Maps にサイズ変更を通知
+    setTimeout(() => {
+      try { google.maps.event.trigger(map, 'resize'); } catch(e) {}
+    }, 320);
+  };
+  // 初期状態を復元（PC のみ）
+  try {
+    if (!isMobile() && localStorage.getItem(PC_COLLAPSE_KEY) === '1') {
+      sidebar.classList.add('pc-collapsed');
+      const btn = document.getElementById('sidebar-collapse-btn');
+      if (btn) {
+        btn.classList.add('collapsed');
+        btn.setAttribute('aria-label', 'サイドバーを開く');
+        btn.setAttribute('title', 'サイドバーを開く');
+      }
+    }
+  } catch(e) {}
+
+  // ── フローティング KPI 更新 ──
+  function _updateFloatKPI() {
+    try {
+      const teamEl = document.getElementById('fk-team-num');
+      const cityEl = document.getElementById('fk-city-num');
+      if (!teamEl || !cityEl) return;
+      // 現在表示中のチーム数を集計（renderTeamPins 後の数）
+      const txt = document.getElementById('team-count')?.textContent || '';
+      const m = txt.match(/(\d[\d,]*)/);
+      teamEl.textContent = m ? m[1] : '—';
+      // 市町村数（cityData の件数）
+      if (typeof cityData !== 'undefined' && Array.isArray(cityData)) {
+        cityEl.textContent = cityData.length;
+      }
+    } catch(e) {}
+  }
+  // team-count の変化を監視
+  try {
+    const tcEl = document.getElementById('team-count');
+    if (tcEl) {
+      new MutationObserver(_updateFloatKPI).observe(tcEl, { childList: true, characterData: true, subtree: true });
+    }
+    setTimeout(_updateFloatKPI, 500);
+  } catch(e) {}
+
+  // ── フローティング凡例（折りたたみ時のみ表示）の内容を更新 ──
+  function _updateFloatLegend() {
+    try {
+      const titleEl = document.getElementById('fl-title');
+      const barEl = document.getElementById('fl-bar');
+      if (!titleEl || !barEl) return;
+      // 参加率モードか競技者数モードかでグラデーション切替
+      const isRate = (typeof currentIdx !== 'undefined' && currentIdx === 'rate');
+      titleEl.textContent = isRate ? '参加率（小学生）' : '競技者数';
+      barEl.style.background = isRate
+        ? 'linear-gradient(90deg,rgb(240,248,255),rgb(80,170,230),rgb(40,160,100),rgb(200,230,60),rgb(255,180,0),rgb(255,80,0),rgb(160,0,0))'
+        : 'linear-gradient(90deg,rgb(235,245,255),rgb(130,200,200),rgb(80,180,120),rgb(200,230,80),rgb(255,200,0),rgb(255,110,0),rgb(200,0,0))';
+    } catch(e) {}
+  }
+  // setIndex を上書きして更新呼び出しを追加
+  if (typeof window.setIndex === 'function') {
+    const _origSetIndex = window.setIndex;
+    window.setIndex = function(idx) { _origSetIndex(idx); _updateFloatLegend(); };
+  }
+  setTimeout(_updateFloatLegend, 500);
 
   // ── モバイル検索：チームリストを開いて検索欄にフォーカス ──
   window.mobOpenSearch = function() {
