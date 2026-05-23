@@ -39,19 +39,19 @@
     const style = document.createElement('style');
     style.id = 'cookie-banner-style';
     style.textContent = `
-#cookie-banner{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:9000;background:#1b2842;color:#f8f2e6;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.25);padding:16px 18px;max-width:760px;margin:0 auto;animation:cb-slideup .35s cubic-bezier(0.32,0.72,0,1) both;border-top:3px solid #c8202e}
+#cookie-banner{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:9000;background:#f8f2e6;color:#1b2842;border-radius:12px;box-shadow:0 8px 28px rgba(27,40,66,0.18);padding:16px 18px;max-width:760px;margin:0 auto;animation:cb-slideup .35s cubic-bezier(0.32,0.72,0,1) both;border-top:3px solid #c8202e;border:1px solid rgba(27,40,66,0.08);border-top:3px solid #c8202e}
 @keyframes cb-slideup{from{transform:translateY(120%);opacity:0}to{transform:translateY(0);opacity:1}}
 #cookie-banner .cb-inner{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-#cookie-banner .cb-text{flex:1 1 280px;font-size:13px;line-height:1.6;color:#f8f2e6}
-#cookie-banner .cb-text a{color:#f1a41d;text-decoration:underline;text-underline-offset:2px}
-#cookie-banner .cb-text a:hover{color:#f8f2e6}
+#cookie-banner .cb-text{flex:1 1 280px;font-size:13px;line-height:1.6;color:#1b2842}
+#cookie-banner .cb-text a{color:#c8202e;text-decoration:underline;text-underline-offset:2px;font-weight:600}
+#cookie-banner .cb-text a:hover{color:#1b2842}
 #cookie-banner .cb-btns{display:flex;gap:8px;flex-shrink:0}
-#cookie-banner .cb-btn{padding:9px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;border:1.5px solid transparent;transition:background-color .15s,color .15s,transform .12s}
+#cookie-banner .cb-btn{padding:9px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;border:1.5px solid transparent;transition:background-color .15s,color .15s,transform .12s,border-color .15s}
 #cookie-banner .cb-btn:active{transform:scale(0.96)}
-#cookie-banner .cb-accept{background:#f1a41d;color:#1b2842;border-color:#f1a41d}
-#cookie-banner .cb-accept:hover{background:#f8f2e6;border-color:#f8f2e6}
-#cookie-banner .cb-decline{background:transparent;color:#f8f2e6;border-color:rgba(248,242,230,0.5)}
-#cookie-banner .cb-decline:hover{background:rgba(248,242,230,0.1);border-color:#f8f2e6}
+#cookie-banner .cb-accept{background:#1b2842;color:#f8f2e6;border-color:#1b2842}
+#cookie-banner .cb-accept:hover{background:#c8202e;border-color:#c8202e}
+#cookie-banner .cb-decline{background:transparent;color:#1b2842;border-color:rgba(27,40,66,0.3)}
+#cookie-banner .cb-decline:hover{background:rgba(27,40,66,0.06);border-color:#1b2842}
 #cookie-banner.hidden{display:none}
 @media(max-width:560px){
   #cookie-banner{padding:14px 14px}

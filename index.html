@@ -540,6 +540,14 @@ input:focus-visible{outline-offset:0}
 .tlp-item{display:flex;flex-wrap:wrap;align-items:flex-start;gap:0 8px;padding:8px 10px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;-webkit-tap-highlight-color:transparent}
 .tlp-item:hover{background:var(--surface-2)}
 .tlp-item:last-child{border-bottom:none}
+.tlp-empty{padding:32px 20px;text-align:center;color:#5a6c8c;font-size:13px;line-height:1.6}
+.tlp-empty-icon{width:48px;height:48px;border-radius:50%;background:rgba(27,40,66,0.08);color:#1b2842;display:inline-flex;align-items:center;justify-content:center;margin-bottom:10px}
+.tlp-empty-icon .msi{font-size:26px}
+.tlp-empty-title{font-size:14px;font-weight:600;color:#1b2842;margin-bottom:4px}
+.tlp-empty-sub{font-size:12px;color:#5a6c8c;margin-bottom:14px}
+.tlp-empty-btn{background:#1b2842;color:#f8f2e6;border:none;padding:8px 18px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:background-color .15s,transform .12s}
+.tlp-empty-btn:hover{background:#c8202e}
+.tlp-empty-btn:active{transform:scale(0.97)}
 .tlp-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px}
 .team-card{padding:8px 10px;background:var(--surface);border-radius:4px;margin-bottom:4px;cursor:pointer;border-left:2px solid transparent;transition:.15s}
 .team-card:hover{background:var(--surface-2)}
@@ -611,7 +619,7 @@ input:focus-visible{outline-offset:0}
 .cat-btn-mixed{background:var(--univ)!important}
 </style>
 </head>
-<body>
+<body data-page="team">
 <!-- SITE HEADER (協議会戻り動線) -->
 <header id="site-header" role="banner">
   <a class="site-header-link" id="site-header-link" href="https://www.saitamabaseball.com" aria-label="埼玉県野球協議会のトップへ">
@@ -1300,15 +1308,44 @@ window.initMap = function() {
   }
   // ── Google Maps 初期化 ──
   const SAITAMA_BOUNDS_ARRAY = [[35.77, 138.95], [36.28, 139.92]];
+  // 前回表示位置を復元（24時間以内のみ）
+  const LAST_VIEW_KEY = 'mapLastView';
+  const LAST_VIEW_TTL = 24 * 60 * 60 * 1000;
+  let initialCenter = { lat: 36.0, lng: 139.4 };
+  let initialZoom = 9;
+  try {
+    const raw = localStorage.getItem(LAST_VIEW_KEY);
+    if (raw) {
+      const v = JSON.parse(raw);
+      if (v && v.ts && (Date.now() - v.ts < LAST_VIEW_TTL) && typeof v.lat === 'number' && typeof v.lng === 'number') {
+        initialCenter = { lat: v.lat, lng: v.lng };
+        if (typeof v.zoom === 'number' && v.zoom >= 7 && v.zoom <= 18) initialZoom = v.zoom;
+      }
+    }
+  } catch(e) {}
   const map = new google.maps.Map(document.getElementById('map'), {
-    center: { lat: 36.0, lng: 139.4 },
-    zoom: 9,
+    center: initialCenter,
+    zoom: initialZoom,
     mapId: 'DEMO_MAP_ID',
     mapTypeControl: false,
     fullscreenControl: false,
     streetViewControl: false,
     zoomControl: true,
     zoomControlOptions: { position: google.maps.ControlPosition.LEFT_BOTTOM },
+  });
+  // idle時に表示位置を保存（debounce）
+  let _saveViewT = null;
+  map.addListener('idle', () => {
+    clearTimeout(_saveViewT);
+    _saveViewT = setTimeout(() => {
+      try {
+        const c = map.getCenter();
+        if (!c) return;
+        localStorage.setItem(LAST_VIEW_KEY, JSON.stringify({
+          lat: c.lat(), lng: c.lng(), zoom: map.getZoom(), ts: Date.now()
+        }));
+      } catch(e) {}
+    }, 800);
   });
   // ボタンをGoogleマップのコントロールレイヤーに登録（重なり防止）
   map.controls[google.maps.ControlPosition.TOP_RIGHT].push(
@@ -1645,6 +1682,31 @@ window.initMap = function() {
     _syncFabArea();
     update();
     _pushState();
+  };
+
+  // すべての絞込をリセット（空状態カードから呼ばれる）
+  window.clearAllFilters = function() {
+    try {
+      // 性別フィルター
+      currentGender = 'all';
+      document.querySelectorAll('.gender-btn').forEach(b => b.classList.toggle('on', b.dataset.gender === 'all'));
+      // 市町村絞込
+      if (typeof window.clearCityFilter === 'function') window.clearCityFilter();
+      // エリア絞込
+      areaFilterActive = false;
+      document.getElementById('btn-area-filter')?.classList.remove('active');
+      document.getElementById('btn-area-filter-clear')?.classList.remove('show');
+      _syncFabArea && _syncFabArea();
+      // タブを全件に
+      if (typeof window.setTlpTab === 'function') window.setTlpTab('all');
+      // 検索キーワード
+      const ts = document.getElementById('tlp-search-input');
+      if (ts) ts.value = '';
+      const hs = document.getElementById('hdr-search-input');
+      if (hs) hs.value = '';
+      update();
+      _pushState && _pushState();
+    } catch(e) { console.warn('clearAllFilters', e); }
   };
 
   // 地図移動時にエリアフィルター中なら再描画
@@ -5103,7 +5165,15 @@ window.initMap = function() {
     count.textContent = toShow.length + '件';
     body.innerHTML = '';
     if (toShow.length === 0) {
-      body.innerHTML = '<div style="padding:20px;text-align:center;color:#999;font-size:12px;">条件に一致するチームがありません</div>';
+      body.innerHTML = `
+        <div class="tlp-empty">
+          <div class="tlp-empty-icon"><span class="msi">search_off</span></div>
+          <div class="tlp-empty-title">条件に一致するチームがありません</div>
+          <div class="tlp-empty-sub">絞込条件を変えるか、リセットしてもう一度お試しください</div>
+          <button class="tlp-empty-btn" onclick="window.clearAllFilters && window.clearAllFilters()">
+            <span class="msi" style="font-size:14px;vertical-align:-2px;margin-right:4px">refresh</span>絞込をリセット
+          </button>
+        </div>`;
       return;
     }
     // ソート
@@ -6187,6 +6257,7 @@ window.initMap = function() {
         <a id="footer-saitamabaseball" href="https://www.saitamabaseball.com">協議会サイト</a>
         <a id="footer-contact" href="https://www.saitamabaseball.com/contact-8">お問い合わせ</a>
         <a href="/privacy.html">プライバシーポリシー</a>
+        <button type="button" onclick="window.openOnboarding && window.openOnboarding()">使い方を見る</button>
         <button type="button" onclick="window.openCookieSettings && window.openCookieSettings()">Cookie設定</button>
       </div>
     </div>
@@ -6209,6 +6280,7 @@ window.initMap = function() {
 <script src="config.js"></script>
 <script src="analytics.js"></script>
 <script src="cookie-consent.js"></script>
+<script src="onboarding.js"></script>
 <script>
 (function(){
   const cfg = window.APP_CONFIG || {};

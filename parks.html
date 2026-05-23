@@ -188,6 +188,14 @@ input:focus-visible{outline-offset:0}
 
 /* ── PARK LIST ── */
 #park-list{display:flex;flex-direction:column;gap:0;list-style:none;margin:0;padding:0}
+.park-empty{padding:32px 20px;text-align:center;color:#5a6c8c;font-size:13px;line-height:1.6;list-style:none}
+.park-empty-icon{width:48px;height:48px;border-radius:50%;background:rgba(27,40,66,0.08);color:#1b2842;display:inline-flex;align-items:center;justify-content:center;margin-bottom:10px}
+.park-empty-icon .msi{font-size:26px}
+.park-empty-title{font-size:14px;font-weight:600;color:#1b2842;margin-bottom:4px}
+.park-empty-sub{font-size:12px;color:#5a6c8c;margin-bottom:14px}
+.park-empty-btn{background:#1b2842;color:#f8f2e6;border:none;padding:8px 18px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:background-color .15s,transform .12s}
+.park-empty-btn:hover{background:#c8202e}
+.park-empty-btn:active{transform:scale(0.97)}
 .park-item{
   display:flex;
   flex-direction:column;
@@ -490,7 +498,7 @@ input:focus-visible{outline-offset:0}
 #hdr-search-input:focus{border-color:var(--ink);width:220px;box-shadow:0 0 0 2px rgba(34,34,34,0.08);background:var(--surface-1)}
 </style>
 </head>
-<body>
+<body data-page="park">
 
 <!-- SITE HEADER (協議会戻り動線) -->
 <header id="site-header" role="banner">
@@ -796,9 +804,24 @@ parkData.forEach(p => { curated[p.name] = p; });
 ═══════════════════════════════════════════════ */
 async function initMap() {
   try {
+  // 前回表示位置を復元（24時間以内のみ）
+  const PARK_LAST_VIEW_KEY = 'parkMapLastView';
+  const PARK_LAST_VIEW_TTL = 24 * 60 * 60 * 1000;
+  let pInitCenter = { lat: 35.8617, lng: 139.6455 };
+  let pInitZoom = 11;
+  try {
+    const raw = localStorage.getItem(PARK_LAST_VIEW_KEY);
+    if (raw) {
+      const v = JSON.parse(raw);
+      if (v && v.ts && (Date.now() - v.ts < PARK_LAST_VIEW_TTL) && typeof v.lat === 'number' && typeof v.lng === 'number') {
+        pInitCenter = { lat: v.lat, lng: v.lng };
+        if (typeof v.zoom === 'number' && v.zoom >= 7 && v.zoom <= 18) pInitZoom = v.zoom;
+      }
+    }
+  } catch(e) {}
   map = new google.maps.Map(document.getElementById('map'), {
-    center: { lat: 35.8617, lng: 139.6455 },
-    zoom: 11,
+    center: pInitCenter,
+    zoom: pInitZoom,
     mapTypeId: 'roadmap',
     // DEMO_MAP_ID: AdvancedMarkerElement を使うために必要。
     // 本番運用時は Google Cloud Console で独自 Map ID を発行して置き換えてください。
@@ -808,6 +831,20 @@ async function initMap() {
     streetViewControl: false,
     zoomControl: true,
     zoomControlOptions: { position: google.maps.ControlPosition.LEFT_BOTTOM },
+  });
+  // idle時に表示位置を保存（debounce）
+  let _pSaveViewT = null;
+  map.addListener('idle', () => {
+    clearTimeout(_pSaveViewT);
+    _pSaveViewT = setTimeout(() => {
+      try {
+        const c = map.getCenter();
+        if (!c) return;
+        localStorage.setItem(PARK_LAST_VIEW_KEY, JSON.stringify({
+          lat: c.lat(), lng: c.lng(), zoom: map.getZoom(), ts: Date.now()
+        }));
+      } catch(e) {}
+    }, 800);
   });
 
   // PlacesService はマップに直接アタッチ
@@ -1236,7 +1273,23 @@ function renderParkList() {
   document.getElementById('park-count').textContent = `(${filtered.length}件)`;
 
   if (filtered.length === 0) {
-    list.innerHTML = '<li style="padding:12px;color:var(--ink-3);font-size:12px;text-align:center">この範囲に公園がありません</li>';
+    const hasSearch = !!searchTerm;
+    const hasFilter = !!activeFilters.catchball;
+    const tip = hasSearch
+      ? '検索キーワードを変えるか、地図を移動してみてください'
+      : hasFilter
+      ? '「キャッチボール可」絞込を解除すると候補が増えます'
+      : '地図をドラッグして他のエリアを表示してください';
+    list.innerHTML = `
+      <li class="park-empty">
+        <div class="park-empty-icon"><span class="msi">search_off</span></div>
+        <div class="park-empty-title">この範囲に公園がありません</div>
+        <div class="park-empty-sub">${tip}</div>
+        ${(hasSearch || hasFilter) ? `
+          <button class="park-empty-btn" onclick="window.clearParkFilters && window.clearParkFilters()">
+            <span class="msi" style="font-size:14px;vertical-align:-2px;margin-right:4px">refresh</span>絞込をリセット
+          </button>` : ''}
+      </li>`;
     return;
   }
 
@@ -1370,6 +1423,25 @@ window.cycleMapType = function() {
 /* ═══════════════════════════════════════════════
    EVENT LISTENERS
 ═══════════════════════════════════════════════ */
+// 公園マップの絞込を全てリセット（空状態カードから呼ばれる）
+window.clearParkFilters = function() {
+  try {
+    // 検索キーワード
+    ['hdr-search-input', 'sidebar-search', 'mobile-top-search-input'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    ['hdr-search-clear', 'sidebar-search-clear', 'mobile-top-search-clear'].forEach(id => {
+      document.getElementById(id)?.classList.remove('show');
+    });
+    // キャッチボール可フィルター
+    activeFilters.catchball = false;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('on'));
+    if (typeof applyFilters === 'function') applyFilters();
+    renderParkList();
+  } catch(e) { console.warn('clearParkFilters', e); }
+};
+
 function setupEventListeners() {
   // フィルター
   document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -1610,6 +1682,7 @@ window.parkOpenSearch = function() {
         <a id="footer-saitamabaseball" href="https://www.saitamabaseball.com">協議会サイト</a>
         <a id="footer-contact" href="https://www.saitamabaseball.com/contact-8">お問い合わせ</a>
         <a href="/privacy.html">プライバシーポリシー</a>
+        <button type="button" onclick="window.openOnboarding && window.openOnboarding()">使い方を見る</button>
         <button type="button" onclick="window.openCookieSettings && window.openCookieSettings()">Cookie設定</button>
       </div>
     </div>
@@ -1632,6 +1705,7 @@ window.parkOpenSearch = function() {
 <script src="config.js"></script>
 <script src="analytics.js"></script>
 <script src="cookie-consent.js"></script>
+<script src="onboarding.js"></script>
 <script>
 (function(){
   const cfg = window.APP_CONFIG || {};
