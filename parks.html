@@ -176,6 +176,7 @@ input:focus-visible{outline-offset:0}
 #float-legend .fl-title::before{content:"▍";color:#c8202e}
 #float-legend .fl-row{display:flex;align-items:center;gap:6px;font-size:10px;color:#1b2842;line-height:1.5}
 #float-legend .fl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+#float-legend .fl-update{margin-top:6px;padding-top:6px;border-top:1px dashed rgba(27,40,66,0.15);font-size:9px;color:#5a6c8c;text-align:right;font-weight:600;letter-spacing:.04em}
 @media (max-width:768px){#float-legend{display:none}}
 #sidebar::-webkit-scrollbar{width:4px}
 #sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
@@ -758,6 +759,7 @@ input:focus-visible{outline-offset:0}
     <div class="fl-row"><div class="fl-dot" style="background:#00a854"></div>可</div>
     <div class="fl-row"><div class="fl-dot" style="background:#ff385c"></div>不可・条件付き</div>
     <div class="fl-row"><div class="fl-dot" style="background:#c45500"></div>不明</div>
+    <div class="fl-update" id="fl-park-count" title="登録公園数（情報提供で更新）">— 件登録</div>
   </div>
 </div>
 
@@ -828,6 +830,11 @@ function isInSaitama(lat, lng) {
 
 /* parks-data.js をインデックス化 */
 parkData.forEach(p => { curated[p.name] = p; });
+// フローティング凡例の登録公園数を更新
+(function updateParkCount() {
+  const el = document.getElementById('fl-park-count');
+  if (el && Array.isArray(parkData)) el.textContent = parkData.length + ' 件登録';
+})();
 
 /* ═══════════════════════════════════════════════
    MAP INIT（ネイティブ Google Maps）
@@ -1469,6 +1476,7 @@ window.clearParkFilters = function() {
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('on'));
     if (typeof applyFilters === 'function') applyFilters();
     renderParkList();
+    if (window.Toast) Toast.show('絞込をリセットしました', { type: 'success' });
   } catch(e) { console.warn('clearParkFilters', e); }
 };
 
@@ -1506,7 +1514,13 @@ function setupEventListeners() {
   });
 
   // ソート
-  document.getElementById('sort-select').addEventListener('change', renderParkList);
+  document.getElementById('sort-select').addEventListener('change', function() {
+    renderParkList();
+    if (window.Toast) {
+      const lbl = this.value === 'near' ? '近い順' : '名前順';
+      Toast.show(`並び替え: ${lbl}`);
+    }
+  });
 
   // サイドバー内検索（モバイル用）
   const sbSearch = document.getElementById('sidebar-search-input');
@@ -1681,6 +1695,7 @@ window.parkToggleCatchball = function() {
   if (btn) btn.classList.toggle('active', activeFilters.catchball);
   if (filterBtn) filterBtn.classList.toggle('on', activeFilters.catchball);
   applyFilters();
+  if (window.Toast) Toast.show(activeFilters.catchball ? 'キャッチボール可の公園のみ表示' : '全公園を表示');
 };
 
 // 一覧パネルトグル（モバイル用 - サイドバー開閉）
@@ -1769,6 +1784,7 @@ window.parkOpenSearch = function() {
 <script src="config.js"></script>
 <script src="analytics.js"></script>
 <script src="cookie-consent.js"></script>
+<script src="toast.js"></script>
 <script src="onboarding.js"></script>
 <script>
 (function(){
