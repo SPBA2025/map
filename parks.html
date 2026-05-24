@@ -4,15 +4,49 @@
 <meta charset="UTF-8">
 <link rel="canonical" href="https://map.saitamabaseball.com/parks.html">
 <meta property="og:url" content="https://map.saitamabaseball.com/parks.html">
-<meta property="og:title" content="埼玉県公園マップ">
+<meta property="og:title" content="埼玉県公園マップ｜キャッチボールができる公園を探す">
 <meta property="og:description" content="埼玉県内の公園でキャッチボールができるかを地図で確認。住所、広さ、トイレ、駐車場情報も表示。">
+<meta property="og:image" content="https://map.saitamabaseball.com/og-image-parks.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="埼玉県公園マップ">
+<meta property="og:site_name" content="埼玉県野球協議会">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="ja_JP">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="埼玉県公園マップ">
-<meta name="description" content="埼玉県内の公園でキャッチボールができるかを地図で確認。">
+<meta name="twitter:title" content="埼玉県公園マップ｜キャッチボールができる公園を探す">
+<meta name="twitter:description" content="埼玉県内の公園でキャッチボールができるかを地図で確認。">
+<meta name="twitter:image" content="https://map.saitamabaseball.com/og-image-parks.png">
+<meta name="description" content="埼玉県内の公園でキャッチボールができるかを地図で確認。住所・広さ・トイレ・駐車場情報も表示。">
+<meta name="keywords" content="埼玉県,公園,キャッチボール,親子,野球,公園マップ,子供,週末">
+<meta name="robots" content="index,follow">
+<meta name="theme-color" content="#1b2842">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
-<title>埼玉県公園マップ</title>
+<title>埼玉県公園マップ｜キャッチボールができる公園を探す</title>
+<!-- 構造化データ（Schema.org JSON-LD） -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://map.saitamabaseball.com/parks.html#website",
+      "url": "https://map.saitamabaseball.com/parks.html",
+      "name": "埼玉県公園マップ",
+      "description": "埼玉県内のキャッチボール可能公園を地図で検索",
+      "publisher": { "@id": "https://map.saitamabaseball.com/#org" },
+      "inLanguage": "ja-JP"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "ホーム", "item": "https://map.saitamabaseball.com/" },
+        { "@type": "ListItem", "position": 2, "name": "公園マップ", "item": "https://map.saitamabaseball.com/parks.html" }
+      ]
+    }
+  ]
+}
+</script>
 <!-- Material Symbols (Rounded, outlined / weight 400) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1304,8 +1338,12 @@ function setupModalLinks(park) {
     linkBtn.style.display = 'none';
   }
   const FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSdwOG0eAVXRFkIsgplkszA45sMHCYYf3NwseniMI5iP2jG2yw/viewform';
-  document.getElementById('modal-report-link').href =
-    `${FORM_URL}?usp=pp_url&entry.837577971=${encodeURIComponent(park.name)}`;
+  const reportLink = document.getElementById('modal-report-link');
+  reportLink.href = `${FORM_URL}?usp=pp_url&entry.837577971=${encodeURIComponent(park.name)}`;
+  // 情報修正ボタンクリックでアナリティクスイベントを発火
+  reportLink.onclick = function() {
+    if (window.Analytics) window.Analytics.infoMissingReport('park:' + park.name, 'park_report_form');
+  };
   document.getElementById('park-modal').classList.add('open');
 }
 

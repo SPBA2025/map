@@ -30,6 +30,11 @@ window.APP_CONFIG = {
   // 連絡先メール（フッター表示用）
   CONTACT_EMAIL: 'info@saitamabaseball.com',
 
+  // チーム情報修正・追加用Googleフォーム（未設定時はお問い合わせページにフォールバック）
+  // 例: 'https://docs.google.com/forms/d/e/XXXXX/viewform'
+  // ?usp=pp_url&entry.<ID>=<チーム名> でプリフィル可能
+  TEAM_INFO_FORM_URL: '',
+
   // SNSアカウント（空文字なら非表示）
   INSTAGRAM_URL: '',
   X_URL: '',

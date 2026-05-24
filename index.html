@@ -6,12 +6,55 @@
   <meta property="og:url" content="https://map.saitamabaseball.com/">
   <meta property="og:title" content="埼玉県野球競技者人口マップ">
   <meta property="og:description" content="埼玉県63市町村・2,143チームの野球競技者データを地図で可視化。少年野球チーム検索、参加率ランキング、市区町村比較など。">
+  <meta property="og:image" content="https://map.saitamabaseball.com/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="埼玉県野球競技者人口マップ">
+  <meta property="og:site_name" content="埼玉県野球協議会">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="ja_JP">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="埼玉県野球競技者人口マップ">
   <meta name="twitter:description" content="埼玉県63市町村・2,143チームの野球競技者データを地図で可視化。">
+  <meta name="twitter:image" content="https://map.saitamabaseball.com/og-image.png">
   <meta name="description" content="埼玉県63市町村・2,143チームの野球競技者データを地図で可視化。少年野球チーム検索、参加率ランキング、市区町村比較など。">
+  <meta name="keywords" content="埼玉県,野球,少年野球,中学野球,高校野球,女子野球,チーム,マップ,地図,競技人口,参加率,野球協議会">
+  <meta name="robots" content="index,follow">
+  <meta name="theme-color" content="#1b2842">
+  <!-- 構造化データ（Schema.org JSON-LD） -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://map.saitamabaseball.com/#website",
+        "url": "https://map.saitamabaseball.com/",
+        "name": "埼玉県野球競技者人口マップ",
+        "description": "埼玉県63市町村・2,143チームの野球競技者データを地図で可視化",
+        "publisher": { "@id": "https://map.saitamabaseball.com/#org" },
+        "inLanguage": "ja-JP"
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://map.saitamabaseball.com/#org",
+        "name": "埼玉県野球協議会",
+        "url": "https://www.saitamabaseball.com/",
+        "areaServed": { "@type": "AdministrativeArea", "name": "埼玉県" }
+      },
+      {
+        "@type": "Dataset",
+        "name": "埼玉県野球競技者数（2025年度）",
+        "description": "埼玉県63市町村における野球競技者数（小学生・中学生・高校生・大学生・企業/クラブ）と男女別データ",
+        "creator": { "@id": "https://map.saitamabaseball.com/#org" },
+        "spatialCoverage": { "@type": "Place", "name": "埼玉県" },
+        "temporalCoverage": "2025",
+        "license": "https://www.saitamabaseball.com/",
+        "url": "https://map.saitamabaseball.com/"
+      }
+    ]
+  }
+  </script>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>埼玉県野球競技者人口マップ | 埼玉県野球協議会</title>
 <!-- Material Symbols (Rounded, outlined / weight 400) -->
@@ -494,6 +537,9 @@ input:focus-visible{outline-offset:0}
 .pu-sns-link.pu-sns-ig{border-left:3px solid #e1306c}
 .pu-sns-link.pu-sns-other{border-left:3px solid var(--ink-3)}
 .team-popup-note{font-size:10px;color:var(--ink-3);padding:6px 14px 14px;border-top:1px solid var(--border)}
+.pu-foot{padding:8px 14px 12px;border-top:1px solid var(--border);display:flex;justify-content:flex-end}
+.pu-report{font-size:10px;color:#5a6c8c;text-decoration:none;display:inline-flex;align-items:center;gap:3px;padding:4px 10px;border-radius:6px;transition:background-color .15s,color .15s}
+.pu-report:hover{background:rgba(27,40,66,0.08);color:#1b2842}
 
 /* ── BACKDROP ── */
 #backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:1040}
@@ -791,6 +837,9 @@ input:focus-visible{outline-offset:0}
       </button>
       <button class="mab" id="btn-area-filter-clear" onclick="clearAreaFilter()" aria-label="絞込を解除">
         <span class="mab-icon msi">undo</span><span class="mab-label">絞込を解除</span>
+      </button>
+      <button class="mab" id="btn-share" onclick="window.shareCurrentView && window.shareCurrentView()" aria-label="現在の表示状態をリンク共有">
+        <span class="mab-icon msi">share</span><span class="mab-label">共有</span>
       </button>
     </div>
   </div>
@@ -1821,6 +1870,66 @@ window.initMap = function() {
     if (window.Toast) Toast.show('表示範囲の絞込を解除しました', { type: 'success' });
   };
 
+  // チーム情報修正の提案フォームを開く（GoogleフォームURLが設定されていればプリフィルで開く）
+  window.reportTeamInfo = function(teamName) {
+    try {
+      if (window.Analytics) window.Analytics.infoMissingReport('team:' + (teamName || 'unknown'), 'team_report_form');
+      const cfg = window.APP_CONFIG || {};
+      const formUrl = cfg.TEAM_INFO_FORM_URL || '';
+      if (formUrl) {
+        // Google フォームの場合は ?usp=pp_url 形式
+        const sep = formUrl.includes('?') ? '&' : '?';
+        const url = formUrl + sep + 'usp=pp_url&entry.team=' + encodeURIComponent(teamName || '');
+        window.open(url, '_blank', 'noopener');
+      } else {
+        // フォーム未設定時はお問い合わせページにフォールバック
+        const fallback = cfg.CONTACT_URL || 'https://www.saitamabaseball.com/contact-8';
+        window.open(fallback, '_blank', 'noopener');
+        if (window.Toast) Toast.show('お問い合わせページへ移動します（' + (teamName || '') + '）', { duration: 3000 });
+      }
+    } catch(e) { console.warn('reportTeamInfo', e); }
+  };
+
+  // 現在の表示状態をクリップボードにコピー（共有用）
+  window.shareCurrentView = function() {
+    try {
+      // 最新の状態をURLに反映してから取得
+      _pushState();
+      const url = window.location.href;
+      const useNative = navigator.share && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      if (useNative) {
+        navigator.share({
+          title: '埼玉県野球チームマップ',
+          text: '埼玉県の野球チーム分布を表示しています',
+          url: url
+        }).catch(() => {
+          // キャンセル時など → クリップボードコピーにフォールバック
+          _copyToClipboard(url);
+        });
+      } else {
+        _copyToClipboard(url);
+      }
+    } catch(e) { console.warn('share', e); }
+  };
+  function _copyToClipboard(text) {
+    const fallback = () => {
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); } catch(e) {}
+      document.body.removeChild(ta);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(
+        () => { if (window.Toast) Toast.show('共有リンクをコピーしました', { type: 'success' }); },
+        () => { fallback(); if (window.Toast) Toast.show('共有リンクをコピーしました', { type: 'success' }); }
+      );
+    } else {
+      fallback();
+      if (window.Toast) Toast.show('共有リンクをコピーしました', { type: 'success' });
+    }
+  }
+
   // すべての絞込をリセット（空状態カードから呼ばれる）
   window.clearAllFilters = function() {
     try {
@@ -2242,13 +2351,43 @@ window.initMap = function() {
       area:   areaFilterActive ? '1' : '',
     };
     try {
-      history.replaceState(state, '');
+      // URL のクエリパラメータにも書く（共有用）
+      const url = new URL(window.location.href);
+      const params = url.searchParams;
+      // 既定値は省略してURL短縮
+      const setOrDelete = (k, v, defaultVal) => {
+        if (v && v !== defaultVal) params.set(k, v);
+        else params.delete(k);
+      };
+      setOrDelete('view',   state.view,   'choro');
+      setOrDelete('idx',    state.idx,    'abs');
+      setOrDelete('gender', state.gender, 'all');
+      setOrDelete('city',   state.city,   '');
+      setOrDelete('area',   state.area,   '');
+      const newUrl = url.pathname + (params.toString() ? '?' + params.toString() : '') + url.hash;
+      history.replaceState(state, '', newUrl);
     } catch(e) {
-      // about:srcdoc など replaceState 不可の環境では無視
+      // about:srcdoc など replaceState 不可の環境では history.state のみ更新
+      try { history.replaceState(state, ''); } catch(e2) {}
     }
   }
   function _restoreState(){
-    const state = history.state;
+    // URL クエリパラメータを最優先（共有リンク経由の復元）
+    let state = null;
+    try {
+      const url = new URL(window.location.href);
+      const params = url.searchParams;
+      if (params.has('view') || params.has('idx') || params.has('gender') || params.has('city') || params.has('area')) {
+        state = {
+          view:   params.get('view')   || '',
+          idx:    params.get('idx')    || '',
+          gender: params.get('gender') || '',
+          city:   params.get('city')   || '',
+          area:   params.get('area')   || '',
+        };
+      }
+    } catch(e) {}
+    if (!state) state = history.state;
     if(!state) return;
     if(state.view)   window.setView(state.view);
     if(state.idx)    window.setIndex(state.idx);
@@ -2450,6 +2589,11 @@ window.initMap = function() {
       </div>`:''}
       ${snsLinks ? `<div class="pu-sns-row">${snsLinks}</div>` : ''}
       ${hasNote  ? `<div class="team-popup-note">${t.note}</div>` : ''}
+      <div class="pu-foot">
+        <a href="javascript:void(0)" class="pu-report" data-team-name="${t.name.replace(/"/g,'&quot;')}" onclick="window.reportTeamInfo && window.reportTeamInfo(this.dataset.teamName)">
+          <span class="msi" style="font-size:12px;vertical-align:-2px">edit_note</span>情報の修正を提案
+        </a>
+      </div>
     </div>`;
   }
   window.PLACE_COORDS = window.PLACE_COORDS || {};
@@ -4392,6 +4536,7 @@ window.initMap = function() {
         <a id="footer-contact" href="https://www.saitamabaseball.com/contact-8">お問い合わせ</a>
         <a href="/privacy.html">プライバシーポリシー</a>
         <button type="button" onclick="window.openOnboarding && window.openOnboarding()">使い方を見る</button>
+        <button type="button" onclick="window.reportTeamInfo && window.reportTeamInfo('')">チーム情報の追加・修正</button>
         <button type="button" onclick="window.openCookieSettings && window.openCookieSettings()">Cookie設定</button>
       </div>
     </div>
