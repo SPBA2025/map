@@ -63,6 +63,22 @@
   _s.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places,marker&callback=initMapCallback&loading=async`;
   _s.async = true;
   document.head.appendChild(_s);
+
+  // ── iOS Safari クロム（下部URLバー・翻訳バー）対策 ──
+  (function() {
+    if (!window.visualViewport) return;
+    function adjust() {
+      const vp = window.visualViewport;
+      const offset = Math.max(0, window.innerHeight - vp.height - vp.offsetTop);
+      document.documentElement.style.setProperty('--safari-chrome-bottom', offset + 'px');
+    }
+    window.visualViewport.addEventListener('resize', adjust);
+    window.visualViewport.addEventListener('scroll', adjust);
+    window.addEventListener('orientationchange', () => setTimeout(adjust, 200));
+    adjust();
+    setTimeout(adjust, 500);
+    setTimeout(adjust, 1500);
+  })();
 </script>
 <style>
 /* ═══ Color System (埼玉県野球協議会 共通 / Park accent: Red) ═══

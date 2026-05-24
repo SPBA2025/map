@@ -84,6 +84,24 @@
   _s.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places,marker&callback=initMapCallback&loading=async`;
   _s.async = true;
   document.head.appendChild(_s);
+
+  // ── iOS Safari クロム（下部URLバー・翻訳バー）対策 ──
+  // visualViewport で実際の表示領域を取得し、bnav 等を持ち上げる
+  (function() {
+    if (!window.visualViewport) return;
+    function adjust() {
+      const vp = window.visualViewport;
+      const offset = Math.max(0, window.innerHeight - vp.height - vp.offsetTop);
+      document.documentElement.style.setProperty('--safari-chrome-bottom', offset + 'px');
+    }
+    window.visualViewport.addEventListener('resize', adjust);
+    window.visualViewport.addEventListener('scroll', adjust);
+    window.addEventListener('orientationchange', () => setTimeout(adjust, 200));
+    // 初期 + 遅延（Safari の翻訳バー出現を捕捉）
+    adjust();
+    setTimeout(adjust, 500);
+    setTimeout(adjust, 1500);
+  })();
 </script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
@@ -423,7 +441,7 @@ input:focus-visible{outline-offset:0}
 .mfi.active{background:var(--action);border-color:var(--action);color:#fff}
 
 /* ── BOTTOM NAV ── */
-#bnav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface-1);border-top:1px solid var(--border);z-index:1500;height:calc(64px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);align-items:stretch;box-shadow:0 -2px 12px rgba(0,0,0,0.06)}
+#bnav{display:none;position:fixed;bottom:var(--safari-chrome-bottom, 0);left:0;right:0;background:var(--surface-1);border-top:1px solid var(--border);z-index:5000;height:calc(64px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);align-items:stretch;box-shadow:0 -2px 12px rgba(0,0,0,0.06);transition:bottom .2s ease}
 .bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;color:var(--ink-2);font-size:11px;font-weight:500;cursor:pointer;position:relative;padding:8px 0;font-family:inherit;transition:transform .12s ease, background-color .15s ease, color .15s ease}
 .bnav-btn .bnav-icon{font-size:24px}
 .bnav-btn:not(:last-child)::after{content:'';position:absolute;right:0;top:18%;bottom:18%;width:1px;background:var(--border)}
@@ -607,12 +625,12 @@ input:focus-visible{outline-offset:0}
   #sidebar:not(.hidden){transform:translateY(0)}
 
   /* ── ボトムナビ ── */
-  #bnav{display:flex}
+  #bnav{display:flex !important}
   .bnav-btn{font-size:10px;padding:5px 0;touch-action:manipulation}
   .bnav-icon{font-size:22px;line-height:1.1}
 
   /* ── FAB（地図操作ボタン群） ── */
-  #mob-fab-wrap{display:flex;bottom:calc(64px + env(safe-area-inset-bottom))}
+  #mob-fab-wrap{display:flex;bottom:calc(64px + env(safe-area-inset-bottom) + var(--safari-chrome-bottom, 0px))}
   /* アクションボタンはモバイルでは非表示（bnav・FABで代替） */
   #map-action-btns{display:none!important}
 
