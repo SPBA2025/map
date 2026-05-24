@@ -952,7 +952,7 @@ input:focus-visible{outline-offset:0}
       <div id="city-filter-bar">
         <span id="city-filter-name"></span>
         <span id="city-filter-count"></span>
-        <button class="cfbar-close" onclick="window.clearCityFilter()"><span class="msi" style="font-size:14px">close</span></button>
+        <button class="cfbar-close" onclick="window.clearCityFilter()" aria-label="市町村絞込を解除"><span class="msi" style="font-size:14px" aria-hidden="true">close</span></button>
       </div>
       <select id="city-select" onchange="selectCityFilter(this.value)">
         <option value="">── 市町村を選択 ──</option>
@@ -1099,9 +1099,9 @@ input:focus-visible{outline-offset:0}
   <div id="nbp-body"></div>
 </div>
 <!-- チャートモーダル -->
-<div id="chart-modal">
+<div id="chart-modal" role="dialog" aria-modal="true" aria-labelledby="chart-title">
   <div class="chart-box">
-    <button class="chart-close" onclick="closeChartModal()" aria-label="比較モーダルを閉じる"><span class="msi" style="font-size:16px">close</span></button>
+    <button class="chart-close" onclick="closeChartModal()" aria-label="比較モーダルを閉じる"><span class="msi" style="font-size:16px" aria-hidden="true">close</span></button>
     <div id="chart-title"></div>
     <div id="chart-sub"></div>
     <div id="chart-bars"></div>
@@ -1109,11 +1109,11 @@ input:focus-visible{outline-offset:0}
   </div>
 </div>
 <!-- 市町村比較モーダル -->
-<div id="cmp-modal">
+<div id="cmp-modal" role="dialog" aria-modal="true" aria-labelledby="cmp-title">
   <div class="cmp-box">
     <div class="cmp-header">
-      <span class="cmp-title" style="display:inline-flex;align-items:center;gap:6px"><span class="msi" style="font-size:18px">balance</span>市町村比較</span>
-      <button class="cmp-close" onclick="window.closeCmpModal()"><span class="msi" style="font-size:16px">close</span></button>
+      <span class="cmp-title" id="cmp-title" style="display:inline-flex;align-items:center;gap:6px"><span class="msi" style="font-size:18px" aria-hidden="true">balance</span>市町村比較</span>
+      <button class="cmp-close" onclick="window.closeCmpModal()" aria-label="市町村比較モーダルを閉じる"><span class="msi" style="font-size:16px" aria-hidden="true">close</span></button>
     </div>
     <div class="cmp-selectors">
       <div class="cmp-sel-wrap">
@@ -3555,6 +3555,27 @@ window.initMap = function() {
   window.closeChartModal = function() {
     document.getElementById('chart-modal').classList.remove('open');
   };
+
+  // ── 全モーダル共通: ESCで閉じる ──
+  document.addEventListener('keydown', function(e) {
+    if (e.key !== 'Escape') return;
+    // 開いているモーダルを優先度順に閉じる
+    const chart = document.getElementById('chart-modal');
+    const cmp = document.getElementById('cmp-modal');
+    if (chart && chart.classList.contains('open')) { window.closeChartModal(); return; }
+    if (cmp && cmp.classList.contains('open')) { window.closeCmpModal && window.closeCmpModal(); return; }
+    // チームリストパネル
+    const tlp = document.getElementById('team-list-panel');
+    if (tlp && tlp.classList.contains('open')) { window.closeTeamList && window.closeTeamList(); return; }
+    // 近傍パネル
+    const nbp = document.getElementById('nearby-panel');
+    if (nbp && nbp.classList.contains('open')) { window.closeNearby && window.closeNearby(); return; }
+    // モバイルのサイドバー
+    const sb = document.getElementById('sidebar');
+    if (sb && !sb.classList.contains('hidden') && window.innerWidth <= 768) {
+      window.closeSidebar && window.closeSidebar(); return;
+    }
+  });
 
   // ══════════════════════════
   // 市町村比較モード

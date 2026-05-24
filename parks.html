@@ -831,11 +831,11 @@ input:focus-visible{outline-offset:0}
 </div>
 
 <!-- PARK DETAIL MODAL -->
-<div id="park-modal">
+<div id="park-modal" role="dialog" aria-modal="true" aria-labelledby="modal-park-name">
   <div class="park-box">
     <div class="park-header">
       <div class="park-title" id="modal-park-name"></div>
-      <button class="park-close" onclick="closeParkModal()">×</button>
+      <button class="park-close" onclick="closeParkModal()" aria-label="公園詳細を閉じる">×</button>
     </div>
     <div id="modal-park-content"></div>
     <button class="park-btn" id="modal-parkful-link" target="_blank">PARKFUL で詳しく見る →</button>
@@ -1350,6 +1350,19 @@ function setupModalLinks(park) {
 function closeParkModal() {
   document.getElementById('park-modal').classList.remove('open');
 }
+
+// ── 全モーダル共通: ESCで閉じる ──
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'Escape') return;
+  const modal = document.getElementById('park-modal');
+  if (modal && modal.classList.contains('open')) { closeParkModal(); return; }
+  // モバイルのサイドバー
+  const sb = document.getElementById('sidebar');
+  if (sb && sb.classList.contains('open') && window.innerWidth <= 768) {
+    sb.classList.remove('open');
+    document.getElementById('hbg')?.classList.remove('open');
+  }
+});
 
 /* ═══════════════════════════════════════════════
    STATS / LIST
