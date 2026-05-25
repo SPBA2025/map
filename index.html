@@ -231,42 +231,6 @@ input:focus-visible{outline-offset:0}
   #map-skeleton .sk-spinner{animation-duration:1.6s}
 }
 
-/* ── スマホ専用ボトムシート ── */
-#mobile-bottom-sheet{display:none;position:fixed;bottom:0;left:0;right:0;max-height:65vh;min-height:200px;background:#fff;border-radius:18px 18px 0 0;box-shadow:0 -6px 28px rgba(0,0,0,0.22);z-index:3000;transform:translateY(100%);transition:transform .32s cubic-bezier(0.32,0.72,0,1);overflow-y:auto;overflow-x:hidden;padding-bottom:env(safe-area-inset-bottom);-webkit-overflow-scrolling:touch}
-#mobile-bottom-sheet.open{transform:translateY(0)}
-#mobile-bottom-sheet .mbs-handle{position:sticky;top:0;z-index:2;background:#fff;padding:10px 0 8px;text-align:center;cursor:grab;touch-action:none}
-#mobile-bottom-sheet .mbs-handle::before{content:'';display:inline-block;width:44px;height:4px;border-radius:2px;background:rgba(27,40,66,0.25)}
-#mobile-bottom-sheet .mbs-close{position:absolute;top:10px;right:12px;background:rgba(27,40,66,0.08);border:none;width:32px;height:32px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:3;color:#1b2842}
-#mobile-bottom-sheet .mbs-close .msi{font-size:18px}
-#mobile-bottom-sheet .mbs-close:active{background:rgba(27,40,66,0.18);transform:scale(0.95)}
-#mobile-bottom-sheet .mbs-content{padding:4px 16px 20px}
-/* ボトムシート内のすべてのインタラクティブ要素にタップ最適化 */
-#mobile-bottom-sheet button,
-#mobile-bottom-sheet a,
-#mobile-bottom-sheet [onclick]{touch-action:manipulation;-webkit-tap-highlight-color:rgba(27,40,66,0.1);cursor:pointer;position:relative;z-index:1}
-#mobile-bottom-sheet button:active,
-#mobile-bottom-sheet a:active,
-#mobile-bottom-sheet [onclick]:active{opacity:0.7}
-/* ボトムシート内では popup wrap の max-height/flex は無効化（縦スクロールはシート側） */
-#mobile-bottom-sheet .city-popup-wrap,
-#mobile-bottom-sheet .team-popup-wrap{max-height:none !important;height:auto !important;display:block !important;overflow:visible !important}
-#mobile-bottom-sheet .city-popup-wrap .pu-body,
-#mobile-bottom-sheet .city-popup-wrap .pu-foot{flex:initial}
-/* バックドロップ（背景半透明、 タップで閉じる） */
-#mobile-bottom-sheet-backdrop{display:none;position:fixed;inset:0;background:rgba(27,40,66,0.3);z-index:2999;opacity:0;transition:opacity .28s}
-#mobile-bottom-sheet-backdrop.open{opacity:1}
-/* スマホ時のみ表示 + InfoWindow を非表示 */
-@media (max-width:768px){
-  #mobile-bottom-sheet{display:block}
-  #mobile-bottom-sheet-backdrop{display:block}
-  /* スマホ時、 Google Maps の InfoWindow は隠す（ボトムシートに代替） */
-  .gm-style-iw,
-  .gm-style-iw-c,
-  .gm-style-iw-d,
-  .gm-style-iw-tc,
-  .gm-style-iw-t::after{display:none !important}
-}
-
 /* ── SIDEBAR ── */
 #sidebar{width:280px;background:var(--surface-1);border-left:1px solid var(--border);overflow-y:auto;flex-shrink:0;z-index:1000;transition:width .3s cubic-bezier(0.32,0.72,0,1),margin .3s cubic-bezier(0.32,0.72,0,1)}
 #sidebar::-webkit-scrollbar{width:4px}
@@ -892,15 +856,6 @@ input:focus-visible{outline-offset:0}
         <div class="sk-text">マップを準備しています…</div>
       </div>
     </div>
-    <!-- スマホ専用ボトムシート（ピンタップ時にスライドアップ表示） -->
-    <div id="mobile-bottom-sheet" role="dialog" aria-modal="true" aria-hidden="true">
-      <div class="mbs-handle" aria-label="ハンドル（下にスワイプで閉じる）" role="button" tabindex="0"></div>
-      <button class="mbs-close" type="button" aria-label="閉じる">
-        <span class="msi">close</span>
-      </button>
-      <div class="mbs-content"></div>
-    </div>
-    <div id="mobile-bottom-sheet-backdrop"></div>
     <!-- 地図タイプ切り替え -->
     <div id="map-type-bar">
       <button class="mtype-btn active" data-mtype="roadmap" onclick="window.setMapType('roadmap')">地図</button>
@@ -1409,20 +1364,17 @@ window.onerror=function(msg,src,line,col,err){
   return false;
 };
 window.initMap = function() {
-  // ─── InfoWindow 排他制御 + スマホ時ボトムシート切替 ───
+  // ─── InfoWindow 排他制御 ───
   // 同時に複数のポップアップが表示されないよう、 すべての InfoWindow を追跡し
-  // 新しい open() が呼ばれたら他を自動的に close する。
-  // 加えてスマホ時は InfoWindow を表示せずボトムシートに内容を流し込む。
+  // 新しい open() が呼ばれたら他を自動的に close する
   if (!window.__infoWindowExclusivePatched) {
     window.__infoWindowExclusivePatched = true;
     window.__allInfoWindows = window.__allInfoWindows || new Set();
     const OrigIW = google.maps.InfoWindow;
-    const _isMob = () => window.innerWidth <= 768;
     google.maps.InfoWindow = function(opts) {
       const iw = new OrigIW(opts);
       window.__allInfoWindows.add(iw);
       const origOpen = iw.open.bind(iw);
-      const origClose = iw.close.bind(iw);
       iw.open = function() {
         // 自分以外の全 InfoWindow を閉じる（排他制御）
         window.__allInfoWindows.forEach(other => {
@@ -1430,111 +1382,13 @@ window.initMap = function() {
             try { other.close(); } catch(e) {}
           }
         });
-        if (_isMob()) {
-          // スマホ: ボトムシートに内容を移してマップ上の popup は表示しない
-          window.__openMobileBottomSheet(iw.getContent && iw.getContent());
-          return;
-        }
         return origOpen.apply(iw, arguments);
-      };
-      iw.close = function() {
-        if (_isMob()) window.__closeMobileBottomSheet();
-        return origClose();
       };
       return iw;
     };
+    // プロトタイプチェーンを維持
     google.maps.InfoWindow.prototype = OrigIW.prototype;
   }
-
-  // ─── スマホ専用ボトムシート 制御 ───
-  (function setupBottomSheet() {
-    const sheet = document.getElementById('mobile-bottom-sheet');
-    const backdrop = document.getElementById('mobile-bottom-sheet-backdrop');
-    if (!sheet || !backdrop) return;
-    const inner = sheet.querySelector('.mbs-content');
-    const closeBtn = sheet.querySelector('.mbs-close');
-    const handle = sheet.querySelector('.mbs-handle');
-
-    window.__openMobileBottomSheet = function(content) {
-      if (!content) return;
-      inner.innerHTML = '';
-      if (typeof content === 'string') {
-        inner.innerHTML = content;
-      } else if (content instanceof Node) {
-        // outerHTML を文字列として挿入（onclick 属性などを保持）
-        inner.innerHTML = content.outerHTML || '';
-      }
-      // popup の wrap が持っている inline style の max-height/flex を解除
-      // （ボトムシートでは縦スクロールはシート自体で行うため）
-      inner.querySelectorAll('.city-popup-wrap, .team-popup-wrap').forEach(el => {
-        el.style.setProperty('max-height', 'none', 'important');
-        el.style.setProperty('height', 'auto', 'important');
-        el.style.setProperty('display', 'block', 'important');
-        el.style.setProperty('overflow', 'visible', 'important');
-      });
-      // innerHTML 挿入後、 onclick 属性を JS から再アタッチして確実に発火
-      // （iOS Safari で innerHTML 経由の onclick が動かないケースの保険）
-      inner.querySelectorAll('[onclick]').forEach(el => {
-        const code = el.getAttribute('onclick');
-        if (!code) return;
-        el.removeAttribute('onclick');
-        el.addEventListener('click', function(e) {
-          e.stopPropagation();
-          try {
-            (new Function('event', code)).call(el, e);
-          } catch(err) {
-            console.warn('[bottom-sheet] onclick eval failed', err, code);
-          }
-        });
-      });
-      sheet.classList.add('open');
-      sheet.setAttribute('aria-hidden', 'false');
-      backdrop.classList.add('open');
-      // シート内をトップにスクロール
-      sheet.scrollTop = 0;
-    };
-    window.__closeMobileBottomSheet = function() {
-      sheet.classList.remove('open');
-      sheet.setAttribute('aria-hidden', 'true');
-      backdrop.classList.remove('open');
-    };
-
-    // 閉じる動作: × ボタン + バックドロップタップ
-    closeBtn.addEventListener('click', window.__closeMobileBottomSheet);
-    backdrop.addEventListener('click', window.__closeMobileBottomSheet);
-
-    // スワイプダウンで閉じる（ハンドルから下方向に 60px 以上）
-    let startY = 0, currentY = 0, dragging = false;
-    const onStart = (e) => {
-      const t = e.touches ? e.touches[0] : e;
-      startY = t.clientY;
-      currentY = startY;
-      dragging = true;
-      sheet.style.transition = 'none';
-    };
-    const onMove = (e) => {
-      if (!dragging) return;
-      const t = e.touches ? e.touches[0] : e;
-      currentY = t.clientY;
-      const dy = Math.max(0, currentY - startY);
-      sheet.style.transform = `translateY(${dy}px)`;
-      if (e.cancelable) e.preventDefault();
-    };
-    const onEnd = () => {
-      if (!dragging) return;
-      dragging = false;
-      sheet.style.transition = '';
-      const dy = currentY - startY;
-      if (dy > 60) {
-        window.__closeMobileBottomSheet();
-      }
-      sheet.style.transform = '';
-    };
-    handle.addEventListener('touchstart', onStart, { passive: true });
-    handle.addEventListener('touchmove', onMove, { passive: false });
-    handle.addEventListener('touchend', onEnd);
-    handle.addEventListener('touchcancel', onEnd);
-  })();
 
   // さいたま市選択時に全区をマッチさせるヘルパー
   function _cityMatch(teamCity, filterCity) {
