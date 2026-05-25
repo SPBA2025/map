@@ -507,12 +507,23 @@ input:focus-visible{outline-offset:0}
 /* Google Maps の InfoWindow デフォルト挙動は無効化したまま */
 .gm-style-iw-d{max-height:none !important;overflow:visible !important}
 .gm-style-iw-c{max-height:none !important}
-/* 市町村ポップアップ独自の高さ制御（固定値で確実に画面に収まる） */
+/* 市町村ポップアップ: flex column で固定ヘッダ＋スクロールbody＋固定フッタ */
 .gm-style .city-popup-wrap,
-.city-popup-wrap{max-height:45vh !important;overflow-y:auto !important;overflow-x:hidden !important;display:block !important}
-.city-popup-wrap::-webkit-scrollbar{width:5px}
-.city-popup-wrap::-webkit-scrollbar-thumb{background:rgba(27,40,66,0.25);border-radius:3px}
-.city-popup-wrap::-webkit-scrollbar-thumb:hover{background:rgba(27,40,66,0.45)}
+.city-popup-wrap{max-height:45vh !important;display:flex !important;flex-direction:column !important;overflow:hidden !important}
+.city-popup-wrap .pu-header{flex-shrink:0}
+.city-popup-wrap .pu-body{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;padding-bottom:6px}
+.city-popup-wrap .pu-body::-webkit-scrollbar{width:5px}
+.city-popup-wrap .pu-body::-webkit-scrollbar-thumb{background:rgba(27,40,66,0.25);border-radius:3px}
+.city-popup-wrap .pu-body::-webkit-scrollbar-thumb:hover{background:rgba(27,40,66,0.45)}
+/* スクロール可能であることを示す下端フェード */
+.city-popup-wrap .pu-body{background:linear-gradient(to bottom, transparent calc(100% - 24px), rgba(248,242,230,0.0) 100%)}
+/* 固定フッタ（詳細グラフ・比較ボタン） */
+.city-popup-wrap .pu-foot{flex-shrink:0;border-top:1px solid rgba(27,40,66,0.08);background:rgba(248,242,230,0.6);padding:8px 12px;display:flex;gap:6px}
+.city-popup-wrap .pu-foot .pu-btn{flex:1;padding:8px 10px;border:none;border-radius:6px;font-size:11.5px;cursor:pointer;font-weight:600;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap}
+.city-popup-wrap .pu-foot .pu-btn-chart{background:var(--surface-2);color:var(--ink-2);border:1px solid var(--border)}
+.city-popup-wrap .pu-foot .pu-btn-chart:hover{background:var(--border);color:var(--ink)}
+.city-popup-wrap .pu-foot .pu-btn-cmp{background:#fff7ed;color:#d97706;border:1px solid #e5c9a0}
+.city-popup-wrap .pu-foot .pu-btn-cmp:hover{background:#fed7aa}
 .pu-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:2px 0;color:var(--ink-2)}
 .pu-row-total{font-weight:700;color:var(--ink);font-size:13px;padding-bottom:4px;border-bottom:1px solid var(--border);margin-bottom:2px}
 .pu-row-sub{color:var(--ink-2);font-size:11px}
@@ -1311,9 +1322,9 @@ function _ensureCityInfoWindow() {
       if (!el) return;
       const maxH = Math.round(window.innerHeight * 0.45);
       el.style.setProperty('max-height', maxH + 'px', 'important');
-      el.style.setProperty('overflow-y', 'auto', 'important');
-      el.style.setProperty('overflow-x', 'hidden', 'important');
-      el.style.setProperty('display', 'block', 'important');
+      el.style.setProperty('overflow', 'hidden', 'important');
+      el.style.setProperty('display', 'flex', 'important');
+      el.style.setProperty('flex-direction', 'column', 'important');
       // 親の .gm-style-iw-d / .gm-style-iw-c も同じ高さに揃える
       let p = el.parentElement;
       while (p && p !== document.body) {
@@ -1486,7 +1497,7 @@ window.initMap = function() {
         <div class="pu-cat-cell-lbl">${CAT_JP[c]} <span style="font-size:8px;color:#999;">▶</span></div>
       </div>`;
     }).join('');
-    return `<div class="city-popup-wrap" style="max-height:45vh !important;overflow-y:auto !important;overflow-x:hidden !important;display:block !important">
+    return `<div class="city-popup-wrap" style="max-height:45vh !important;overflow:hidden !important;display:flex !important;flex-direction:column !important">
       <div class="pu-header">
         <div class="pu-city">${d.city}</div>
         <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:3px;">
@@ -1528,10 +1539,10 @@ window.initMap = function() {
           <div class="pu-rate-diff" style="color:${diffColor};">${diffStr}</div>
         </div>` : ''}
         ${teamSection}
-        <div class="pu-btns">
-          <button class="pu-btn pu-btn-chart" onclick="window.openChartModal('${d.city}')"><span class="msi" style="font-size:13px;vertical-align:-2px">bar_chart</span> 詳細グラフ</button>
-          <button class="pu-btn" style="background:#fff7ed;color:#d97706;border:1px solid #e5c9a0" onclick="window.openCmpModal('${d.city}')"><span class="msi" style="font-size:13px;vertical-align:-2px">balance</span> 比較</button>
-        </div>
+      </div>
+      <div class="pu-foot">
+        <button class="pu-btn pu-btn-chart" onclick="window.openChartModal('${d.city}')"><span class="msi" style="font-size:14px">bar_chart</span>詳細グラフ</button>
+        <button class="pu-btn pu-btn-cmp" onclick="window.openCmpModal('${d.city}')"><span class="msi" style="font-size:14px">balance</span>比較</button>
       </div>
     </div>`;
   }
