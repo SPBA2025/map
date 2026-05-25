@@ -504,16 +504,16 @@ input:focus-visible{outline-offset:0}
 .pu-gauge-fill{height:100%;border-radius:4px;transition:width .4s}
 .pu-header{padding:10px 12px 6px;border-bottom:1px solid var(--border)}
 .pu-body{padding:8px 12px 14px}
-/* Google Maps InfoWindow の高さ制御
-   - 既定: 表示可能領域に応じた最大高さで内部スクロール
-   - チームリスト開時: パネル分を差し引いてさらに短く
-   - CSS変数 --popup-max-h を applyMapPadding から動的に更新 */
-.gm-style-iw-d{max-height:var(--popup-max-h, 65vh) !important;overflow-y:auto !important;overflow-x:hidden !important}
-.gm-style-iw-c{max-height:calc(var(--popup-max-h, 65vh) + 40px) !important}
-/* スクロールバーをコンパクトに */
-.gm-style-iw-d::-webkit-scrollbar{width:5px}
-.gm-style-iw-d::-webkit-scrollbar-thumb{background:rgba(27,40,66,0.25);border-radius:3px}
-.gm-style-iw-d::-webkit-scrollbar-thumb:hover{background:rgba(27,40,66,0.45)}
+/* Google Maps の InfoWindow デフォルト挙動は無効化したまま（過去の修正） */
+.gm-style-iw-d{max-height:none !important;overflow:visible !important}
+.gm-style-iw-c{max-height:none !important}
+/* 市町村ポップアップ独自の高さ制御
+   - --popup-max-h は applyMapPadding から動的に更新（パネル開閉に追従）
+   - 中身が長ければ popup 内部で縦スクロール */
+.city-popup-wrap{max-height:var(--popup-max-h, 65vh);overflow-y:auto;overflow-x:hidden}
+.city-popup-wrap::-webkit-scrollbar{width:5px}
+.city-popup-wrap::-webkit-scrollbar-thumb{background:rgba(27,40,66,0.25);border-radius:3px}
+.city-popup-wrap::-webkit-scrollbar-thumb:hover{background:rgba(27,40,66,0.45)}
 .pu-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:2px 0;color:var(--ink-2)}
 .pu-row-total{font-weight:700;color:var(--ink);font-size:13px;padding-bottom:4px;border-bottom:1px solid var(--border);margin-bottom:2px}
 .pu-row-sub{color:var(--ink-2);font-size:11px}
@@ -1457,7 +1457,7 @@ window.initMap = function() {
         <div class="pu-cat-cell-lbl">${CAT_JP[c]} <span style="font-size:8px;color:#999;">▶</span></div>
       </div>`;
     }).join('');
-    return `
+    return `<div class="city-popup-wrap">
       <div class="pu-header">
         <div class="pu-city">${d.city}</div>
         <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:3px;">
@@ -1503,7 +1503,8 @@ window.initMap = function() {
           <button class="pu-btn pu-btn-chart" onclick="window.openChartModal('${d.city}')"><span class="msi" style="font-size:13px;vertical-align:-2px">bar_chart</span> 詳細グラフ</button>
           <button class="pu-btn" style="background:#fff7ed;color:#d97706;border:1px solid #e5c9a0" onclick="window.openCmpModal('${d.city}')"><span class="msi" style="font-size:13px;vertical-align:-2px">balance</span> 比較</button>
         </div>
-      </div>`;
+      </div>
+    </div>`;
   }
   function calcSingle(d,c){
     if(currentGender==='all') return (d[c+'_m']||0)+(d[c+'_f']||0);
