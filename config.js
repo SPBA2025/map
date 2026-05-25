@@ -24,8 +24,8 @@ window.APP_CONFIG = {
   // お問い合わせページ
   CONTACT_URL: 'https://www.saitamabaseball.com/contact-8',
 
-  // 協議会ロゴ画像URL（取得したら実URLに差し替え。未設定時は Material Symbols + テキスト表示）
-  LOGO_URL: '',
+  // 協議会ロゴ画像URL（円形デザインの SPBA 公式ロゴ）
+  LOGO_URL: 'https://map.saitamabaseball.com/logo.png',
 
   // 連絡先メール（フッター表示用）
   CONTACT_EMAIL: 'info@saitamabaseball.com',

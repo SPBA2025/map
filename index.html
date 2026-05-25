@@ -4713,10 +4713,12 @@ window.initMap = function() {
   if (cfg.INSTAGRAM_URL) { const a=document.getElementById('footer-ig'); if(a){a.href=cfg.INSTAGRAM_URL;snsShown=true;} } else { const a=document.getElementById('footer-ig'); if(a) a.style.display='none'; }
   if (cfg.X_URL)         { const a=document.getElementById('footer-x');  if(a){a.href=cfg.X_URL;snsShown=true;}         } else { const a=document.getElementById('footer-x');  if(a) a.style.display='none'; }
   if (snsWrap) snsWrap.style.display = snsShown ? 'flex' : 'none';
-  // ロゴ
+  // ロゴ: 円形デザインの画像なので背景・枠を透明化して画像そのものを表示
   if (cfg.LOGO_URL) {
     document.querySelectorAll('#site-header .site-logo, #site-footer .ft-brand-logo').forEach(logo => {
-      logo.innerHTML = '<img src="' + cfg.LOGO_URL + '" alt="埼玉県野球協議会" style="width:100%;height:100%;border-radius:50%;object-fit:cover">';
+      logo.style.background = 'transparent';
+      logo.style.border = 'none';
+      logo.innerHTML = '<img src="' + cfg.LOGO_URL + '" alt="埼玉県野球協議会" style="width:100%;height:100%;object-fit:contain">';
     });
   }
 })();
