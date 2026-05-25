@@ -548,6 +548,9 @@ input:focus-visible{outline-offset:0}
 .gm-style .gm-style-iw-c{border-radius:6px!important;box-shadow:rgba(50,50,93,0.2) 0 14px 28px -14px,rgba(0,0,0,0.1) 0 8px 16px -8px!important;padding:0!important}
 .gm-style .gm-style-iw-d{overflow:hidden!important}
 .gm-style .gm-style-iw-t::after{display:none}
+/* Google Maps ズームコントロール: 確実に表示・操作可能にする */
+.gm-bundled-control,
+.gm-bundled-control-on-bottom{z-index:500 !important;visibility:visible !important;opacity:1 !important;pointer-events:auto !important}
 
 /* ── IMPROVED PARK LIST ITEMS ── */
 .park-item{
@@ -955,7 +958,8 @@ async function initMap() {
     // cameraControl: Google Maps 新機能（3D傾き・回転） — このマップでは不要なので明示的に無効化
     cameraControl: false,
     zoomControl: true,
-    zoomControlOptions: { position: google.maps.ControlPosition.LEFT_BOTTOM },
+    // 左下は Google ロゴ等と衝突するため右下に配置（PC/モバイル共通）
+    zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_BOTTOM },
   });
   // idle時に表示位置を保存（debounce）
   let _pSaveViewT = null;
