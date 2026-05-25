@@ -196,8 +196,40 @@
   /**
    * 9. municipality_view — 市町村単位の表示・選択（debounce 500ms）
    * @param {string} municipality 市町村名
+   *
+   * 副作用：localStorage に市町村別クリック回数を記録し、
+   * 3回以上の市町村 TOP3 を GA4 の user_property（興味市町村）として送信する
    */
   let _muniViewTimer, _muniViewLast;
+  const CITY_COUNT_KEY = 'cityClickCounts';
+  function _bumpCityCount(city) {
+    try {
+      const raw = localStorage.getItem(CITY_COUNT_KEY);
+      const counts = raw ? JSON.parse(raw) : {};
+      counts[city] = (counts[city] || 0) + 1;
+      localStorage.setItem(CITY_COUNT_KEY, JSON.stringify(counts));
+      return counts;
+    } catch(e) { return {}; }
+  }
+  function _updateInterestCityProperties(counts) {
+    if (!enabled() || typeof gtag === 'undefined') return;
+    // 3回以上クリックされた市町村を回数降順で TOP3 抽出
+    const top = Object.entries(counts)
+      .filter(function(e) { return e[1] >= 3; })
+      .sort(function(a, b) { return b[1] - a[1]; })
+      .slice(0, 3)
+      .map(function(e) { return e[0]; });
+    if (!top.length) return;
+    const props = {
+      interest_city_1: top[0] || '',
+      interest_city_2: top[1] || '',
+      interest_city_3: top[2] || '',
+    };
+    try {
+      gtag('set', 'user_properties', props);
+      if (DEBUG) console.log('[Analytics] user_properties set', props);
+    } catch(e) {}
+  }
   function municipalityView(municipality) {
     if (!municipality) return;
     if (_muniViewLast === municipality) return; // 同一連続発火を抑制
@@ -205,6 +237,8 @@
     _muniViewTimer = setTimeout(function() {
       _muniViewLast = municipality;
       sendEvent('municipality_view', { municipality: String(municipality) });
+      const counts = _bumpCityCount(String(municipality));
+      _updateInterestCityProperties(counts);
     }, 500);
   }
 
