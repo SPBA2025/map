@@ -1454,11 +1454,22 @@ window.initMap = function() {
       if (typeof content === 'string') {
         inner.innerHTML = content;
       } else if (content instanceof Node) {
-        inner.appendChild(content.cloneNode(true));
+        // outerHTML を文字列として挿入（onclick 属性などを保持）
+        inner.innerHTML = content.outerHTML || '';
       }
+      // popup の wrap が持っている inline style の max-height/flex を解除
+      // （ボトムシートでは縦スクロールはシート自体で行うため）
+      inner.querySelectorAll('.city-popup-wrap, .team-popup-wrap').forEach(el => {
+        el.style.setProperty('max-height', 'none', 'important');
+        el.style.setProperty('height', 'auto', 'important');
+        el.style.setProperty('display', 'block', 'important');
+        el.style.setProperty('overflow', 'visible', 'important');
+      });
       sheet.classList.add('open');
       sheet.setAttribute('aria-hidden', 'false');
       backdrop.classList.add('open');
+      // シート内をトップにスクロール
+      sheet.scrollTop = 0;
     };
     window.__closeMobileBottomSheet = function() {
       sheet.classList.remove('open');
