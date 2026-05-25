@@ -11,8 +11,8 @@
  */
 window.APP_CONFIG = {
   // ─── アナリティクス ──────────────────────────
-  // GA4 測定ID（未取得時はプレースホルダー。取得したら下記を実IDに差し替え）
-  GA4_MEASUREMENT_ID: 'G-XXXXXXXXXX',
+  // GA4 測定ID
+  GA4_MEASUREMENT_ID: 'G-FBG0XHM8JM',
 
   // Microsoft Clarity プロジェクトID（未取得時はプレースホルダー）
   CLARITY_ID: 'YYYYYYYYYY',
