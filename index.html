@@ -3484,10 +3484,11 @@ window.initMap = function() {
       : 0;
     const totalReserved = panelH + bnavH;
     const mapContainer = document.getElementById('map-container');
-    // 上部 (site-header + map-header) と下部 (site-footer, PC時のみ) を差し引く
+    // 上部 (site-header + map-header) と下部 (site-footer) を差し引く
+    // ただし panel 開時は team-list-panel が site-footer を覆うため、site-footer 分は差し引かない
     const siteHeaderH = document.getElementById('site-header')?.offsetHeight || 0;
     const mapHeaderH = document.getElementById('header')?.offsetHeight || 48;
-    const siteFooterH = isMob ? 0 : (document.getElementById('site-footer')?.offsetHeight || 0);
+    const siteFooterH = (isMob || open) ? 0 : (document.getElementById('site-footer')?.offsetHeight || 0);
     const availH = window.innerHeight - siteHeaderH - mapHeaderH - siteFooterH - totalReserved;
     mapContainer.style.height = availH + 'px';
     mapContainer.style.paddingBottom = '';
