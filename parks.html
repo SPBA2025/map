@@ -951,6 +951,9 @@ async function initMap() {
     mapTypeControl: false,   // 独自ボタンで制御
     fullscreenControl: false,
     streetViewControl: false,
+    rotateControl: false,
+    // cameraControl: Google Maps 新機能（3D傾き・回転） — このマップでは不要なので明示的に無効化
+    cameraControl: false,
     zoomControl: true,
     zoomControlOptions: { position: google.maps.ControlPosition.LEFT_BOTTOM },
   });
