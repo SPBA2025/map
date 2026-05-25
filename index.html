@@ -247,17 +247,19 @@ input:focus-visible{outline-offset:0}
 #float-legend .fl-bar{height:10px;border-radius:5px;background:linear-gradient(90deg,rgb(235,245,255),rgb(130,200,200),rgb(80,180,120),rgb(200,230,80),rgb(255,200,0),rgb(255,110,0),rgb(200,0,0));margin-bottom:4px}
 #float-legend .fl-labels{display:flex;justify-content:space-between;font-size:9px;color:#5a6c8c}
 @media (max-width:768px){#float-legend{display:none}}
-/* フローティング KPI カード */
-#float-kpi{position:fixed;top:calc(40px + 46px + 14px);left:14px;background:rgba(248,242,230,0.95);backdrop-filter:blur(8px);border:1px solid rgba(27,40,66,0.12);border-radius:10px;padding:10px 14px;z-index:600;box-shadow:0 4px 14px rgba(27,40,66,0.12);display:flex;align-items:center;gap:14px;transition:left .3s cubic-bezier(0.32,0.72,0,1)}
+/* フローティング KPI カード（サイドバー折りたたみ時のみ表示 / 右上） */
+#float-kpi{position:fixed;top:calc(40px + 46px + 14px);right:14px;background:rgba(248,242,230,0.95);backdrop-filter:blur(8px);border:1px solid rgba(27,40,66,0.12);border-radius:10px;padding:10px 14px;z-index:600;box-shadow:0 4px 14px rgba(27,40,66,0.12);display:none;align-items:center;gap:14px;opacity:0;transform:translateY(-8px);transition:opacity .25s,transform .25s}
+#sidebar.pc-collapsed ~ #float-kpi{display:flex;opacity:1;transform:translateY(0)}
 #float-kpi .fk-item{text-align:center}
 #float-kpi .fk-num{font-size:18px;font-weight:700;color:#1b2842;line-height:1;font-feature-settings:"tnum" 1}
 #float-kpi .fk-lbl{font-size:9px;color:#5a6c8c;margin-top:3px;letter-spacing:.02em}
 #float-kpi .fk-sep{width:1px;height:28px;background:rgba(27,40,66,0.15)}
 #float-kpi .fk-update-badge{margin-left:6px;font-size:9px;font-weight:700;color:#c8202e;background:rgba(200,32,46,0.1);padding:3px 8px;border-radius:10px;letter-spacing:.04em;white-space:nowrap}
-/* マップアクションボタンと重ならないようにフローティングKPIは少し下げる */
-@media (max-width:768px){#float-kpi{display:none}}
-/* インサイトカード */
-#float-insights{position:fixed;bottom:14px;left:14px;width:280px;background:rgba(248,242,230,0.96);backdrop-filter:blur(10px);border:1px solid rgba(27,40,66,0.1);border-radius:12px;padding:12px 14px 10px;z-index:600;box-shadow:0 6px 20px rgba(27,40,66,0.15);border-top:3px solid #c8202e;transition:opacity .3s,transform .3s;animation:fi-pop .4s cubic-bezier(0.32,0.72,0,1) both .6s}
+@media (max-width:768px){#float-kpi{display:none !important}}
+/* インサイトカード（サイドバー折りたたみ時のみ表示 / 左下） */
+#float-insights{position:fixed;bottom:14px;left:14px;width:280px;background:rgba(248,242,230,0.96);backdrop-filter:blur(10px);border:1px solid rgba(27,40,66,0.1);border-radius:12px;padding:12px 14px 10px;z-index:600;box-shadow:0 6px 20px rgba(27,40,66,0.15);border-top:3px solid #c8202e;display:none;opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s}
+#sidebar.pc-collapsed ~ #float-insights{display:block;opacity:1;transform:translateY(0)}
+#float-insights.hidden,#sidebar.pc-collapsed ~ #float-insights.hidden{display:none}
 @keyframes fi-pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 #float-insights.hidden{opacity:0;transform:translateY(8px);pointer-events:none}
 #float-insights .fi-head{display:flex;align-items:center;gap:6px;margin-bottom:8px;font-size:11px;font-weight:700;color:#1b2842;letter-spacing:.02em}
@@ -270,7 +272,7 @@ input:focus-visible{outline-offset:0}
 #float-insights .fi-list li strong{color:#c8202e;font-weight:700}
 #float-insights .fi-foot{margin-top:8px;padding-top:6px;border-top:1px dashed rgba(27,40,66,0.15);display:flex;justify-content:flex-end}
 #float-insights .fi-badge{font-size:9px;color:#5a6c8c;background:rgba(27,40,66,0.06);padding:2px 7px;border-radius:10px;font-weight:600;letter-spacing:.04em}
-@media (max-width:768px){#float-insights{display:none}}
+@media (max-width:768px){#float-insights{display:none !important}}
 /* チームリストが開いているときはインサイトを隠す（左下重なり防止） */
 @media (max-width:1100px){
   #team-list-panel.open ~ #float-insights{opacity:0;pointer-events:none}
