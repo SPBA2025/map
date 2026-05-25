@@ -240,6 +240,13 @@ input:focus-visible{outline-offset:0}
 #mobile-bottom-sheet .mbs-close .msi{font-size:18px}
 #mobile-bottom-sheet .mbs-close:active{background:rgba(27,40,66,0.18);transform:scale(0.95)}
 #mobile-bottom-sheet .mbs-content{padding:4px 16px 20px}
+/* ボトムシート内のすべてのインタラクティブ要素にタップ最適化 */
+#mobile-bottom-sheet button,
+#mobile-bottom-sheet a,
+#mobile-bottom-sheet [onclick]{touch-action:manipulation;-webkit-tap-highlight-color:rgba(27,40,66,0.1);cursor:pointer;position:relative;z-index:1}
+#mobile-bottom-sheet button:active,
+#mobile-bottom-sheet a:active,
+#mobile-bottom-sheet [onclick]:active{opacity:0.7}
 /* ボトムシート内では popup wrap の max-height/flex は無効化（縦スクロールはシート側） */
 #mobile-bottom-sheet .city-popup-wrap,
 #mobile-bottom-sheet .team-popup-wrap{max-height:none !important;height:auto !important;display:block !important;overflow:visible !important}
@@ -1464,6 +1471,21 @@ window.initMap = function() {
         el.style.setProperty('height', 'auto', 'important');
         el.style.setProperty('display', 'block', 'important');
         el.style.setProperty('overflow', 'visible', 'important');
+      });
+      // innerHTML 挿入後、 onclick 属性を JS から再アタッチして確実に発火
+      // （iOS Safari で innerHTML 経由の onclick が動かないケースの保険）
+      inner.querySelectorAll('[onclick]').forEach(el => {
+        const code = el.getAttribute('onclick');
+        if (!code) return;
+        el.removeAttribute('onclick');
+        el.addEventListener('click', function(e) {
+          e.stopPropagation();
+          try {
+            (new Function('event', code)).call(el, e);
+          } catch(err) {
+            console.warn('[bottom-sheet] onclick eval failed', err, code);
+          }
+        });
       });
       sheet.classList.add('open');
       sheet.setAttribute('aria-hidden', 'false');
