@@ -1960,7 +1960,8 @@ window.initMap = function() {
       if (formUrl) {
         // Google フォームの場合は ?usp=pp_url 形式
         const sep = formUrl.includes('?') ? '&' : '?';
-        const url = formUrl + sep + 'usp=pp_url&entry.team=' + encodeURIComponent(teamName || '');
+        // entry.1520807350 = チーム名フィールド (埼玉県競技者人口マップ 情報提供フォーム)
+        const url = formUrl + sep + 'usp=pp_url&entry.1520807350=' + encodeURIComponent(teamName || '');
         window.open(url, '_blank', 'noopener');
       } else {
         // フォーム未設定時はお問い合わせページにフォールバック

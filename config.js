@@ -30,10 +30,9 @@ window.APP_CONFIG = {
   // 連絡先メール（フッター表示用）
   CONTACT_EMAIL: 'info@saitamabaseball.com',
 
-  // チーム情報修正・追加用Googleフォーム（未設定時はお問い合わせページにフォールバック）
-  // 例: 'https://docs.google.com/forms/d/e/XXXXX/viewform'
-  // ?usp=pp_url&entry.<ID>=<チーム名> でプリフィル可能
-  TEAM_INFO_FORM_URL: '',
+  // チーム情報修正・追加用Googleフォーム（埼玉県競技者人口マップ 情報提供フォーム）
+  // チーム名欄の entry ID は 1520807350（マップポップアップから自動入力される）
+  TEAM_INFO_FORM_URL: 'https://docs.google.com/forms/d/e/1FAIpQLSd92jK-e9g52C5ux9Q1a_LMUePVJljIua9HBpP1NwePEOr3Iw/viewform',
 
   // SNSアカウント（空文字なら非表示）
   INSTAGRAM_URL: '',
