@@ -1081,7 +1081,7 @@ async function placeRegisteredParks() {
         if (status === 'OK' && results && results[0]) {
           addRegisteredParkToMap(results[0], p);
         } else {
-          console.warn(`❌ 未発見: ${p.name}（${p.city}）status=${status}`);
+          console.warn(`[未発見] ${p.name}（${p.city}）status=${status}`);
           window._notFoundParks = window._notFoundParks || [];
           window._notFoundParks.push(`${p.name}（${p.city}）`);
         }
@@ -1096,9 +1096,9 @@ async function placeRegisteredParks() {
   const notFound = window._notFoundParks || [];
   if (loadingEl) loadingEl.textContent = notFound.length > 0 ? `${total - notFound.length}/${total}` : '完了';
   console.log(`\n=== 配置完了 ===`);
-  console.log(`✅ 配置成功: ${total - notFound.length}件`);
+  console.log(`[配置成功] ${total - notFound.length}件`);
   if (notFound.length > 0) {
-    console.warn(`❌ 未発見 ${notFound.length}件:`);
+    console.warn(`[未発見] ${notFound.length}件:`);
     notFound.forEach(n => console.warn('  ', n));
   }
   updateStats();
@@ -1135,7 +1135,7 @@ function addRegisteredParkToMap(place, parkEntry) {
   if (!activeFilters.catchball || parkEntry.catchball === true) {
     clusterer.addMarker(marker);
   }
-  console.log(`✅ 登録配置: ${parkEntry.name}（${parkEntry.city}）→ API名: ${place.name}`);
+  console.log(`[登録配置] ${parkEntry.name}（${parkEntry.city}）→ API名: ${place.name}`);
 }
 
 /* ═══════════════════════════════════════════════
@@ -1200,7 +1200,7 @@ function addPlaceToMap(place) {
   const marker = createMarker(lat, lng, parkInfo);
   placesMarkers[place.place_id] = marker;
 
-  if (info) console.log(`✅ マッチ: ${name}（${info.city || ''}）`);
+  if (info) console.log(`[マッチ] ${name}（${info.city || ''}）`);
 
   if (!activeFilters.catchball || (info && info.catchball === true)) {
     clusterer.addMarker(marker);

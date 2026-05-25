@@ -37,7 +37,7 @@
     park: {
       title: 'キャッチボール公園を探そう',
       steps: [
-        { icon: 'sports_baseball', text: 'ピンの色で識別: 🟢可 / 🔴不可・条件付き / 🟠判定不明' },
+        { icon: 'sports_baseball', text: 'ピンの色で識別：<span class="ob-dot" style="background:#00a854"></span>可 / <span class="ob-dot" style="background:#ff385c"></span>不可・条件付き / <span class="ob-dot" style="background:#c45500"></span>判定不明' },
         { icon: 'my_location', text: '右上の「現在地」ボタンで近くの公園にジャンプ' },
         { icon: 'edit_note', text: '公園詳細の「この公園の情報を提供する」から報告' },
       ]
@@ -67,6 +67,7 @@
 #onboarding-overlay .ob-btn:active{transform:scale(0.97)}
 #onboarding-overlay .ob-primary{background:#1b2842;color:#f8f2e6;border-color:#1b2842}
 #onboarding-overlay .ob-primary:hover{background:#c8202e;border-color:#c8202e}
+#onboarding-overlay .ob-dot{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:1px;margin:0 4px 0 2px;box-shadow:0 0 0 1px rgba(255,255,255,0.6)}
 @media(max-width:560px){
   #onboarding-overlay .ob-card{padding:24px 20px 18px}
   #onboarding-overlay h2{font-size:17px}

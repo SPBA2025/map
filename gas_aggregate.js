@@ -223,7 +223,7 @@ function publishApproved() {
   approvedSheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
 
   SpreadsheetApp.getUi().alert(
-    `✅ ${rows.length}件を公開しました！\nマップに即時反映されます。`
+    `${rows.length}件を公開しました。\nマップに即時反映されます。`
   );
 }
 
@@ -247,7 +247,7 @@ function geocodeParkName(name) {
 // ═══ メニュー ═══
 function onOpen() {
   SpreadsheetApp.getUi()
-    .createMenu('📊 公園マップ管理')
+    .createMenu('公園マップ管理')
     .addItem('① 集計する', 'aggregateReports')
     .addSeparator()
     .addItem('② 承認済みデータを公開', 'publishApproved')
