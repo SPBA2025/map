@@ -1364,6 +1364,32 @@ window.onerror=function(msg,src,line,col,err){
   return false;
 };
 window.initMap = function() {
+  // ─── InfoWindow 排他制御 ───
+  // 同時に複数のポップアップが表示されないよう、 すべての InfoWindow を追跡し
+  // 新しい open() が呼ばれたら他を自動的に close する
+  if (!window.__infoWindowExclusivePatched) {
+    window.__infoWindowExclusivePatched = true;
+    window.__allInfoWindows = window.__allInfoWindows || new Set();
+    const OrigIW = google.maps.InfoWindow;
+    google.maps.InfoWindow = function(opts) {
+      const iw = new OrigIW(opts);
+      window.__allInfoWindows.add(iw);
+      const origOpen = iw.open.bind(iw);
+      iw.open = function() {
+        // 自分以外の全 InfoWindow を閉じる（排他制御）
+        window.__allInfoWindows.forEach(other => {
+          if (other !== iw && typeof other.close === 'function') {
+            try { other.close(); } catch(e) {}
+          }
+        });
+        return origOpen.apply(iw, arguments);
+      };
+      return iw;
+    };
+    // プロトタイプチェーンを維持
+    google.maps.InfoWindow.prototype = OrigIW.prototype;
+  }
+
   // さいたま市選択時に全区をマッチさせるヘルパー
   function _cityMatch(teamCity, filterCity) {
     return teamCity === filterCity ||
@@ -2618,7 +2644,10 @@ window.initMap = function() {
       border:2.5px solid rgba(255,255,255,0.95);
       box-shadow:0 3px 10px rgba(0,0,0,0.35),0 1px 3px rgba(0,0,0,0.2);
       cursor:pointer;
-    ">${inner}</div>`;
+      position:relative;
+    ">${inner}<!-- タッチエリア拡大（モバイル時のみ有効、見た目に影響なし） -->
+    <div style="position:absolute;top:-8px;left:-8px;width:44px;height:44px;border-radius:50%;background:transparent;"></div>
+    </div>`;
   }
   function teamPopupHTML(t){
     // 空欄判定: '-', '', null, undefined はすべて非表示
@@ -3082,7 +3111,10 @@ window.initMap = function() {
     _clusterMarkers.forEach(m => { m.map = null; });
     _clusterMarkers = [];
     if (!showPins || _pinDataCache.length === 0) return;
-    if (zoom >= 11) {
+    // モバイルではピンが指で押しづらくなるため、 ひとつ深いズームレベルまで
+    // クラスタ表示を維持する（11 → 12）
+    const indivZoomThreshold = isMobile() ? 12 : 11;
+    if (zoom >= indivZoomThreshold) {
       // 個別マーカー表示
       teamPinLayers = []; // ズーム変化時も再同期
       _pinDataCache.forEach(({lat, lng, t}) => {
