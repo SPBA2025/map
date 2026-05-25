@@ -14,8 +14,8 @@ window.APP_CONFIG = {
   // GA4 測定ID
   GA4_MEASUREMENT_ID: 'G-FBG0XHM8JM',
 
-  // Microsoft Clarity プロジェクトID（未取得時はプレースホルダー）
-  CLARITY_ID: 'YYYYYYYYYY',
+  // Microsoft Clarity プロジェクトID
+  CLARITY_ID: 'wwgrhkd9ll',
 
   // ─── 外部URL ─────────────────────────────────
   // 埼玉県野球協議会 本体サイト
