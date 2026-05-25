@@ -504,9 +504,16 @@ input:focus-visible{outline-offset:0}
 .pu-gauge-fill{height:100%;border-radius:4px;transition:width .4s}
 .pu-header{padding:10px 12px 6px;border-bottom:1px solid var(--border)}
 .pu-body{padding:8px 12px 14px}
-/* Google Maps InfoWindow の独自 max-height を解除し、ポップアップを内容に合わせて伸ばす */
-.gm-style-iw-d{max-height:none !important;overflow:visible !important}
-.gm-style-iw-c{max-height:none !important}
+/* Google Maps InfoWindow の高さ制御
+   - 既定: 表示可能領域に応じた最大高さで内部スクロール
+   - チームリスト開時: パネル分を差し引いてさらに短く
+   - CSS変数 --popup-max-h を applyMapPadding から動的に更新 */
+.gm-style-iw-d{max-height:var(--popup-max-h, 65vh) !important;overflow-y:auto !important;overflow-x:hidden !important}
+.gm-style-iw-c{max-height:calc(var(--popup-max-h, 65vh) + 40px) !important}
+/* スクロールバーをコンパクトに */
+.gm-style-iw-d::-webkit-scrollbar{width:5px}
+.gm-style-iw-d::-webkit-scrollbar-thumb{background:rgba(27,40,66,0.25);border-radius:3px}
+.gm-style-iw-d::-webkit-scrollbar-thumb:hover{background:rgba(27,40,66,0.45)}
 .pu-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:2px 0;color:var(--ink-2)}
 .pu-row-total{font-weight:700;color:var(--ink);font-size:13px;padding-bottom:4px;border-bottom:1px solid var(--border);margin-bottom:2px}
 .pu-row-sub{color:var(--ink-2);font-size:11px}
@@ -3436,9 +3443,28 @@ window.initMap = function() {
     const headerH = document.getElementById('header').offsetHeight || 48;
     const availH = window.innerHeight - headerH - totalReserved;
     mapContainer.style.height = availH + 'px';
-    mapContainer.style.paddingBottom = '';  // 以前の設定をリセット
-    // Google Maps にリサイズを通知
-    requestAnimationFrame(() => google.maps.event.trigger(map, 'resize'));
+    mapContainer.style.paddingBottom = '';
+    // ポップアップの最大高さも残り領域に応じて更新（マージン40pxを差し引く）
+    const popupMaxH = Math.max(220, availH - 40);
+    document.documentElement.style.setProperty('--popup-max-h', popupMaxH + 'px');
+    // Google Maps にリサイズを通知 + 開いているポップアップを再パン
+    requestAnimationFrame(() => {
+      google.maps.event.trigger(map, 'resize');
+      // 開いているポップアップがあれば、 marker を画面の下寄りに配置して
+      // popup（marker の上に展開）が表示領域内に収まるようにする
+      try {
+        if (_cityInfoWindow && _cityInfoWindow.getMap && _cityInfoWindow.getMap()) {
+          const pos = _cityInfoWindow.getPosition && _cityInfoWindow.getPosition();
+          if (pos) {
+            map.panTo(pos);
+            // marker を表示領域の下 1/3 付近に配置（popup の縦展開余裕を確保）
+            requestAnimationFrame(() => {
+              try { map.panBy(0, Math.round(availH * 0.25)); } catch(e) {}
+            });
+          }
+        }
+      } catch(e) {}
+    });
   }
   window.toggleTeamList = function() {
     teamListOpen = !teamListOpen;
