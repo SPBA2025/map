@@ -3483,12 +3483,13 @@ window.initMap = function() {
     const panelH = open
       ? Math.round(window.innerHeight * (isMob ? 0.45 : 0.40))
       : 0;
-    // #map-container の高さを直接縮める
     const totalReserved = panelH + bnavH;
     const mapContainer = document.getElementById('map-container');
-    // ヘッダー高さを引いた残り高さから予約分を引く
-    const headerH = document.getElementById('header').offsetHeight || 48;
-    const availH = window.innerHeight - headerH - totalReserved;
+    // 上部 (site-header + map-header) と下部 (site-footer, PC時のみ) を差し引く
+    const siteHeaderH = document.getElementById('site-header')?.offsetHeight || 0;
+    const mapHeaderH = document.getElementById('header')?.offsetHeight || 48;
+    const siteFooterH = isMob ? 0 : (document.getElementById('site-footer')?.offsetHeight || 0);
+    const availH = window.innerHeight - siteHeaderH - mapHeaderH - siteFooterH - totalReserved;
     mapContainer.style.height = availH + 'px';
     mapContainer.style.paddingBottom = '';
     // Google Maps にリサイズを通知 + 開いているポップアップを再オープン（auto-pan を新サイズで再評価）
