@@ -240,8 +240,9 @@ input:focus-visible{outline-offset:0}
 #sidebar-collapse-btn.collapsed .msi{transform:rotate(180deg)}
 @media (max-width:768px){#sidebar-collapse-btn{display:none}}
 /* フローティング凡例（公園マップ：catchball判定） */
-#float-legend{position:fixed;bottom:14px;right:14px;background:rgba(248,242,230,0.95);backdrop-filter:blur(8px);border:1px solid rgba(27,40,66,0.12);border-radius:10px;padding:10px 12px;z-index:600;box-shadow:0 4px 14px rgba(27,40,66,0.12);min-width:140px;opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .25s,transform .25s}
-#sidebar.pc-collapsed ~ #float-legend{opacity:1;pointer-events:auto;transform:translateY(0)}
+/* フローティング凡例（ユーザー要望で非表示） */
+#float-legend{display:none !important}
+#sidebar.pc-collapsed ~ #float-legend{display:none !important}
 #float-legend .fl-title{font-size:10px;font-weight:700;color:#1b2842;margin-bottom:6px;display:flex;align-items:center;gap:4px}
 #float-legend .fl-title::before{content:"▍";color:#c8202e}
 #float-legend .fl-row{display:flex;align-items:center;gap:6px;font-size:10px;color:#1b2842;line-height:1.5}
