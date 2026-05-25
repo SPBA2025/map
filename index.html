@@ -1306,6 +1306,26 @@ let _pinDataCache = [];   // {lat,lng,t} per filtered pin
 let _clusterMarkers = []; // currently rendered markers (individual or cluster)
 let _pinInfoWindow  = null;
 let _cityInfoWindow = null; // choroLayer/popupLayer 共通IW（ピンクリック時に閉じる）
+// 市町村ポップアップ用 InfoWindow を初期化（domready で max-height を強制適用）
+function _ensureCityInfoWindow() {
+  if (_cityInfoWindow) return _cityInfoWindow;
+  _cityInfoWindow = new google.maps.InfoWindow();
+  google.maps.event.addListener(_cityInfoWindow, 'domready', () => {
+    // DOM 完成後に .city-popup-wrap の max-height を強制設定
+    setTimeout(() => {
+      const el = document.querySelector('.city-popup-wrap');
+      if (!el) return;
+      const cssVar = getComputedStyle(document.documentElement).getPropertyValue('--popup-max-h').trim();
+      let maxH = parseInt(cssVar, 10);
+      if (!maxH || isNaN(maxH)) maxH = Math.round(window.innerHeight * 0.65);
+      el.style.setProperty('max-height', maxH + 'px', 'important');
+      el.style.setProperty('overflow-y', 'auto', 'important');
+      el.style.setProperty('overflow-x', 'hidden', 'important');
+      el.style.setProperty('display', 'block', 'important');
+    }, 0);
+  });
+  return _cityInfoWindow;
+}
 let _markerClicked  = false; // mousedownで先行セット → Dataレイヤーclick抑制
 let teamActiveCats  = new Set(['elem']);
 let teamGender      = 'all';
@@ -1619,7 +1639,7 @@ window.initMap = function() {
       const name = event.feature.getProperty('name') || '';
       const d = cityMap[name];
       if (!d) return;
-      if (!_cityInfoWindow) _cityInfoWindow = new google.maps.InfoWindow();
+      _ensureCityInfoWindow();
       _cityInfoWindow.setContent(popupHTML(d));
       _cityInfoWindow.setPosition(event.latLng);
       _cityInfoWindow.open(map);
@@ -1652,7 +1672,7 @@ window.initMap = function() {
     _choroRateSortedCache = activeData.map(d=>calcRate(d)).filter(v=>v>0).sort((a,b)=>a-b);
     _choroRateMaxCache = Math.max(1, ...activeData.map(d => calcRate(d)));
     const geo = useWardView ? geoDataWard : geoDataCity;
-    if (!_cityInfoWindow) _cityInfoWindow = new google.maps.InfoWindow();
+    _ensureCityInfoWindow();
     const iw = _cityInfoWindow;
     choroLayer = new google.maps.Data({map});
     choroLayer.addGeoJson(geo);
@@ -3456,14 +3476,18 @@ window.initMap = function() {
     // Google Maps にリサイズを通知 + 開いているポップアップを再パン
     requestAnimationFrame(() => {
       google.maps.event.trigger(map, 'resize');
-      // 開いているポップアップがあれば、 marker を画面の下寄りに配置して
-      // popup（marker の上に展開）が表示領域内に収まるようにする
+      // 開いているポップアップの max-height を再適用 + 位置調整
       try {
+        const wrapEl = document.querySelector('.city-popup-wrap');
+        if (wrapEl) {
+          wrapEl.style.setProperty('max-height', popupMaxH + 'px', 'important');
+          wrapEl.style.setProperty('overflow-y', 'auto', 'important');
+        }
         if (_cityInfoWindow && _cityInfoWindow.getMap && _cityInfoWindow.getMap()) {
           const pos = _cityInfoWindow.getPosition && _cityInfoWindow.getPosition();
           if (pos) {
             map.panTo(pos);
-            // marker を表示領域の下 1/3 付近に配置（popup の縦展開余裕を確保）
+            // marker を表示領域の下 1/4 付近に配置（popup の縦展開余裕を確保）
             requestAnimationFrame(() => {
               try { map.panBy(0, Math.round(availH * 0.25)); } catch(e) {}
             });
@@ -4093,7 +4117,7 @@ window.initMap = function() {
           setTimeout(() => {
             const d = (useWardView ? [...wardData,...cityData.filter(x=>x.city!=='さいたま市')] : cityData).find(x=>x.city===selectedCity);
             if (d) {
-              if (!_cityInfoWindow) _cityInfoWindow = new google.maps.InfoWindow();
+              _ensureCityInfoWindow();
               const iw = _cityInfoWindow;
               iw.setContent(popupHTML(d));
               iw.setPosition(new google.maps.LatLng(entry.lat, entry.lng));
@@ -4177,7 +4201,7 @@ window.initMap = function() {
         setTimeout(() => {
           const d = cityMap[cityName];
           if (d) {
-            if (!_cityInfoWindow) _cityInfoWindow = new google.maps.InfoWindow();
+            _ensureCityInfoWindow();
             _cityInfoWindow.setContent(popupHTML(d));
             _cityInfoWindow.setPosition(new google.maps.LatLng(entry.lat, entry.lng));
             _cityInfoWindow.open(map);
