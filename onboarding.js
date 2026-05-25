@@ -29,17 +29,17 @@
     team: {
       title: '埼玉県のチームを探そう',
       steps: [
-        { icon: 'map', text: '地図のピンをタップ／クリックでチーム詳細を表示' },
-        { icon: 'tune', text: '右パネルでカテゴリ・地域・キーワードで絞込' },
-        { icon: 'location_on', text: '市町村バブルをタップでそのエリアにズーム' },
+        { icon: 'map', text: '色の濃い市町村ほど競技者が多い地域' },
+        { icon: 'tune', text: '右パネルでカテゴリ・性別・地域などで絞り込み' },
+        { icon: 'place', text: '市町村をタップで詳細グラフ、チームピンをタップで連絡先' },
       ]
     },
     park: {
       title: 'キャッチボール公園を探そう',
       steps: [
-        { icon: 'sports_baseball', text: '🟢=可 🟡=条件付き 🔴=禁止 で識別' },
-        { icon: 'my_location', text: '「現在地周辺の公園を探す」で近くを検索' },
-        { icon: 'flag', text: '情報の誤り・追加は「情報提供」から報告' },
+        { icon: 'sports_baseball', text: 'ピンの色で識別: 🟢可 / 🔴不可・条件付き / 🟠判定不明' },
+        { icon: 'my_location', text: '右上の「現在地」ボタンで近くの公園にジャンプ' },
+        { icon: 'edit_note', text: '公園詳細の「この公園の情報を提供する」から報告' },
       ]
     }
   };
