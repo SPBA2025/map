@@ -958,8 +958,7 @@ async function initMap() {
     // cameraControl: Google Maps 新機能（3D傾き・回転） — このマップでは不要なので明示的に無効化
     cameraControl: false,
     zoomControl: true,
-    // 左下は Google ロゴ等と衝突するため右下に配置（PC/モバイル共通）
-    zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_BOTTOM },
+    zoomControlOptions: { position: google.maps.ControlPosition.LEFT_BOTTOM },
   });
   // idle時に表示位置を保存（debounce）
   let _pSaveViewT = null;
