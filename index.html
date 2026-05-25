@@ -509,10 +509,15 @@ input:focus-visible{outline-offset:0}
 .gm-style-iw-c{max-height:none !important}
 /* 市町村ポップアップ独自の高さ制御
    - --popup-max-h は applyMapPadding から動的に更新（パネル開閉に追従）
-   - 中身が長ければ popup 内部で縦スクロール */
-.city-popup-wrap{max-height:var(--popup-max-h, 65vh);overflow-y:auto;overflow-x:hidden}
+   - 中身が長ければ popup 内部で縦スクロール
+   - .gm-style を前置して特異性を上げ、Google Maps の inline スタイルに勝つ */
+.gm-style .city-popup-wrap,
+.city-popup-wrap{max-height:var(--popup-max-h, 65vh) !important;overflow-y:auto !important;overflow-x:hidden !important;display:block}
+.gm-style .city-popup-wrap::-webkit-scrollbar,
 .city-popup-wrap::-webkit-scrollbar{width:5px}
+.gm-style .city-popup-wrap::-webkit-scrollbar-thumb,
 .city-popup-wrap::-webkit-scrollbar-thumb{background:rgba(27,40,66,0.25);border-radius:3px}
+.gm-style .city-popup-wrap::-webkit-scrollbar-thumb:hover,
 .city-popup-wrap::-webkit-scrollbar-thumb:hover{background:rgba(27,40,66,0.45)}
 .pu-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:2px 0;color:var(--ink-2)}
 .pu-row-total{font-weight:700;color:var(--ink);font-size:13px;padding-bottom:4px;border-bottom:1px solid var(--border);margin-bottom:2px}
@@ -1457,7 +1462,7 @@ window.initMap = function() {
         <div class="pu-cat-cell-lbl">${CAT_JP[c]} <span style="font-size:8px;color:#999;">▶</span></div>
       </div>`;
     }).join('');
-    return `<div class="city-popup-wrap">
+    return `<div class="city-popup-wrap" style="max-height:var(--popup-max-h, 65vh);overflow-y:auto;overflow-x:hidden;display:block">
       <div class="pu-header">
         <div class="pu-city">${d.city}</div>
         <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:3px;">
