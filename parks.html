@@ -1018,17 +1018,19 @@ async function initMap() {
   const _ov = document.getElementById('loading-overlay');
   if (_ov) { _ov.classList.add('fade-out'); setTimeout(() => _ov.classList.add('hidden'), 400); }
 
-  // 登録済み公園を全件配置（TextSearch）
-  placeRegisteredParks();
+  // === 課金対策: Places API 呼び出しを無効化（無料枠内運用のため） ===
+  // 元コード:
+  //   placeRegisteredParks();  // 230件 textSearch → 月¥9,000+ の課金原因
+  //   searchParksInView();     // 地図範囲の nearbySearch
+  // → 静的データ (parks-data.js の lat/lng 入り3件) のみ表示する
+  // 将来: 230件を手動でジオコーディングして parks-data.js に埋め込めば復活可能
+  placeStaticParksFromData();
 
-  // 初期表示範囲の近隣公園を検索
-  searchParksInView();
-
-  // 地図移動後に再検索（idle = パン・ズーム完了後）
+  // 地図移動後の再検索も無効化（searchParksInView は Places API を使うため）
   map.addListener('idle', () => {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
-      searchParksInView();
+      // searchParksInView();   // 課金対策で無効化
       renderParkList();
     }, 600);
     // アナリティクス: 地図移動完了
@@ -1073,6 +1075,28 @@ async function loadGasData() {
 /* ═══════════════════════════════════════════════
    登録済み公園を TextSearch で全件配置
 ═══════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════
+   静的データから公園を配置（Places API 不使用・無料）
+   parks-data.js に lat/lng が事前埋め込みされた公園のみ
+═══════════════════════════════════════════════ */
+function placeStaticParksFromData() {
+  const targets = parkData.filter(p => p.catchball !== undefined && p.lat && p.lng);
+  targets.forEach(p => {
+    const fakeResult = {
+      name: p.name,
+      formatted_address: p.address || '',
+      geometry: { location: { lat: () => p.lat, lng: () => p.lng } }
+    };
+    addRegisteredParkToMap(fakeResult, p);
+  });
+  const loadingEl = document.getElementById('loading-parks');
+  if (loadingEl) loadingEl.textContent = `${targets.length}件`;
+  updateStats();
+  renderParkList();
+  console.log(`[静的配置] ${targets.length}件の公園を配置（Places API 不使用）`);
+}
+
+/* 旧: Places API で動的に公園を取得（課金原因・現在は呼び出さない） */
 async function placeRegisteredParks() {
   const targets = parkData.filter(p => p.catchball !== undefined && !p.lat);
   const total   = targets.length;
