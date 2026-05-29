@@ -541,6 +541,17 @@ input:focus-visible{outline-offset:0}
 .mab:hover{border-color:var(--ink);box-shadow:var(--shadow-hover);color:var(--ink)}
 .mab-icon{font-size:15px;flex-shrink:0;line-height:1}
 .mab-label{line-height:1}
+/* 公園報告ボタン: アクセントカラー */
+#pbtn-report{background:#1b2842;color:#f8f2e6;border-color:#1b2842}
+#pbtn-report:hover{background:#c8202e;border-color:#c8202e;color:#fff}
+#pbtn-report .mab-icon{color:#f8f2e6}
+#pbtn-report.active{background:#c8202e;border-color:#c8202e}
+/* 公園報告モード案内バナー */
+#park-report-banner{display:none;position:fixed;top:calc(40px + 46px + 12px);left:50%;transform:translateX(-50%);z-index:1200;background:#1b2842;color:#fff;padding:10px 16px;border-radius:24px;font-size:13px;font-weight:600;box-shadow:0 4px 16px rgba(27,40,66,0.3);max-width:90%;text-align:center;border:2px solid #c8202e}
+#park-report-banner.show{display:block;animation:prb-pop .3s cubic-bezier(0.32,0.72,0,1) both}
+@keyframes prb-pop{from{opacity:0;transform:translateX(-50%) translateY(-8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+/* 報告モード中はマップカーソルを十字に */
+#map.report-mode{cursor:crosshair !important}
 #pbtn-catchball.active{background:var(--green)!important;border-color:var(--green)!important;color:#fff!important}
 @media(max-width:768px){#park-action-btns{display:none!important}#park-map-type-bar{display:none!important}}
 
@@ -760,6 +771,15 @@ input:focus-visible{outline-offset:0}
   <button class="mab" id="pbtn-catchball" onclick="window.parkToggleCatchball()">
     <span class="mab-icon msi">sports_baseball</span><span class="mab-label">キャッチボール可のみ</span>
   </button>
+  <button class="mab" id="pbtn-report" onclick="window.startParkReportMode()">
+    <span class="mab-icon msi">add_location_alt</span><span class="mab-label">公園を報告</span>
+  </button>
+</div>
+<!-- 公園報告モード案内バナー -->
+<div id="park-report-banner">
+  <span class="msi" style="font-size:16px;vertical-align:-3px">touch_app</span>
+  報告したい公園の位置を地図上でタップしてください
+  <button type="button" onclick="window.cancelParkReportMode()" style="margin-left:8px;background:rgba(255,255,255,0.2);border:none;color:#fff;border-radius:4px;padding:3px 10px;cursor:pointer;font-family:inherit;font-size:12px">キャンセル</button>
 </div>
 
 <!-- MAIN -->
@@ -1400,6 +1420,8 @@ function closeParkModal() {
 // ── 全モーダル共通: ESCで閉じる ──
 document.addEventListener('keydown', function(e) {
   if (e.key !== 'Escape') return;
+  // 公園報告モード中なら最優先でキャンセル
+  if (_parkReportMode) { window.cancelParkReportMode(); return; }
   const modal = document.getElementById('park-modal');
   if (modal && modal.classList.contains('open')) { closeParkModal(); return; }
   // モバイルのサイドバー
@@ -1841,6 +1863,59 @@ window.parkToggleCatchball = function() {
   applyFilters();
   if (window.Toast) Toast.show(activeFilters.catchball ? 'キャッチボール可の公園のみ表示' : '全公園を表示');
 };
+
+// ─── 公園報告モード（地図タップで未登録公園を報告）───
+let _parkReportMode = false;
+let _parkReportListener = null;
+
+window.startParkReportMode = function() {
+  _parkReportMode = true;
+  document.getElementById('pbtn-report')?.classList.add('active');
+  document.getElementById('park-report-banner')?.classList.add('show');
+  document.getElementById('map')?.classList.add('report-mode');
+  if (window.Toast) Toast.show('地図上で公園の位置をタップしてください', { duration: 3000 });
+
+  // マップクリックリスナーを登録（1回だけ）
+  _parkReportListener = map.addListener('click', (e) => {
+    const lat = Math.round(e.latLng.lat() * 1000000) / 1000000;
+    const lng = Math.round(e.latLng.lng() * 1000000) / 1000000;
+    window.cancelParkReportMode();
+    openParkReportForm(lat, lng);
+  });
+};
+
+window.cancelParkReportMode = function() {
+  _parkReportMode = false;
+  document.getElementById('pbtn-report')?.classList.remove('active');
+  document.getElementById('park-report-banner')?.classList.remove('show');
+  document.getElementById('map')?.classList.remove('report-mode');
+  if (_parkReportListener) {
+    google.maps.event.removeListener(_parkReportListener);
+    _parkReportListener = null;
+  }
+};
+
+function openParkReportForm(lat, lng) {
+  const cfg = window.APP_CONFIG || {};
+  // 新規公園報告フォーム（座標プリフィル対応）。 未設定時は既存の公園情報提供フォームにフォールバック
+  const formUrl = cfg.PARK_REPORT_FORM_URL || '';
+  if (window.Analytics) window.Analytics.infoMissingReport('park_new:' + lat + ',' + lng, 'park_new_report');
+  if (formUrl) {
+    // entry ID は config.js の PARK_REPORT_ENTRY_LAT / _LNG で指定（フォーム作成後に設定）
+    const entryLat = cfg.PARK_REPORT_ENTRY_LAT || '';
+    const entryLng = cfg.PARK_REPORT_ENTRY_LNG || '';
+    let url = formUrl + (formUrl.includes('?') ? '&' : '?') + 'usp=pp_url';
+    if (entryLat) url += `&${entryLat}=${lat}`;
+    if (entryLng) url += `&${entryLng}=${lng}`;
+    window.open(url, '_blank', 'noopener');
+    if (window.Toast) Toast.show('報告フォームを開きました（座標入力済み）', { type: 'success', duration: 3000 });
+  } else {
+    // フォーム未設定: 座標をクリップボードにコピーして案内
+    const coordText = `${lat}, ${lng}`;
+    if (navigator.clipboard) navigator.clipboard.writeText(coordText).catch(() => {});
+    if (window.Toast) Toast.show(`座標 ${coordText} をコピーしました（フォーム準備中）`, { duration: 4000 });
+  }
+}
 
 // 一覧パネルトグル（モバイル用 - サイドバー開閉）
 window.parkToggleList = function() {

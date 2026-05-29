@@ -34,6 +34,16 @@ window.APP_CONFIG = {
   // チーム名欄の entry ID は 1520807350（マップポップアップから自動入力される）
   TEAM_INFO_FORM_URL: 'https://docs.google.com/forms/d/e/1FAIpQLSd92jK-e9g52C5ux9Q1a_LMUePVJljIua9HBpP1NwePEOr3Iw/viewform',
 
+  // 新規公園報告用Googleフォーム（地図タップで座標プリフィル）
+  // 未設定時は座標をクリップボードコピーして案内する
+  // 設定例:
+  //   PARK_REPORT_FORM_URL: 'https://docs.google.com/forms/d/e/XXXXX/viewform',
+  //   PARK_REPORT_ENTRY_LAT: 'entry.111111111',  // 緯度欄の entry ID
+  //   PARK_REPORT_ENTRY_LNG: 'entry.222222222',  // 経度欄の entry ID
+  PARK_REPORT_FORM_URL: '',
+  PARK_REPORT_ENTRY_LAT: '',
+  PARK_REPORT_ENTRY_LNG: '',
+
   // SNSアカウント（空文字なら非表示）
   INSTAGRAM_URL: '',
   X_URL: '',
