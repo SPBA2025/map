@@ -1022,9 +1022,12 @@ async function initMap() {
   // 元コード:
   //   placeRegisteredParks();  // 230件 textSearch → 月¥9,000+ の課金原因
   //   searchParksInView();     // 地図範囲の nearbySearch
-  // → 静的データ (parks-data.js の lat/lng 入り3件) のみ表示する
-  // 将来: 230件を手動でジオコーディングして parks-data.js に埋め込めば復活可能
+  // → parks-data.js の lat/lng 入り全公園を静的表示（Places API 不使用）
   placeStaticParksFromData();
+
+  // 初期ロード時はモーダルを確実に閉じておく（自動表示を防止）
+  const _pm = document.getElementById('park-modal');
+  if (_pm) _pm.classList.remove('open');
 
   // 地図移動後の再検索も無効化（searchParksInView は Places API を使うため）
   map.addListener('idle', () => {
@@ -1362,23 +1365,11 @@ async function showParkModal(park) {
   renderModalContent(park, initToilet, initParking);
   setupModalLinks(park);
 
-  // place_id があれば Places API (New) でトイレ・駐車場を補完
-  if (park.place_id && (initToilet === null || initParking === null)) {
-    try {
-      const res = await fetch(
-        `https://places.googleapis.com/v1/places/${park.place_id}?fields=hasRestroom,parkingOptions&key=${API_KEY}`
-      );
-      const data = await res.json();
-      const toilet  = typeof data.hasRestroom === 'boolean' ? data.hasRestroom : null;
-      const parking = data.parkingOptions
-        ? Object.values(data.parkingOptions).some(v => v === true)
-        : null;
-      renderModalContent(park, toilet, parking);
-      setupModalLinks(park);
-    } catch(e) {
-      console.warn('Places詳細取得エラー:', e);
-    }
-  }
+  // 課金対策: Places API (New) でのトイレ・駐車場補完は無効化
+  // （静的データの place_id は 'static-N' で実在しないため呼んでも無駄。
+  //  実在 place_id でも 1リクエストあたり課金されるため停止）
+  // 元コード:
+  //   const res = await fetch(`https://places.googleapis.com/v1/places/${park.place_id}?...`);
 }
 
 function setupModalLinks(park) {
