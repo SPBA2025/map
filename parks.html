@@ -1306,9 +1306,12 @@ function applyFilters() {
 function renderModalContent(park, toilet, parking) {
   const toiletHtml  = toilet  !== null ? `<div class="park-row"><span class="park-row-label">トイレ</span><span class="park-row-value">${toilet  ? 'あり' : 'なし'}</span></div>` : '';
   const parkingHtml = parking !== null ? `<div class="park-row"><span class="park-row-label">駐車場</span><span class="park-row-value">${parking ? 'あり' : 'なし'}</span></div>` : '';
-  const gmapUrl = park.place_id
+  // Google Maps リンク: 実在の place_id がある場合のみ place 指定。
+  // 静的データの 'static-N' は架空なので、 公園名＋市町村で検索リンクにする。
+  const isRealPlaceId = park.place_id && !String(park.place_id).startsWith('static-');
+  const gmapUrl = isRealPlaceId
     ? `https://www.google.com/maps/place/?q=place_id:${park.place_id}`
-    : `https://www.google.com/maps/search/${encodeURIComponent((park.address || park.name) + ' ' + (park.city || ''))}`;
+    : `https://www.google.com/maps/search/${encodeURIComponent(park.name + ' ' + (park.city || '') + ' 埼玉県')}`;
 
   let cbStyle, cbText, cbIcon;
   if (park.catchball === true)       { cbStyle='background:rgba(0,168,84,0.1);color:#00a854';  cbText='キャッチボール可';        cbIcon='check_circle'; }

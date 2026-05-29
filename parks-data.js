@@ -5,12 +5,6 @@
 
 const parkData = [
 
-  // === 詳細情報あり（住所・座標・施設情報を確認済み）===
-  // 座標がある公園は Places API ジオコーディングをスキップして高速表示される
-  { id:1, name:'浦和高速下緑地公園', city:'さいたま市', catchball:true,  lat:35.8666, lng:139.7211, address:'さいたま市浦和区北浦和1',   area:'約2.5ha', toilet:true,  parking:true,  parkful_url:'https://parkful.net/parks/11201010001' },
-  { id:2, name:'与野公園',           city:'さいたま市', catchball:true,  lat:35.8917, lng:139.6383, address:'さいたま市中央区本町西1', area:'約2.0ha', toilet:true,  parking:true,  parkful_url:'https://parkful.net/parks/11201020001' },
-  { id:3, name:'氷川公園',           city:'さいたま市', catchball:false, lat:35.9083, lng:139.6289, address:'さいたま市大宮区高鼻町',   area:'約4.5ha', toilet:true,  parking:false, parkful_url:'https://parkful.net/parks/11201030001', notes:'禁止事項あり' },
-
   // === キャッチボール可能公園（PARKFUL調査：230件）===
   // さいたま市
   { id:10,  name:'岩槻文化公園',       city:'さいたま市', catchball:true, lat:35.9444, lng:139.7216 },
