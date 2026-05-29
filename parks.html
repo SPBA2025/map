@@ -1083,8 +1083,12 @@ function placeStaticParksFromData() {
   const targets = parkData.filter(p => p.catchball !== undefined && p.lat && p.lng);
   targets.forEach(p => {
     const fakeResult = {
+      // place_id は placesMarkers のキーになるため一意な値が必須
+      // （未設定だと undefined キーで全件が上書きされ 1件しか残らない）
+      place_id: 'static-' + p.id,
       name: p.name,
       formatted_address: p.address || '',
+      vicinity: p.address || '',
       geometry: { location: { lat: () => p.lat, lng: () => p.lng } }
     };
     addRegisteredParkToMap(fakeResult, p);
