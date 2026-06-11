@@ -60,7 +60,7 @@
   const GAS_URL = 'https://script.google.com/macros/s/AKfycbyBqycA_v8614sI_4vWtqniSlValz6q-3BtfF-5iXyCKTeB3oScXR4RcRNR7ZYbQjFi/exec';
   window.initMapCallback = function() { initMap(); };
   const _s = document.createElement('script');
-  _s.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places,marker&callback=initMapCallback&loading=async`;
+  _s.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=marker&callback=initMapCallback&loading=async`;
   _s.async = true;
   document.head.appendChild(_s);
 
@@ -887,7 +887,7 @@ input:focus-visible{outline-offset:0}
 /* ═══════════════════════════════════════════════
    STATE
 ═══════════════════════════════════════════════ */
-let map, clusterer, placesService;
+let map, clusterer;
 let placesMarkers = {};          // place_id → AdvancedMarkerElement
 let curated = {};                // 公園名 → parkData エントリ
 const activeFilters = { catchball: false };
@@ -1009,9 +1009,6 @@ async function initMap() {
     if (sk && !_parkSkeletonHidden) { sk.classList.add('hidden'); _parkSkeletonHidden = true; }
   }, 4000);
 
-  // PlacesService はマップに直接アタッチ
-  placesService = new google.maps.places.PlacesService(map);
-
   // MarkerClusterer（@googlemaps/markerclusterer）
   if (typeof markerclusterer === 'undefined') {
     // CDN 読み込み失敗時はクラスタリングなしで動作
@@ -1038,22 +1035,17 @@ async function initMap() {
   const _ov = document.getElementById('loading-overlay');
   if (_ov) { _ov.classList.add('fade-out'); setTimeout(() => _ov.classList.add('hidden'), 400); }
 
-  // === 課金対策: Places API 呼び出しを無効化（無料枠内運用のため） ===
-  // 元コード:
-  //   placeRegisteredParks();  // 230件 textSearch → 月¥9,000+ の課金原因
-  //   searchParksInView();     // 地図範囲の nearbySearch
-  // → parks-data.js の lat/lng 入り全公園を静的表示（Places API 不使用）
+  // 公園データを静的配置（parks-data.js の lat/lng を使用。 Places API は使わない）
   placeStaticParksFromData();
 
   // 初期ロード時はモーダルを確実に閉じておく（自動表示を防止）
   const _pm = document.getElementById('park-modal');
   if (_pm) _pm.classList.remove('open');
 
-  // 地図移動後の再検索も無効化（searchParksInView は Places API を使うため）
+  // 地図移動完了時: 一覧を表示範囲で更新
   map.addListener('idle', () => {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
-      // searchParksInView();   // 課金対策で無効化
       renderParkList();
     }, 600);
     // アナリティクス: 地図移動完了
@@ -1123,46 +1115,6 @@ function placeStaticParksFromData() {
   console.log(`[静的配置] ${targets.length}件の公園を配置（Places API 不使用）`);
 }
 
-/* 旧: Places API で動的に公園を取得（課金原因・現在は呼び出さない） */
-async function placeRegisteredParks() {
-  const targets = parkData.filter(p => p.catchball !== undefined && !p.lat);
-  const total   = targets.length;
-  let   done    = 0;
-  const loadingEl = document.getElementById('loading-parks');
-
-  const BATCH = 10;
-  for (let i = 0; i < targets.length; i += BATCH) {
-    const batch = targets.slice(i, i + BATCH);
-    await Promise.all(batch.map(p => new Promise(resolve => {
-      const query = `${p.name} ${p.city || ''} 埼玉県`;
-      placesService.textSearch({ query, language: 'ja' }, (results, status) => {
-        if (status === 'OK' && results && results[0]) {
-          addRegisteredParkToMap(results[0], p);
-        } else {
-          console.warn(`[未発見] ${p.name}（${p.city}）status=${status}`);
-          window._notFoundParks = window._notFoundParks || [];
-          window._notFoundParks.push(`${p.name}（${p.city}）`);
-        }
-        done++;
-        if (loadingEl) loadingEl.textContent = `${done}/${total}`;
-        resolve();
-      });
-    })));
-    await new Promise(r => setTimeout(r, 200));
-  }
-
-  const notFound = window._notFoundParks || [];
-  if (loadingEl) loadingEl.textContent = notFound.length > 0 ? `${total - notFound.length}/${total}` : '完了';
-  console.log(`\n=== 配置完了 ===`);
-  console.log(`[配置成功] ${total - notFound.length}件`);
-  if (notFound.length > 0) {
-    console.warn(`[未発見] ${notFound.length}件:`);
-    notFound.forEach(n => console.warn('  ', n));
-  }
-  updateStats();
-  renderParkList();
-}
-
 /* 登録済み公園専用マーカー配置（名前不一致でも parkData の情報を使用）*/
 function addRegisteredParkToMap(place, parkEntry) {
   if (placesMarkers[place.place_id]) {
@@ -1194,75 +1146,6 @@ function addRegisteredParkToMap(place, parkEntry) {
     clusterer.addMarker(marker);
   }
   console.log(`[登録配置] ${parkEntry.name}（${parkEntry.city}）→ API名: ${place.name}`);
-}
-
-/* ═══════════════════════════════════════════════
-   PLACES API 近隣検索
-═══════════════════════════════════════════════ */
-function searchParksInView() {
-  const center = map.getCenter();
-  if (!center) return;
-  const lat = center.lat(), lng = center.lng();
-  if (!isInSaitama(lat, lng)) return;
-
-  const bounds = map.getBounds();
-  if (!bounds) return;
-  const ne = bounds.getNorthEast();
-
-  const R    = 6371000;
-  const dLat = (ne.lat() - lat) * Math.PI / 180;
-  const dLng = (ne.lng() - lng) * Math.PI / 180 * Math.cos(lat * Math.PI / 180);
-  const radius = Math.min(Math.sqrt(dLat*dLat + dLng*dLng) * R, 20000);
-
-  placesService.nearbySearch({
-    location: new google.maps.LatLng(lat, lng),
-    radius,
-    type: 'park',
-    language: 'ja'
-  }, handlePlacesResults);
-}
-
-function handlePlacesResults(results, status, pagination) {
-  if (status !== google.maps.places.PlacesServiceStatus.OK) return;
-  results.forEach(addPlaceToMap);
-  if (pagination && pagination.hasNextPage) {
-    setTimeout(() => pagination.nextPage(), 200);
-  }
-  updateStats();
-  renderParkList();
-}
-
-function addPlaceToMap(place) {
-  if (placesMarkers[place.place_id]) return; // 重複スキップ
-
-  const lat = place.geometry.location.lat();
-  const lng = place.geometry.location.lng();
-  if (!isInSaitama(lat, lng)) return;
-
-  const name = place.name;
-  const info = curated[name];
-
-  // city 指定あり・vicinity 不一致は誤マッチ
-  if (info && info.city) {
-    const vicinity = place.vicinity || '';
-    if (!vicinity.includes(info.city)) return;
-  }
-
-  const parkInfo = {
-    name, lat, lng,
-    address: place.vicinity || place.formatted_address || '',
-    place_id: place.place_id,
-    ...info
-  };
-
-  const marker = createMarker(lat, lng, parkInfo);
-  placesMarkers[place.place_id] = marker;
-
-  if (info) console.log(`[マッチ] ${name}（${info.city || ''}）`);
-
-  if (!activeFilters.catchball || (info && info.catchball === true)) {
-    clusterer.addMarker(marker);
-  }
 }
 
 /* ═══════════════════════════════════════════════
