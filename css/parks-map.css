@@ -1,0 +1,510 @@
+/* ═══ Color System (埼玉県野球協議会 共通 / Park accent: Red) ═══
+   --action=#ff385c (park red)  surface-1=#fff  surface=#f7f7f7
+*/
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+:root{
+  --red:#ff385c;
+  --red-h:#e00b41;
+  --action:#1a56db;
+  --action-h:#1648c0;
+  --caution:#c45500;
+  --green:#00a854;
+  --green-dim:rgba(0,168,84,0.1);
+  --orange:#c45500;
+  --orange-dim:rgba(196,85,0,0.1);
+  --surface:#f7f7f7;
+  --surface-1:#ffffff;
+  --surface-2:#f2f2f2;
+  --border:#dddddd;
+  --border-2:#f0d8d8;
+  --ink:#222222;
+  --ink-2:#3f3f3f;
+  --ink-3:#5a5a5a;
+  --spba-cream:#f8f2e6;
+  --spba-navy:#1b2842;
+  --spba-red:#c8202e;
+  --spba-orange:#f1a41d;
+  --spba-gray:#bcb9af;
+  --shadow-card:rgba(0,0,0,0.02) 0px 0px 0px 1px,rgba(0,0,0,0.04) 0px 2px 6px,rgba(0,0,0,0.1) 0px 4px 8px;
+  --shadow-hover:rgba(0,0,0,0.08) 0px 4px 12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--surface);color:var(--ink);height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden;-webkit-font-smoothing:antialiased}
+/* ── SITE HEADER / FOOTER（協議会戻り動線 / SPBAブランドカラー）─────── */
+#site-header{position:sticky;top:0;left:0;right:0;background:var(--spba-cream);color:var(--spba-navy);padding:0 14px;height:40px;display:flex;align-items:center;gap:8px;z-index:1100;box-shadow:0 1px 3px rgba(27,40,66,0.08);flex-shrink:0;border-bottom:1px solid rgba(27,40,66,0.08)}
+#site-header a.site-header-link{display:flex;align-items:center;gap:8px;color:var(--spba-navy);text-decoration:none;min-height:36px;padding:2px 6px;border-radius:6px;transition:background-color .15s}
+#site-header a.site-header-link:hover{background:rgba(27,40,66,0.06)}
+#site-header .site-logo{width:26px;height:26px;border-radius:50%;background:var(--spba-navy);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;border:1.5px solid var(--spba-red)}
+#site-header .site-logo .msi{font-size:15px;color:#fff}
+#site-header .site-title{font-weight:700;font-size:13px;letter-spacing:.02em;white-space:nowrap;color:var(--spba-navy)}
+#site-header .site-spacer{flex:1}
+#site-header .site-back{color:var(--spba-navy);text-decoration:none;font-size:12px;font-weight:500;display:inline-flex;align-items:center;gap:4px;padding:5px 8px;border-radius:6px;transition:background-color .15s,color .15s}
+#site-header .site-back:hover{background:var(--spba-navy);color:var(--spba-cream)}
+#site-header .site-back .msi{font-size:15px}
+@media(max-width:560px){#site-header .site-back-text{display:none}}
+/* ── SITE FOOTER（2段構成：機能ライン + 中央コピーライト）── */
+#site-footer{background:var(--spba-cream);color:var(--spba-navy);padding:6px 16px 5px;font-size:12px;flex-shrink:0;border-top:2px solid var(--spba-red);position:relative}
+#site-footer .ft-main{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;max-width:1280px;margin:0 auto;min-height:30px}
+#site-footer .ft-brand{display:inline-flex;align-items:center;gap:6px;color:var(--spba-navy);text-decoration:none;flex-shrink:0;padding:2px 4px;border-radius:6px;transition:background-color .15s}
+#site-footer .ft-brand:hover{background:rgba(27,40,66,0.06)}
+#site-footer .ft-brand-logo{width:22px;height:22px;border-radius:50%;background:var(--spba-navy);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;border:1.5px solid var(--spba-red)}
+#site-footer .ft-brand-logo .msi{font-size:13px;color:#fff}
+#site-footer .ft-brand-name{font-weight:700;font-size:12px;color:var(--spba-navy);letter-spacing:.02em;white-space:nowrap}
+#site-footer .ft-sep{display:inline-block;width:1px;height:18px;background:rgba(27,40,66,0.18);flex-shrink:0}
+#site-footer .ft-group{display:inline-flex;align-items:center;gap:14px;flex-wrap:wrap}
+#site-footer a,#site-footer .ft-group button{color:var(--spba-navy);text-decoration:none;font-size:12px;opacity:.85;transition:opacity .15s,color .15s;background:none;border:none;cursor:pointer;font-family:inherit;padding:2px 0;display:inline-flex;align-items:center;gap:4px;line-height:1.4}
+#site-footer a:hover,#site-footer .ft-group button:hover{opacity:1;color:var(--spba-red)}
+#site-footer .ft-group a:hover{text-decoration:underline;text-underline-offset:3px}
+#site-footer .ft-actions button .msi{font-size:14px;color:var(--spba-red);opacity:.85}
+#site-footer .ft-actions button:hover .msi{opacity:1}
+#site-footer .ft-contact{display:inline-flex;align-items:center;gap:8px}
+#site-footer .ft-contact a{display:inline-flex;align-items:center;gap:4px}
+#site-footer .ft-contact .msi{font-size:14px;color:var(--spba-red)}
+#site-footer .ft-sns{display:flex;gap:6px}
+#site-footer .ft-sns a{width:24px;height:24px;border-radius:50%;background:rgba(27,40,66,0.08);display:inline-flex;align-items:center;justify-content:center;opacity:.9;transition:background-color .15s,transform .15s;padding:0}
+#site-footer .ft-sns a:hover{background:var(--spba-navy);transform:translateY(-1px)}
+#site-footer .ft-sns svg{width:12px;height:12px;fill:var(--spba-navy);transition:fill .15s}
+#site-footer .ft-sns a:hover svg{fill:var(--spba-cream)}
+#site-footer .ft-copy-row{text-align:center;font-size:10.5px;color:rgba(27,40,66,0.55);margin-top:4px;padding-top:4px;border-top:1px dashed rgba(27,40,66,0.12);letter-spacing:.02em}
+@media(max-width:900px){
+  #site-footer .ft-main{gap:10px}
+  #site-footer .ft-group{gap:12px}
+}
+@media(max-width:640px){
+  #site-footer{padding:8px 12px 5px}
+  #site-footer .ft-main{gap:8px}
+  #site-footer .ft-sep{display:none}
+  #site-footer .ft-group{gap:10px}
+}
+@media(max-width:768px){
+  #site-header{height:36px;padding:0 10px}
+  #site-header .site-logo{width:24px;height:24px}
+  #site-header .site-logo .msi{font-size:14px}
+  #site-header .site-title{font-size:12px}
+  #site-footer{display:none}
+}
+/* キーボード操作時のみフォーカスリングを表示（アクセシビリティ） */
+*:focus{outline:none}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--red);outline-offset:2px;border-radius:6px}
+input:focus-visible{outline-offset:0}
+
+/* ── HEADER ── */
+#header{
+  background:var(--surface-1);
+  padding:0 18px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  border-bottom:1px solid var(--border);
+  box-shadow:0 1px 2px rgba(0,0,0,0.04);
+  flex-shrink:0;
+  z-index:1100;
+  min-height:46px;
+}
+#hbg{display:none;flex-direction:column;justify-content:center;gap:5px;width:32px;height:32px;cursor:pointer;padding:4px;background:none;border:none}
+#hbg span{display:block;height:1.5px;background:var(--ink);border-radius:2px;transition:.3s}
+#hbg.open span:nth-child(1){transform:rotate(45deg) translate(4px,4px)}
+#hbg.open span:nth-child(2){opacity:0}
+#hbg.open span:nth-child(3){transform:rotate(-45deg) translate(4px,-4px)}
+
+.hdr-brand{display:flex;align-items:center;gap:8px;min-width:0}
+.hdr-logo{font-size:14px;font-weight:700;color:var(--action);letter-spacing:-.3px;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+/* Material Symbols (Rounded) アイコン共通 */
+.msi{font-family:'Material Symbols Rounded';font-weight:400;font-style:normal;display:inline-block;line-height:1;letter-spacing:normal;text-transform:none;white-space:nowrap;font-feature-settings:'liga';-webkit-font-smoothing:antialiased;vertical-align:middle;user-select:none}
+.hdr-sub{font-size:11px;color:var(--ink-3);letter-spacing:.01em;white-space:nowrap;border-left:1px solid var(--border);padding-left:8px}
+
+.hdr-stat{display:flex;align-items:center;gap:0;margin-left:auto}
+.hdr-kpi{text-align:center;padding:0 14px}
+.hdr-kpi-val{font-size:20px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1;letter-spacing:-.5px}
+.hdr-kpi-lbl{font-size:9px;color:var(--ink-3);margin-top:3px;letter-spacing:.02em}
+.hdr-kpi-sep{width:1px;height:24px;background:var(--border);flex-shrink:0}
+
+/* ── LAYOUT ── */
+#app{display:flex;flex:1;overflow:hidden;position:relative}
+#map{flex:1;z-index:1}
+/* スケルトンローディング */
+#map-skeleton{position:absolute;inset:0;background:linear-gradient(135deg,#f8f2e6 0%,#ede5d4 100%);z-index:50;display:flex;align-items:center;justify-content:center;transition:opacity .5s ease,visibility .5s ease;pointer-events:none}
+#map-skeleton.hidden{opacity:0;visibility:hidden}
+#map-skeleton .sk-blocks{position:absolute;inset:0;overflow:hidden;opacity:0.4}
+#map-skeleton .sk-block{position:absolute;background:linear-gradient(90deg,rgba(27,40,66,0.06) 0%,rgba(27,40,66,0.13) 50%,rgba(27,40,66,0.06) 100%);background-size:200% 100%;border-radius:30%/50%;animation:sk-shimmer 2.4s linear infinite}
+#map-skeleton .sk-b1{top:15%;left:10%;width:25%;height:30%;animation-delay:0s}
+#map-skeleton .sk-b2{top:30%;left:45%;width:22%;height:28%;animation-delay:.3s}
+#map-skeleton .sk-b3{top:55%;left:15%;width:30%;height:32%;animation-delay:.6s}
+#map-skeleton .sk-b4{top:10%;left:65%;width:25%;height:35%;animation-delay:.9s}
+#map-skeleton .sk-b5{top:60%;left:60%;width:28%;height:30%;animation-delay:1.2s}
+@keyframes sk-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+#map-skeleton .sk-msg{position:relative;background:#fff;padding:18px 28px;border-radius:14px;box-shadow:0 4px 16px rgba(27,40,66,0.12);display:flex;align-items:center;gap:14px;border-top:3px solid #c8202e;z-index:2}
+#map-skeleton .sk-spinner{width:22px;height:22px;border:3px solid rgba(27,40,66,0.12);border-top-color:#c8202e;border-radius:50%;animation:sk-spin .8s linear infinite}
+@keyframes sk-spin{to{transform:rotate(360deg)}}
+#map-skeleton .sk-text{font-size:14px;font-weight:600;color:#1b2842;letter-spacing:.02em}
+@media (prefers-reduced-motion: reduce){
+  #map-skeleton .sk-block{animation:none}
+  #map-skeleton .sk-spinner{animation-duration:1.6s}
+}
+
+/* ── SIDEBAR ── */
+#sidebar{width:280px;background:var(--surface-1);border-left:1px solid var(--border);overflow-y:auto;flex-shrink:0;z-index:1000;transition:width .3s cubic-bezier(0.32,0.72,0,1),margin .3s cubic-bezier(0.32,0.72,0,1)}
+/* PC折りたたみ：マップ領域を最大化 */
+@media (min-width:769px){
+  #sidebar.pc-collapsed{width:0;border-left:none;overflow:hidden}
+  #sidebar.pc-collapsed > *{opacity:0;pointer-events:none;transition:opacity .15s}
+}
+#sidebar-collapse-btn{position:fixed;top:50%;right:280px;transform:translateY(-50%);width:24px;height:48px;background:#1b2842;color:#f8f2e6;border:none;border-radius:8px 0 0 8px;cursor:pointer;z-index:1500;display:flex;align-items:center;justify-content:center;box-shadow:-2px 0 8px rgba(27,40,66,0.15);transition:right .3s cubic-bezier(0.32,0.72,0,1),background-color .15s}
+#sidebar-collapse-btn:hover{background:#c8202e}
+#sidebar-collapse-btn .msi{font-size:18px;transition:transform .3s}
+#sidebar-collapse-btn.collapsed{right:0}
+#sidebar-collapse-btn.collapsed .msi{transform:rotate(180deg)}
+@media (max-width:768px){#sidebar-collapse-btn{display:none}}
+#sidebar::-webkit-scrollbar{width:4px}
+#sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.s-section{padding:14px 16px;border-bottom:1px solid var(--border)}
+.s-title{font-size:11px;font-weight:700;color:var(--ink);letter-spacing:.01em;margin-bottom:10px}
+
+/* ── FILTERS ── */
+.filter-btns{display:flex;flex-direction:column;gap:6px}
+.filter-btn{
+  padding:10px 14px;
+  background:var(--surface-1);
+  border:1.5px solid var(--border);
+  border-radius:8px;
+  color:var(--ink-2);
+  font-size:13px;
+  font-weight:500;
+  cursor:pointer;
+  text-align:left;
+  transition:.15s;
+  font-family:inherit;
+}
+.filter-btn:hover{border-color:var(--ink);background:var(--surface-2)}
+.filter-btn.on{background:var(--action);border-color:var(--action);color:#fff}
+
+/* ── LEGEND ── */
+.leg-item{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:12px;color:var(--ink-2)}
+.leg-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.leg-label{color:var(--ink-2)}
+
+/* ── PARK LIST ── */
+#park-list{display:flex;flex-direction:column;gap:0;list-style:none;margin:0;padding:0}
+.park-empty{padding:32px 20px;text-align:center;color:#5a6c8c;font-size:13px;line-height:1.6;list-style:none}
+.park-empty-icon{width:48px;height:48px;border-radius:50%;background:rgba(27,40,66,0.08);color:#1b2842;display:inline-flex;align-items:center;justify-content:center;margin-bottom:10px}
+.park-empty-icon .msi{font-size:26px}
+.park-empty-title{font-size:14px;font-weight:600;color:#1b2842;margin-bottom:4px}
+.park-empty-sub{font-size:12px;color:#5a6c8c;margin-bottom:14px}
+.park-empty-btn{background:#1b2842;color:#f8f2e6;border:none;padding:8px 18px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:background-color .15s,transform .12s}
+.park-empty-btn:hover{background:#c8202e}
+.park-empty-btn:active{transform:scale(0.97)}
+.park-item{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+  padding:12px 16px;
+  border-bottom:1px solid var(--border);
+  cursor:pointer;
+  transition:background .12s;
+}
+.park-item:hover{background:var(--surface-2)}
+.park-item-name{font-size:13px;font-weight:600;color:var(--ink);letter-spacing:-.1px}
+.park-item-addr{font-size:11px;color:var(--ink-3)}
+.park-item-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:2px;
+  padding:2px 8px;
+  border-radius:14px;
+  font-size:10px;
+  font-weight:600;
+  margin-top:3px;
+}
+.park-item-badge.catchball{background:var(--green-dim);color:var(--green)}
+.park-item-badge.no-catchball{background:rgba(255,56,92,0.1);color:var(--red)}
+.park-item-badge.unknown-catchball{background:var(--orange-dim);color:var(--orange)}
+
+/* ── MODAL ── */
+#park-modal{display:flex;align-items:center;justify-content:center;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.3);opacity:0;visibility:hidden;transition:opacity .22s ease,visibility .22s;pointer-events:none}
+#park-modal.open{opacity:1;visibility:visible;pointer-events:auto}
+#park-modal>div{transform:scale(0.96);transition:transform .25s cubic-bezier(0.32,0.72,0,1)}
+#park-modal.open>div{transform:scale(1)}
+.park-box{
+  background:var(--surface-1);
+  border-radius:20px;
+  padding:24px;
+  width:90%;
+  max-width:480px;
+  max-height:85vh;
+  overflow-y:auto;
+  box-shadow:var(--shadow-card);
+}
+.park-box::-webkit-scrollbar{width:4px}
+.park-box::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.park-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.park-title{font-size:17px;font-weight:700;color:var(--ink);letter-spacing:-.3px;line-height:1.3}
+.park-close{
+  background:var(--surface-3);
+  border:none;
+  border-radius:50%;
+  width:32px;
+  height:32px;
+  font-size:16px;
+  cursor:pointer;
+  color:var(--ink-2);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+  transition:.15s;
+}
+.park-close:hover{background:var(--border);box-shadow:var(--shadow-hover)}
+.park-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:8px 0;border-bottom:1px solid var(--border)}
+.park-row:last-child{border-bottom:none}
+.park-row-label{font-weight:600;color:var(--ink);font-size:12px}
+.park-row-value{text-align:right;color:var(--ink-2);font-size:12px}
+.park-badge-large{
+  display:inline-block;
+  padding:6px 14px;
+  border-radius:14px;
+  font-weight:600;
+  font-size:12px;
+  margin:4px 0;
+}
+.park-btn{
+  width:100%;
+  padding:12px;
+  margin-top:12px;
+  background:var(--action);
+  color:#fff;
+  border:none;
+  border-radius:8px;
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+  transition:.15s;
+  font-family:inherit;
+}
+.park-btn:hover{background:var(--action-h);box-shadow:var(--shadow-hover)}
+.park-btn-report{
+  width:100%;
+  padding:10px;
+  margin-top:8px;
+  background:var(--surface);
+  border:1.5px solid var(--border);
+  border-radius:8px;
+  font-size:12px;
+  font-weight:600;
+  color:var(--ink-2);
+  cursor:pointer;
+  transition:.15s;
+  font-family:inherit;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  text-decoration:none;
+}
+.park-btn-report:hover{border-color:var(--ink);background:var(--surface-2);box-shadow:var(--shadow-hover)}
+.park-divider{border:none;border-top:1px solid var(--border);margin:14px 0 4px}
+
+/* ── MAP TYPE ── */
+#park-map-type-bar{display:flex;gap:4px;background:rgba(255,255,255,.96);border:1.5px solid var(--border);border-radius:10px;padding:4px;box-shadow:var(--shadow-card);backdrop-filter:blur(8px);margin:10px 10px 0 0}
+.map-type-btn{border:none;background:transparent;color:var(--ink-3);font-size:12px;font-weight:500;padding:5px 10px;border-radius:7px;cursor:pointer;font-family:inherit;white-space:nowrap;transition:.12s}
+.map-type-btn:hover{background:var(--surface-2);color:var(--ink)}
+.map-type-btn.active{background:var(--ink);color:#fff}
+
+/* ── SEARCH ── */
+#hdr-search-wrap{position:relative;display:flex;align-items:center;margin-left:8px;flex-shrink:0}
+#hdr-search-input{
+  padding:8px 28px 8px 12px;
+  border:1.5px solid var(--border);
+  border-radius:8px;
+  background:var(--surface);
+  color:var(--ink);
+  font-size:13px;
+  font-weight:500;
+  width:180px;
+  outline:none;
+  transition:width .2s ease,border-color .15s,box-shadow .15s,background-color .15s;
+  font-family:inherit;
+}
+#hdr-search-input::placeholder{color:var(--ink-3)}
+#hdr-search-input:hover{border-color:var(--ink-3);background:var(--surface-1)}
+#hdr-search-input:focus{border-color:var(--red);width:240px;box-shadow:0 0 0 3px rgba(255,56,92,0.15);background:var(--surface-1)}
+#hdr-search-clear{position:absolute;right:8px;background:none;border:none;color:var(--ink-3);cursor:pointer;font-size:14px;display:none;padding:0;line-height:1}
+#hdr-search-clear.show{display:block}
+
+/* ── CITY SELECT ── */
+#city-select{
+  padding:7px 10px;
+  border:1.5px solid var(--border);
+  border-radius:8px;
+  background:var(--surface);
+  color:var(--ink);
+  font-size:12px;
+  font-weight:500;
+  cursor:pointer;
+  font-family:inherit;
+  outline:none;
+  flex-shrink:0;
+}
+#city-select:focus{border-color:var(--ink)}
+
+/* ── GPS BUTTON ── */
+#gps-btn{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  padding:7px 12px;
+  background:var(--surface);
+  border:1.5px solid var(--border);
+  border-radius:8px;
+  color:var(--ink-2);
+  font-size:12px;
+  font-weight:500;
+  cursor:pointer;
+  font-family:inherit;
+  flex-shrink:0;
+  transition:.15s;
+}
+#gps-btn:hover{border-color:var(--ink);background:var(--surface-2)}
+#gps-btn.locating{background:var(--action);color:#fff;border-color:var(--action)}
+#gps-btn svg{width:13px;height:13px;flex-shrink:0}
+
+/* ── CURRENT LOCATION MARKER ── */
+.current-location-marker{background:var(--action);width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 3px rgba(26,86,219,0.3)}
+
+/* ── SORT SELECT ── */
+#sort-select{
+  font-size:11px;
+  font-weight:500;
+  padding:4px 8px;
+  border:1.5px solid var(--border);
+  border-radius:8px;
+  background:var(--surface);
+  color:var(--ink-2);
+  cursor:pointer;
+  outline:none;
+  font-family:inherit;
+}
+#sort-select:focus{border-color:var(--ink)}
+
+#parks-bnav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface-1);border-top:1px solid var(--border);z-index:1500;height:calc(64px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);align-items:stretch;box-shadow:0 -2px 12px rgba(0,0,0,0.06)}
+.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;color:var(--ink-2);font-size:11px;font-weight:500;cursor:pointer;font-family:inherit;touch-action:manipulation;position:relative;padding:8px 0;transition:transform .12s ease, background-color .15s ease, color .15s ease}
+.bnav-btn .bnav-icon{font-size:24px}
+.bnav-btn:not(:last-child)::after{content:'';position:absolute;right:0;top:18%;bottom:18%;width:1px;background:var(--border)}
+.bnav-btn:active{background:rgba(255,56,92,0.1);transform:scale(0.94)}
+.bnav-btn.active{color:var(--red);font-weight:700;background:rgba(255,56,92,0.07)}
+.bnav-btn.active .bnav-icon{font-size:26px}
+.bnav-btn.active::before{content:'';position:absolute;top:0;left:25%;right:25%;height:3px;background:var(--red);border-radius:0 0 3px 3px}
+.bnav-icon{font-size:18px;line-height:1.1}
+
+@media(max-width:768px){
+  #hbg{display:flex}
+  #header{min-height:52px;padding:0 10px;gap:8px}
+  .hdr-stat{display:none}
+  #hdr-map-type{display:none}
+  #sidebar{
+    position:fixed;top:auto;bottom:calc(52px + env(safe-area-inset-bottom));left:0;right:0;
+    width:100%!important;height:78vh;
+    border-left:none;
+    transform:translateY(100%);
+    border-radius:18px 18px 0 0;
+    box-shadow:0 -4px 24px rgba(0,0,0,.12);
+    transition:transform .35s cubic-bezier(0.32,0.72,0,1);
+  }
+  #sidebar.open{transform:translateY(0)}
+  #hdr-search-wrap{display:none}
+  #city-select{display:none}
+  .park-item{padding:12px 16px;touch-action:manipulation}
+  #parks-bnav{display:flex}
+  .bnav-btn{font-size:10px;padding:5px 0;touch-action:manipulation}
+  .bnav-icon{font-size:22px;line-height:1.1}
+  button{touch-action:manipulation}
+  #sidebar-search-wrap{display:flex}
+}
+
+/* ── BOTTOM SHEET HANDLE ── */
+.bs-handle{width:36px;height:4px;background:var(--border-2);border-radius:2px;margin:10px auto 2px;cursor:pointer;flex-shrink:0}
+
+/* ── SIDEBAR SEARCH (モバイル用) ── */
+/* モバイル専用 マップ上部 検索バー */
+#mobile-top-search{display:none}
+@media(max-width:768px){
+  #mobile-top-search{display:flex;position:absolute;top:8px;left:10px;right:10px;background:var(--surface-1);border-radius:24px;box-shadow:0 3px 12px rgba(0,0,0,0.18),0 1px 3px rgba(0,0,0,0.08);padding:9px 14px;align-items:center;gap:8px;z-index:500;max-width:520px;margin:0 auto}
+  #mobile-top-search .mts-icon{color:var(--ink-3);flex-shrink:0}
+  #mobile-top-search input{flex:1;border:none;outline:none;background:none;font-size:14px;font-family:inherit;color:var(--ink);min-width:0}
+  #mobile-top-search input::placeholder{color:var(--ink-3)}
+  #mobile-top-search input:focus{outline:none}
+  #mobile-top-search button.mts-clear{display:none;background:var(--surface-2);border:none;color:var(--ink-2);width:22px;height:22px;border-radius:50%;cursor:pointer;font-size:14px;padding:0;align-items:center;justify-content:center;flex-shrink:0}
+  #mobile-top-search button.mts-clear.show{display:flex}
+}
+#sidebar-search-wrap{display:none;padding:8px 14px;border-bottom:1px solid var(--border);position:relative;align-items:center;gap:6px}
+#sidebar-search-input{flex:1;padding:8px 28px 8px 10px;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);color:var(--ink);font-size:13px;font-family:inherit;outline:none;transition:.2s}
+#sidebar-search-input:focus{border-color:var(--action);box-shadow:0 0 0 2px rgba(26,86,219,0.1)}
+#sidebar-search-input::placeholder{color:var(--ink-3)}
+#sidebar-search-clear{position:absolute;right:20px;background:none;border:none;color:var(--ink-3);cursor:pointer;font-size:14px;display:none;padding:0;line-height:1}
+#sidebar-search-clear.show{display:block}
+
+/* ── MAP ACTION BUTTONS ── */
+.mab{display:flex;align-items:center;gap:8px;padding:7px 14px 7px 10px;background:rgba(255,255,255,.96);border:1.5px solid var(--border);border-radius:8px;color:var(--ink-2);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;white-space:nowrap;backdrop-filter:blur(8px);box-shadow:var(--shadow-card);transition:.15s;text-align:left}
+.mab:hover{border-color:var(--ink);box-shadow:var(--shadow-hover);color:var(--ink)}
+.mab-icon{font-size:15px;flex-shrink:0;line-height:1}
+.mab-label{line-height:1}
+/* 公園報告ボタン: アクセントカラー */
+#pbtn-report{background:#1b2842;color:#f8f2e6;border-color:#1b2842}
+#pbtn-report:hover{background:#c8202e;border-color:#c8202e;color:#fff}
+#pbtn-report .mab-icon{color:#f8f2e6}
+#pbtn-report.active{background:#c8202e;border-color:#c8202e}
+/* 公園報告モード案内バナー */
+#park-report-banner{display:none;position:fixed;top:calc(40px + 46px + 12px);left:50%;transform:translateX(-50%);z-index:1200;background:#1b2842;color:#fff;padding:10px 16px;border-radius:24px;font-size:13px;font-weight:600;box-shadow:0 4px 16px rgba(27,40,66,0.3);max-width:90%;text-align:center;border:2px solid #c8202e}
+#park-report-banner.show{display:block;animation:prb-pop .3s cubic-bezier(0.32,0.72,0,1) both}
+@keyframes prb-pop{from{opacity:0;transform:translateX(-50%) translateY(-8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+/* 報告モード中はマップカーソルを十字に */
+#map.report-mode{cursor:crosshair !important}
+#pbtn-catchball.active{background:var(--green)!important;border-color:var(--green)!important;color:#fff!important}
+@media(max-width:768px){#park-action-btns{display:none!important}#park-map-type-bar{display:none!important}}
+
+/* ── GOOGLE MAPS INFO WINDOW ── */
+.gm-style .gm-style-iw-c{border-radius:6px!important;box-shadow:rgba(50,50,93,0.2) 0 14px 28px -14px,rgba(0,0,0,0.1) 0 8px 16px -8px!important;padding:0!important}
+.gm-style .gm-style-iw-d{overflow:hidden!important}
+.gm-style .gm-style-iw-t::after{display:none}
+/* Google Maps ズームコントロール: 確実に表示・操作可能にする */
+.gm-bundled-control,
+.gm-bundled-control-on-bottom{z-index:500 !important;visibility:visible !important;opacity:1 !important;pointer-events:auto !important}
+
+/* ── IMPROVED PARK LIST ITEMS ── */
+.park-item{
+  display:flex;flex-direction:column;gap:3px;
+  padding:11px 14px 11px 16px;
+  border-bottom:1px solid var(--border);
+  cursor:pointer;transition:background .12s;
+  border-left:3px solid transparent;
+}
+.park-item:hover{background:var(--surface-2)}
+.park-item.cb-yes{border-left-color:var(--green)}
+.park-item.cb-no{border-left-color:var(--red)}
+.park-item.cb-unknown{border-left-color:var(--orange)}
+.park-item-top{display:flex;align-items:flex-start;justify-content:space-between;gap:6px}
+.park-item-name{font-size:13px;font-weight:600;color:var(--ink);letter-spacing:-.1px;flex:1}
+.park-item-meta{display:flex;align-items:center;gap:6px;margin-top:2px}
+.park-item-addr{font-size:11px;color:var(--ink-3)}
+.park-item-badge{display:inline-flex;align-items:center;gap:2px;padding:2px 8px;border-radius:14px;font-size:10px;font-weight:600;flex-shrink:0}
+.park-item-badge.catchball{background:var(--green-dim);color:var(--green)}
+.park-item-badge.no-catchball{background:rgba(255,56,92,0.1);color:var(--red)}
+.park-item-badge.unknown-catchball{background:var(--orange-dim);color:var(--orange)}
+.park-item-dist{font-size:10px;color:var(--ink-3);flex-shrink:0}
+
+/* ── LOADING OVERLAY ── */
+#loading-overlay{position:fixed;inset:0;z-index:9999;background:linear-gradient(180deg,var(--surface-1) 0%,#fff5f7 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .4s}
+#loading-overlay.fade-out{opacity:0;pointer-events:none}
+#loading-overlay.hidden{display:none}
+.loading-brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;color:var(--red);margin-bottom:6px}
+.loading-brand .msi{font-size:22px;color:var(--red)}
+.loading-ball{width:44px;height:44px;border:3px solid #fcdce3;border-top-color:var(--red);border-right-color:var(--red);border-radius:50%;animation:spin .9s cubic-bezier(0.45,0,0.55,1) infinite}
+.loading-text{color:var(--ink-2);font-size:14px;font-weight:600;letter-spacing:.02em}
+.loading-text::after{content:'';display:inline-block;width:1.6em;text-align:left;animation:dots 1.4s steps(4,end) infinite}
+@keyframes dots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}
+.loading-sub{color:var(--ink-3);font-size:11px;animation:ld-pulse 1.6s ease-in-out infinite}
+@keyframes ld-pulse{0%,100%{opacity:.5}50%{opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── SEARCH INPUT (index.html 統一) ── */
+#hdr-search-input:focus{border-color:var(--ink);width:220px;box-shadow:0 0 0 2px rgba(34,34,34,0.08);background:var(--surface-1)}
