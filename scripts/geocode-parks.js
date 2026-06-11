@@ -17,7 +17,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const DATA_PATH = path.resolve(__dirname, '..', 'parks-data.js');
+const DATA_PATH = path.resolve(__dirname, '..', 'data', 'parks-data.js');
 const SAITAMA_BOUNDS = { latMin: 35.6, latMax: 36.4, lngMin: 138.8, lngMax: 140.1 };
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }

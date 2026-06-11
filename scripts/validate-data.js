@@ -51,7 +51,7 @@ function inBounds(lat, lng) {
 
 // ─── 公園データ検証 ───
 function validateParks() {
-  const parks = loadDataFile('parks-data.js', 'parkData');
+  const parks = loadDataFile('data/parks-data.js', 'parkData');
   if (!parks) return;
   if (!Array.isArray(parks)) { errors.push('parkData が配列ではありません'); return; }
 
@@ -87,7 +87,7 @@ function validateParks() {
 
 // ─── チームデータ検証 ───
 function validateTeams() {
-  const teams = loadDataFile('teams-data.js', 'TEAM_DATA_RAW');
+  const teams = loadDataFile('data/teams-data.js', 'TEAM_DATA_RAW');
   if (!teams) return;
   if (!Array.isArray(teams)) { errors.push('TEAM_DATA_RAW が配列ではありません'); return; }
 
