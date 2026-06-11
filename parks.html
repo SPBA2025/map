@@ -239,16 +239,6 @@ input:focus-visible{outline-offset:0}
 #sidebar-collapse-btn.collapsed{right:0}
 #sidebar-collapse-btn.collapsed .msi{transform:rotate(180deg)}
 @media (max-width:768px){#sidebar-collapse-btn{display:none}}
-/* フローティング凡例（公園マップ：catchball判定） */
-/* フローティング凡例（ユーザー要望で非表示） */
-#float-legend{display:none !important}
-#sidebar.pc-collapsed ~ #float-legend{display:none !important}
-#float-legend .fl-title{font-size:10px;font-weight:700;color:#1b2842;margin-bottom:6px;display:flex;align-items:center;gap:4px}
-#float-legend .fl-title::before{content:"▍";color:#c8202e}
-#float-legend .fl-row{display:flex;align-items:center;gap:6px;font-size:10px;color:#1b2842;line-height:1.5}
-#float-legend .fl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-#float-legend .fl-update{margin-top:6px;padding-top:6px;border-top:1px dashed rgba(27,40,66,0.15);font-size:9px;color:#5a6c8c;text-align:right;font-weight:600;letter-spacing:.04em}
-@media (max-width:768px){#float-legend{display:none}}
 #sidebar::-webkit-scrollbar{width:4px}
 #sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 .s-section{padding:14px 16px;border-bottom:1px solid var(--border)}
@@ -861,14 +851,6 @@ input:focus-visible{outline-offset:0}
   <button id="sidebar-collapse-btn" type="button" onclick="window.toggleSidebarPC && window.toggleSidebarPC()" aria-label="サイドバーを折りたたむ" title="サイドバーを折りたたむ / 展開">
     <span class="msi">chevron_right</span>
   </button>
-  <!-- フローティング凡例（サイドバー折りたたみ時のみ表示） -->
-  <div id="float-legend" aria-label="凡例">
-    <div class="fl-title">キャッチボール</div>
-    <div class="fl-row"><div class="fl-dot" style="background:#00a854"></div>可</div>
-    <div class="fl-row"><div class="fl-dot" style="background:#ff385c"></div>不可・条件付き</div>
-    <div class="fl-row"><div class="fl-dot" style="background:#c45500"></div>不明</div>
-    <div class="fl-update" id="fl-park-count" title="登録公園数（情報提供で更新）">— 件登録</div>
-  </div>
 </div>
 
 <!-- PARK DETAIL MODAL -->
@@ -938,11 +920,6 @@ function isInSaitama(lat, lng) {
 
 /* parks-data.js をインデックス化 */
 parkData.forEach(p => { curated[p.name] = p; });
-// フローティング凡例の登録公園数を更新
-(function updateParkCount() {
-  const el = document.getElementById('fl-park-count');
-  if (el && Array.isArray(parkData)) el.textContent = parkData.length + ' 件登録';
-})();
 
 /* ═══════════════════════════════════════════════
    MAP INIT（ネイティブ Google Maps）
@@ -1271,11 +1248,7 @@ async function showParkModal(park) {
   renderModalContent(park, initToilet, initParking);
   setupModalLinks(park);
 
-  // 課金対策: Places API (New) でのトイレ・駐車場補完は無効化
-  // （静的データの place_id は 'static-N' で実在しないため呼んでも無駄。
-  //  実在 place_id でも 1リクエストあたり課金されるため停止）
-  // 元コード:
-  //   const res = await fetch(`https://places.googleapis.com/v1/places/${park.place_id}?...`);
+  // 注意: Places API 系は課金されるため、このマップでは使用禁止（docs/REFACTORING_PLAN.md 参照）
 }
 
 function setupModalLinks(park) {
