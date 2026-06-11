@@ -1,0 +1,39 @@
+/* ═══ デザイントークン（両マップ共通） ═══
+   SPBA ブランド色・基本サーフェス/インク・影・z-index スケール。
+   マップ固有のアクセント色（team の --elem 等 / parks の --red 等）は
+   各 css/team-map.css / css/parks-map.css の :root に残す。 */
+:root{
+  /* SPBA ブランドカラー */
+  --spba-cream:#f8f2e6;
+  --spba-navy:#1b2842;
+  --spba-red:#c8202e;
+  --spba-orange:#f1a41d;
+  --spba-gray:#bcb9af;
+  /* サーフェス / インク / ボーダー */
+  --surface:#f7f7f7;
+  --surface-1:#ffffff;
+  --surface-2:#f2f2f2;
+  --border:#dddddd;
+  --ink:#222222;
+  --ink-2:#3f3f3f;
+  --ink-3:#5a5a5a;
+  /* 状態色 */
+  --action:#1a56db;
+  --action-h:#1648c0;
+  --caution:#c45500;
+  --green:#00a854;
+  /* 影 */
+  --shadow-card:rgba(0,0,0,0.02) 0px 0px 0px 1px,rgba(0,0,0,0.04) 0px 2px 6px,rgba(0,0,0,0.1) 0px 4px 8px;
+  --shadow-hover:rgba(0,0,0,0.08) 0px 4px 12px;
+  /* z-index スケール（重なり順の単一の出典） */
+  --z-map:1;
+  --z-float:500;
+  --z-map-ctrl:900;
+  --z-header:1100;
+  --z-collapse:1500;
+  --z-panel:2000;
+  --z-modal:3000;
+  --z-nav:5000;
+  --z-toast:9000;
+  --z-overlay:9999;
+}
