@@ -34,6 +34,11 @@ window.APP_CONFIG = {
   // チーム名欄の entry ID は 1520807350（マップポップアップから自動入力される）
   TEAM_INFO_FORM_URL: 'https://docs.google.com/forms/d/e/1FAIpQLSd92jK-e9g52C5ux9Q1a_LMUePVJljIua9HBpP1NwePEOr3Iw/viewform',
 
+  // 公園情報の修正・提供用Googleフォーム（公園詳細モーダルから開く）
+  // 公園名欄の entry ID は 837577971（公園名が自動入力される）
+  PARK_INFO_FORM_URL: 'https://docs.google.com/forms/d/e/1FAIpQLSdwOG0eAVXRFkIsgplkszA45sMHCYYf3NwseniMI5iP2jG2yw/viewform',
+  PARK_INFO_ENTRY_NAME: 'entry.837577971',
+
   // 新規公園報告用Googleフォーム（地図タップで座標プリフィル）
   // 未設定時は座標をクリップボードコピーして案内する
   // 設定例:

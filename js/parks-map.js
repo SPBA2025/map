@@ -393,9 +393,13 @@ function setupModalLinks(park) {
   } else {
     linkBtn.style.display = 'none';
   }
-  const FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSdwOG0eAVXRFkIsgplkszA45sMHCYYf3NwseniMI5iP2jG2yw/viewform';
+  const cfg = window.APP_CONFIG || {};
+  const FORM_URL = cfg.PARK_INFO_FORM_URL || '';
+  const NAME_ENTRY = cfg.PARK_INFO_ENTRY_NAME || 'entry.837577971';
   const reportLink = document.getElementById('modal-report-link');
-  reportLink.href = `${FORM_URL}?usp=pp_url&entry.837577971=${encodeURIComponent(park.name)}`;
+  reportLink.href = FORM_URL
+    ? `${FORM_URL}?usp=pp_url&${NAME_ENTRY}=${encodeURIComponent(park.name)}`
+    : (cfg.CONTACT_URL || 'https://www.saitamabaseball.com/contact-8');
   // 情報修正ボタンクリックでアナリティクスイベントを発火
   reportLink.onclick = function() {
     if (window.Analytics) window.Analytics.infoMissingReport('park:' + park.name, 'park_report_form');
