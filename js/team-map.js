@@ -690,6 +690,7 @@ window.initMap = function() {
     else{removeBubble();hidePopupLayer();updateChoro();} // 'plain'（既定）と 'choro' は同じ描画経路（塗りスタイルのみ切替）
     // 凡例の動的最大値更新（choroが計算した後に呼ぶ）
     updateLegend();
+    _updateLegendVisibility(); // currentView/indexに応じて凡例の表示/非表示を同期（初期表示も含む）
     updateHeaderBadges();
   }
   update();
