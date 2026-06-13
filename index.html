@@ -106,7 +106,7 @@
 </script>
 <link rel="stylesheet" href="css/tokens.css?v=20260612">
 <link rel="stylesheet" href="css/common.css?v=20260613b">
-<link rel="stylesheet" href="css/team-map.css?v=20260613b">
+<link rel="stylesheet" href="css/team-map.css?v=20260613c">
 </head>
 <body data-page="team">
 <!-- SITE HEADER (協議会戻り動線) -->
@@ -391,6 +391,17 @@
     <span class="msi">chevron_right</span>
     <span class="collapse-badge" id="collapse-badge" aria-hidden="true"></span>
   </button>
+  <!-- U2: サイドバー折りたたみ時に凡例を参照するトグル（PC専用） -->
+  <button id="legend-fab" type="button" onclick="window.toggleLegendPop && window.toggleLegendPop()" aria-label="凡例を表示" aria-expanded="false" title="凡例">
+    <span class="msi">palette</span><span class="legend-fab-text">凡例</span>
+  </button>
+  <div id="legend-pop" role="dialog" aria-label="凡例" aria-hidden="true">
+    <div class="legend-pop-head">
+      <span class="legend-pop-title">凡例</span>
+      <button class="legend-pop-x" type="button" onclick="window.toggleLegendPop()" aria-label="凡例を閉じる"><span class="msi">close</span></button>
+    </div>
+    <div class="legend-pop-body" id="legend-pop-body"></div>
+  </div>
   <!-- バックドロップ -->
   <div id="backdrop" onclick="closeSidebar()"></div>
 </div><!-- /app -->
@@ -505,7 +516,7 @@
 <!-- 境界 GeoJSON（市町村 / さいたま市の区） -->
 <script src="data/geo-cities.js?v=20260612"></script>
 <script src="data/geo-wards.js?v=20260612"></script>
-<script src="js/team-map.js?v=20260613"></script>
+<script src="js/team-map.js?v=20260613c"></script>
 
 <!-- SITE FOOTER -->
 <footer id="site-footer" role="contentinfo">

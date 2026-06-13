@@ -103,6 +103,23 @@ input:focus-visible{outline-offset:0}
 /* U4: 折りたたみ中に絞込が効いていることを示す件数バッジ */
 #sidebar-collapse-btn .collapse-badge{position:absolute;top:-7px;left:-7px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:var(--danger);color:#fff;font-size:10px;font-weight:700;line-height:17px;text-align:center;display:none;box-shadow:0 1px 4px rgba(0,0,0,0.3)}
 #sidebar-collapse-btn .collapse-badge.show{display:block}
+/* U2: 折りたたみ時の凡例トグル（PC専用。JSで折りたたみ中のみ表示） */
+#legend-fab{position:fixed;right:16px;bottom:24px;z-index:900;display:none;align-items:center;gap:6px;background:var(--spba-navy);color:var(--spba-cream);border:none;border-radius:999px;padding:9px 14px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;box-shadow:0 2px 10px rgba(27,40,66,0.25);transition:background-color .15s,transform .12s}
+#legend-fab:hover{background:var(--spba-red)}
+#legend-fab:active{transform:scale(0.96)}
+#legend-fab .msi{font-size:18px}
+#legend-pop{position:fixed;right:16px;bottom:70px;width:232px;max-height:60vh;overflow-y:auto;background:var(--surface-1);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-card);z-index:901;display:none}
+#legend-pop.show{display:block}
+#legend-pop .legend-pop-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface-1);border-radius:12px 12px 0 0}
+#legend-pop .legend-pop-title{font-size:12px;font-weight:700;color:var(--ink)}
+#legend-pop .legend-pop-x{background:none;border:none;cursor:pointer;color:var(--ink-3);display:flex;padding:2px;border-radius:4px}
+#legend-pop .legend-pop-x:hover{color:var(--ink);background:var(--surface-2)}
+#legend-pop .legend-pop-x .msi{font-size:16px}
+#legend-pop .legend-pop-body{padding:10px 12px}
+#legend-pop .legend-pop-body .leg-section{margin-bottom:12px}
+#legend-pop .legend-pop-body .leg-section:last-child{margin-bottom:0}
+/* モバイルは絞込ドロワーから凡例を参照するためFAB非表示 */
+@media (max-width:768px){#legend-fab,#legend-pop{display:none!important}}
 @media (max-width:768px){#sidebar-collapse-btn{display:none}}
 .s-section{padding:14px 16px;border-bottom:1px solid var(--border)}
 .s-title{font-size:11px;font-weight:700;color:var(--ink);letter-spacing:.01em;margin-bottom:10px}

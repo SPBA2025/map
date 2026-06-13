@@ -3136,10 +3136,45 @@ window.initMap = function() {
     }
     try { localStorage.setItem(PC_COLLAPSE_KEY, collapsed ? '1' : '0'); } catch(e) {}
     updateFilterBadge();
+    _syncLegendFab(collapsed);
     // Google Maps にサイズ変更を通知
     setTimeout(() => {
       try { google.maps.event.trigger(map, 'resize'); } catch(e) {}
     }, 320);
+  };
+  // U2: 折りたたみ時のみ凡例FABを表示。展開時はポップを閉じる
+  function _syncLegendFab(collapsed) {
+    const fab = document.getElementById('legend-fab');
+    if (fab) fab.style.display = (collapsed && !isMobile()) ? 'inline-flex' : 'none';
+    if (!collapsed) {
+      const pop = document.getElementById('legend-pop');
+      if (pop) { pop.classList.remove('show'); pop.setAttribute('aria-hidden', 'true'); }
+      if (fab) fab.setAttribute('aria-expanded', 'false');
+    }
+  }
+  // U2: 凡例ポップオーバー（現在サイドバーに表示中の凡例セクションを複製して表示）
+  window.toggleLegendPop = function() {
+    const pop = document.getElementById('legend-pop');
+    const fab = document.getElementById('legend-fab');
+    if (!pop) return;
+    const open = !pop.classList.contains('show');
+    if (open) {
+      const body = document.getElementById('legend-pop-body');
+      if (body) {
+        body.innerHTML = '';
+        document.querySelectorAll('#sidebar .leg-section').forEach(sec => {
+          if (getComputedStyle(sec).display === 'none') return;
+          const clone = sec.cloneNode(true);
+          clone.removeAttribute('id');
+          clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+          body.appendChild(clone);
+        });
+        if (!body.children.length) body.innerHTML = '<div style="font-size:11px;color:var(--ink-3)">表示中の凡例はありません</div>';
+      }
+    }
+    pop.classList.toggle('show', open);
+    pop.setAttribute('aria-hidden', open ? 'false' : 'true');
+    if (fab) fab.setAttribute('aria-expanded', open ? 'true' : 'false');
   };
   // 初期状態を復元（PC のみ）
   try {
@@ -3151,6 +3186,7 @@ window.initMap = function() {
         btn.setAttribute('aria-label', 'サイドバーを開く');
         btn.setAttribute('title', 'サイドバーを開く');
       }
+      _syncLegendFab(true);
     }
   } catch(e) {}
 
