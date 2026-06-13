@@ -2029,6 +2029,7 @@ window.initMap = function() {
     _drawPinsByZoom(map.getZoom());
     document.getElementById('team-count').textContent=`少年野球ピン: ${pinFiltered.length}件表示中`;
     updateBnavBadge(pinFiltered.length);
+    updateFilterBadge();
     // ヘッダー統計更新（ピン数）
     document.getElementById('hdr-teams').textContent = pinFiltered.length.toLocaleString();
   };
@@ -3085,6 +3086,31 @@ window.initMap = function() {
     const el = document.getElementById('bnav-badge');
     if (el) el.textContent = n;
   }
+  // 適用中の絞込数（市区町村 / キーワード / 性別）
+  function _activeFilterCount() {
+    let n = 0;
+    if (selectedCity) n++;
+    const kw = (document.getElementById('team-search') || {}).value || '';
+    if (kw.trim()) n++;
+    if (currentGender !== 'all') n++;
+    return n;
+  }
+  // U4: サイドバー折りたたみ中/モバイルで絞込が見えなくなる問題対策。
+  // 再展開導線（PC=折りたたみボタン / モバイル=絞込ボタン）に件数バッジを出す。
+  function updateFilterBadge() {
+    const n = _activeFilterCount();
+    const cBadge = document.getElementById('collapse-badge');
+    if (cBadge) {
+      const collapsed = sidebar.classList.contains('pc-collapsed');
+      if (n > 0 && collapsed) { cBadge.textContent = n; cBadge.classList.add('show'); }
+      else cBadge.classList.remove('show');
+    }
+    const fBadge = document.getElementById('bnav-filter-badge');
+    if (fBadge) {
+      if (n > 0) { fBadge.textContent = n; fBadge.classList.add('show'); }
+      else fBadge.classList.remove('show');
+    }
+  }
   window.toggleSidebar=function(){
     if(!isMobile()) return;
     const open=!sidebar.classList.contains('hidden');
@@ -3109,6 +3135,7 @@ window.initMap = function() {
       btn.setAttribute('title', collapsed ? 'サイドバーを開く' : 'サイドバーを閉じる');
     }
     try { localStorage.setItem(PC_COLLAPSE_KEY, collapsed ? '1' : '0'); } catch(e) {}
+    updateFilterBadge();
     // Google Maps にサイズ変更を通知
     setTimeout(() => {
       try { google.maps.event.trigger(map, 'resize'); } catch(e) {}

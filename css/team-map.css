@@ -100,6 +100,9 @@ input:focus-visible{outline-offset:0}
 #sidebar-collapse-btn .msi{font-size:18px;transition:transform .3s}
 #sidebar-collapse-btn.collapsed{right:0}
 #sidebar-collapse-btn.collapsed .msi{transform:rotate(180deg)}
+/* U4: 折りたたみ中に絞込が効いていることを示す件数バッジ */
+#sidebar-collapse-btn .collapse-badge{position:absolute;top:-7px;left:-7px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:var(--danger);color:#fff;font-size:10px;font-weight:700;line-height:17px;text-align:center;display:none;box-shadow:0 1px 4px rgba(0,0,0,0.3)}
+#sidebar-collapse-btn .collapse-badge.show{display:block}
 @media (max-width:768px){#sidebar-collapse-btn{display:none}}
 .s-section{padding:14px 16px;border-bottom:1px solid var(--border)}
 .s-title{font-size:11px;font-weight:700;color:var(--ink);letter-spacing:.01em;margin-bottom:10px}

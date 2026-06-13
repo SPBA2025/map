@@ -106,7 +106,7 @@
 </script>
 <link rel="stylesheet" href="css/tokens.css?v=20260612">
 <link rel="stylesheet" href="css/common.css?v=20260613b">
-<link rel="stylesheet" href="css/team-map.css?v=20260613">
+<link rel="stylesheet" href="css/team-map.css?v=20260613b">
 </head>
 <body data-page="team">
 <!-- SITE HEADER (協議会戻り動線) -->
@@ -389,6 +389,7 @@
   <!-- サイドバー折りたたみトグル（PC専用） -->
   <button id="sidebar-collapse-btn" type="button" onclick="window.toggleSidebarPC && window.toggleSidebarPC()" aria-label="サイドバーを折りたたむ" title="サイドバーを折りたたむ / 展開">
     <span class="msi">chevron_right</span>
+    <span class="collapse-badge" id="collapse-badge" aria-hidden="true"></span>
   </button>
   <!-- バックドロップ -->
   <div id="backdrop" onclick="closeSidebar()"></div>
@@ -489,9 +490,10 @@
     <span>チーム</span>
     <span class="bnav-badge" id="bnav-badge"></span>
   </button>
-  <button class="bnav-btn" onclick="toggleSidebar()">
+  <button class="bnav-btn" id="bnav-filter" onclick="toggleSidebar()">
     <span class="bnav-icon msi">tune</span>
     <span>絞込</span>
+    <span class="bnav-badge" id="bnav-filter-badge" aria-hidden="true"></span>
   </button>
   <button class="bnav-btn" onclick="searchNearby()">
     <span class="bnav-icon msi">my_location</span>
@@ -503,7 +505,7 @@
 <!-- 境界 GeoJSON（市町村 / さいたま市の区） -->
 <script src="data/geo-cities.js?v=20260612"></script>
 <script src="data/geo-wards.js?v=20260612"></script>
-<script src="js/team-map.js?v=20260612"></script>
+<script src="js/team-map.js?v=20260613"></script>
 
 <!-- SITE FOOTER -->
 <footer id="site-footer" role="contentinfo">
