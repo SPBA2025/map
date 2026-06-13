@@ -518,8 +518,9 @@ window.initMap = function() {
       if(areaFilterActive && d.lat && d.lng && !map.getBounds().contains(new google.maps.LatLng(d.lat, d.lng)))
         return {fillColor:'#e8eef4',strokeColor:'#e0e0de',strokeWeight:0.5,fillOpacity:0.3};
       // シンプル表示：競技者数による濃淡をつけず薄い単色で塗る（境界＋チームピンのみ）
+      // 境界線は市区町村の区切りが分かるよう、はっきりした単色ネイビーで描く
       if(currentView==='plain')
-        return {fillColor:'#e9eef5',strokeColor:'rgba(27,40,66,0.28)',strokeWeight:0.8,fillOpacity:0.55};
+        return {fillColor:'#e8edf5',strokeColor:'#3d4f73',strokeWeight:1.3,fillOpacity:0.45};
       const dv = currentIndex==='rate' ? calcRate(d) : calcVal(d);
       const fc = currentIndex==='rate' ? choroColorRate(dv,_choroRateMaxCache) : choroColor(dv,_choroMaxCache);
       return {fillColor:fc,strokeColor:'rgba(255,255,255,0.6)',strokeWeight:1,fillOpacity:0.85};
