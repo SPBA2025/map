@@ -3101,7 +3101,10 @@ window.initMap = function() {
     const n = _activeFilterCount();
     const cBadge = document.getElementById('collapse-badge');
     if (cBadge) {
-      const collapsed = sidebar.classList.contains('pc-collapsed');
+      // 注意: 初期化中の renderTeamPins からも呼ばれるため、TDZ を避けて
+      // クロージャの sidebar const ではなく getElementById で参照する
+      const sb = document.getElementById('sidebar');
+      const collapsed = !!sb && sb.classList.contains('pc-collapsed');
       if (n > 0 && collapsed) { cBadge.textContent = n; cBadge.classList.add('show'); }
       else cBadge.classList.remove('show');
     }
