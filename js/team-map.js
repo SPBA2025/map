@@ -84,7 +84,7 @@ wardData.forEach(d=>cityMap[d.city]=d);
 const CATS = ['elem','jhs','hs','univ','club'];
 const CAT_JP = {elem:'小学生',jhs:'中学生',hs:'高校生',univ:'大学生',club:'企業・クラブ',independent:'独立'};
 // ── 状態 ────────────────────────────────────────────
-let currentView     = 'choro';
+let currentView     = 'plain';
 let currentIndex    = 'abs';
 let currentGender   = 'all';
 let activeCats      = new Set(['elem','jhs','hs','univ','club','independent']);
@@ -517,6 +517,9 @@ window.initMap = function() {
       if(!d || !activeRegions.has(d.region)) return {fillColor:'#f5f5f5',strokeColor:'#e0e0de',strokeWeight:0.8,fillOpacity:0.5};
       if(areaFilterActive && d.lat && d.lng && !map.getBounds().contains(new google.maps.LatLng(d.lat, d.lng)))
         return {fillColor:'#e8eef4',strokeColor:'#e0e0de',strokeWeight:0.5,fillOpacity:0.3};
+      // シンプル表示：競技者数による濃淡をつけず薄い単色で塗る（境界＋チームピンのみ）
+      if(currentView==='plain')
+        return {fillColor:'#e9eef5',strokeColor:'rgba(27,40,66,0.28)',strokeWeight:0.8,fillOpacity:0.55};
       const dv = currentIndex==='rate' ? calcRate(d) : calcVal(d);
       const fc = currentIndex==='rate' ? choroColorRate(dv,_choroRateMaxCache) : choroColor(dv,_choroMaxCache);
       return {fillColor:fc,strokeColor:'rgba(255,255,255,0.6)',strokeWeight:1,fillOpacity:0.85};
@@ -683,8 +686,8 @@ window.initMap = function() {
     // ranking
     updateRanking(data);
     // layers
-    if(currentView==='choro'){removeBubble();hidePopupLayer();updateChoro();}
-    else{removeChoro();updateBubble(data);showPopupLayer();}
+    if(currentView==='bubble'){removeChoro();updateBubble(data);showPopupLayer();}
+    else{removeBubble();hidePopupLayer();updateChoro();} // 'plain'（既定）と 'choro' は同じ描画経路（塗りスタイルのみ切替）
     // 凡例の動的最大値更新（choroが計算した後に呼ぶ）
     updateLegend();
     updateHeaderBadges();
@@ -1256,7 +1259,7 @@ window.initMap = function() {
         if (v && v !== defaultVal) params.set(k, v);
         else params.delete(k);
       };
-      setOrDelete('view',   state.view,   'choro');
+      setOrDelete('view',   state.view,   'plain');
       setOrDelete('idx',    state.idx,    'abs');
       setOrDelete('gender', state.gender, 'all');
       setOrDelete('city',   state.city,   '');
@@ -1354,8 +1357,10 @@ window.initMap = function() {
   };
   function _updateLegendVisibility(){
     const isRate  = currentIndex==='rate';
-    document.getElementById('leg-choro').style.display = (!isRate) ? '' : 'none';
-    document.getElementById('leg-rate').style.display  = ( isRate) ? '' : 'none';
+    const isPlain = currentView==='plain';
+    // シンプル表示は濃淡なし → 競技者数/参加率の凡例は隠す
+    document.getElementById('leg-choro').style.display = (!isPlain && !isRate) ? '' : 'none';
+    document.getElementById('leg-rate').style.display  = (!isPlain &&  isRate) ? '' : 'none';
   }
   window.toggleCat=function(cat,btn){
     activeCats.has(cat)?activeCats.delete(cat):activeCats.add(cat);
@@ -3051,8 +3056,8 @@ window.initMap = function() {
   // ══════════════════════════════════════════
   // スマホ ボトムナビ制御
   // ══════════════════════════════════════════
-  const VIEW_LABELS = {choro:'色分け', bubble:'バブル'};
-  const VIEW_ORDER  = ['choro','bubble'];
+  const VIEW_LABELS = {plain:'シンプル', choro:'色分け', bubble:'バブル'};
+  const VIEW_ORDER  = ['plain','choro','bubble'];
   window.bnavToggleList = function() {
     const panel = document.getElementById('team-list-panel');
     const isOpen = panel.classList.contains('open');
