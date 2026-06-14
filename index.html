@@ -2,607 +2,167 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<link rel="icon" type="image/png" href="logo.png">
-  <link rel="canonical" href="https://map.saitamabaseball.com/">
-  <meta property="og:url" content="https://map.saitamabaseball.com/">
-  <meta property="og:title" content="埼玉県野球チームマップ">
-  <meta property="og:description" content="埼玉県63市町村・2,143チームの野球競技者データを地図で可視化。少年野球チーム検索、参加率ランキング、市区町村比較など。">
-  <meta property="og:image" content="https://map.saitamabaseball.com/og-image.png">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="埼玉県野球チームマップ">
-  <meta property="og:site_name" content="埼玉県野球協議会">
-  <meta property="og:type" content="website">
-  <meta property="og:locale" content="ja_JP">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="埼玉県野球チームマップ">
-  <meta name="twitter:description" content="埼玉県63市町村・2,143チームの野球競技者データを地図で可視化。">
-  <meta name="twitter:image" content="https://map.saitamabaseball.com/og-image.png">
-  <meta name="description" content="埼玉県63市町村・2,143チームの野球競技者データを地図で可視化。少年野球チーム検索、参加率ランキング、市区町村比較など。">
-  <meta name="keywords" content="埼玉県,野球,少年野球,中学野球,高校野球,女子野球,チーム,マップ,地図,競技人口,参加率,野球協議会">
-  <meta name="robots" content="index,follow">
-  <meta name="theme-color" content="#1b2842">
-  <!-- 構造化データ（Schema.org JSON-LD） -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "WebSite",
-        "@id": "https://map.saitamabaseball.com/#website",
-        "url": "https://map.saitamabaseball.com/",
-        "name": "埼玉県野球チームマップ",
-        "description": "埼玉県63市町村・2,143チームの野球競技者データを地図で可視化",
-        "publisher": { "@id": "https://map.saitamabaseball.com/#org" },
-        "inLanguage": "ja-JP"
-      },
-      {
-        "@type": "Organization",
-        "@id": "https://map.saitamabaseball.com/#org",
-        "name": "埼玉県野球協議会",
-        "url": "https://www.saitamabaseball.com/",
-        "areaServed": { "@type": "AdministrativeArea", "name": "埼玉県" }
-      },
-      {
-        "@type": "Dataset",
-        "name": "埼玉県野球競技者数（2025年度）",
-        "description": "埼玉県63市町村における野球競技者数（小学生・中学生・高校生・大学生・企業/クラブ）と男女別データ",
-        "creator": { "@id": "https://map.saitamabaseball.com/#org" },
-        "spatialCoverage": { "@type": "Place", "name": "埼玉県" },
-        "temporalCoverage": "2025",
-        "license": "https://www.saitamabaseball.com/",
-        "url": "https://map.saitamabaseball.com/"
-      }
-    ]
-  }
-  </script>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
-<title>埼玉県野球チームマップ | 埼玉県野球協議会</title>
-<!-- Material Symbols (Rounded, outlined / weight 400) -->
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="canonical" href="https://map.saitamabaseball.com/">
+<title>埼玉県野球マップ｜チームマップ・公園マップ | 埼玉県野球協議会</title>
+<meta name="description" content="埼玉県野球協議会の地図ポータル。市町村別の野球チーム・競技者数がわかる「チームマップ」と、キャッチボールができる公園を探せる「公園マップ」を選べます。">
+<meta name="robots" content="index,follow">
+<meta name="theme-color" content="#1b2842">
+<meta property="og:url" content="https://map.saitamabaseball.com/">
+<meta property="og:title" content="埼玉県野球マップ｜チームマップ・公園マップ">
+<meta property="og:description" content="市町村別の競技者数がわかる「チームマップ」と、キャッチボール可能な公園を探せる「公園マップ」。">
+<meta property="og:image" content="https://map.saitamabaseball.com/og-image.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="埼玉県野球協議会">
+<meta property="og:locale" content="ja_JP">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="埼玉県野球マップ｜チームマップ・公園マップ">
+<meta name="twitter:image" content="https://map.saitamabaseball.com/og-image.png">
+<!-- 構造化データ -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://map.saitamabaseball.com/#website",
+      "url": "https://map.saitamabaseball.com/",
+      "name": "埼玉県野球マップ",
+      "description": "埼玉県野球協議会の地図ポータル（チームマップ・公園マップ）",
+      "publisher": { "@id": "https://map.saitamabaseball.com/#org" },
+      "inLanguage": "ja-JP"
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://map.saitamabaseball.com/#org",
+      "name": "埼玉県野球協議会",
+      "url": "https://www.saitamabaseball.com/",
+      "areaServed": { "@type": "AdministrativeArea", "name": "埼玉県" }
+    },
+    {
+      "@type": "ItemList",
+      "itemListElement": [
+        { "@type": "SiteNavigationElement", "position": 1, "name": "チームマップ", "description": "市町村別の野球チーム・競技者数を地図で確認", "url": "https://map.saitamabaseball.com/team.html" },
+        { "@type": "SiteNavigationElement", "position": 2, "name": "公園マップ", "description": "キャッチボールができる公園を探す", "url": "https://map.saitamabaseball.com/parks.html" }
+      ]
+    }
+  ]
+}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&display=block">
-<!-- Google Maps + MarkerClusterer -->
-<script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
-<script>
-  const API_KEY = 'AIzaSyDwTAz9qqQPnbARWe_vd8Vo2LXgDygCyN0';
-  const GAS_URL = 'https://script.google.com/macros/s/AKfycbyBqycA_v8614sI_4vWtqniSlValz6q-3BtfF-5iXyCKTeB3oScXR4RcRNR7ZYbQjFi/exec';
-  // Google Maps コールバック: initMap がまだ定義されていない可能性があるため、
-  // DOMContentLoaded 後に安全に呼び出す
-  window.initMapCallback = function() {
-    if (typeof initMap === 'function') {
-      initMap();
-    } else if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', function() {
-        if (typeof initMap === 'function') initMap();
-        else console.error('initMap が DOMContentLoaded 後も未定義です');
-      });
-    } else {
-      console.error('initMap が未定義のまま Google Maps コールバックが発火しました');
-    }
-  };
-  const _s = document.createElement('script');
-  _s.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=marker&callback=initMapCallback&loading=async`;
-  _s.async = true;
-  document.head.appendChild(_s);
-
-  // ── iOS Safari クロム（下部URLバー・翻訳バー）対策 ──
-  // visualViewport で実際の表示領域を取得し、bnav 等を持ち上げる
-  (function() {
-    if (!window.visualViewport) return;
-    function adjust() {
-      const vp = window.visualViewport;
-      const offset = Math.max(0, window.innerHeight - vp.height - vp.offsetTop);
-      document.documentElement.style.setProperty('--safari-chrome-bottom', offset + 'px');
-    }
-    window.visualViewport.addEventListener('resize', adjust);
-    window.visualViewport.addEventListener('scroll', adjust);
-    window.addEventListener('orientationchange', () => setTimeout(adjust, 200));
-    // 初期 + 遅延（Safari の翻訳バー出現を捕捉）
-    adjust();
-    setTimeout(adjust, 500);
-    setTimeout(adjust, 1500);
-  })();
-</script>
 <link rel="stylesheet" href="css/tokens.css?v=20260612">
-<link rel="stylesheet" href="css/common.css?v=20260613b">
-<link rel="stylesheet" href="css/team-map.css?v=20260613c">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--spba-cream);color:var(--spba-navy);min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
+.msi{font-family:'Material Symbols Rounded';font-weight:400;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;white-space:nowrap;font-feature-settings:'liga';-webkit-font-smoothing:antialiased;display:inline-block;vertical-align:middle;user-select:none}
+a{color:inherit}
+*:focus{outline:none}
+a:focus-visible,button:focus-visible{outline:2px solid var(--spba-red);outline-offset:3px;border-radius:8px}
+/* ── header ── */
+.lp-header{display:flex;align-items:center;gap:10px;padding:14px 20px;background:rgba(255,255,255,0.45);border-bottom:1px solid rgba(27,40,66,0.1)}
+.lp-logo{width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid var(--spba-red);flex-shrink:0;background:var(--spba-navy)}
+.lp-brand{font-weight:700;font-size:15px;letter-spacing:.02em;white-space:nowrap}
+.lp-header-spacer{flex:1}
+.lp-back{text-decoration:none;font-size:13px;font-weight:500;display:inline-flex;align-items:center;gap:4px;padding:6px 10px;border-radius:8px;transition:background-color .15s,color .15s}
+.lp-back:hover{background:var(--spba-navy);color:var(--spba-cream)}
+.lp-back .msi{font-size:16px}
+/* ── main ── */
+.lp-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 20px}
+.lp-title{font-size:30px;font-weight:700;text-align:center;letter-spacing:.03em}
+.lp-sub{font-size:15px;opacity:.7;text-align:center;margin-top:8px;margin-bottom:32px}
+.lp-choices{display:grid;grid-template-columns:repeat(2,minmax(0,300px));gap:20px;width:100%;max-width:680px}
+.lp-card{display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px;background:#fff;border:1px solid rgba(27,40,66,0.1);border-radius:18px;padding:34px 26px;text-decoration:none;box-shadow:0 2px 10px rgba(27,40,66,0.06);transition:transform .18s cubic-bezier(.32,.72,0,1),box-shadow .18s,border-color .18s}
+.lp-card:hover{transform:translateY(-4px);box-shadow:0 12px 30px rgba(27,40,66,0.15)}
+.lp-card-icon{width:74px;height:74px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;box-shadow:0 3px 10px rgba(27,40,66,0.18)}
+.lp-card-icon .msi{font-size:38px;color:#fff}
+.lp-card.team .lp-card-icon{background:var(--spba-navy)}
+.lp-card.team:hover{border-color:var(--spba-navy)}
+.lp-card.parks .lp-card-icon{background:var(--spba-red)}
+.lp-card.parks:hover{border-color:var(--spba-red)}
+.lp-card-body{display:flex;flex-direction:column;gap:8px;align-items:center}
+.lp-card-title{font-size:21px;font-weight:700}
+.lp-card-desc{font-size:13px;line-height:1.75;opacity:.72;min-height:44px}
+.lp-card-cta{margin-top:2px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:4px}
+.lp-card.team .lp-card-cta{color:var(--spba-navy)}
+.lp-card.parks .lp-card-cta{color:var(--spba-red)}
+.lp-card-cta .msi{font-size:17px;transition:transform .18s}
+.lp-card:hover .lp-card-cta .msi{transform:translateX(3px)}
+/* ── footer ── */
+.lp-footer{padding:16px 20px;border-top:2px solid var(--spba-red);background:rgba(255,255,255,0.45);text-align:center;font-size:12px;color:rgba(27,40,66,0.7)}
+.lp-foot-links{display:flex;gap:16px;justify-content:center;margin-bottom:6px;flex-wrap:wrap}
+.lp-foot-links a{text-decoration:none;color:var(--spba-navy);opacity:.85}
+.lp-foot-links a:hover{opacity:1;color:var(--spba-red);text-decoration:underline;text-underline-offset:3px}
+@media(max-width:560px){
+  .lp-main{padding:32px 16px}
+  .lp-title{font-size:24px}
+  .lp-sub{margin-bottom:24px}
+  .lp-choices{grid-template-columns:1fr;max-width:380px;gap:14px}
+  .lp-card{flex-direction:row;text-align:left;padding:18px;gap:15px;align-items:center}
+  .lp-card-icon{width:54px;height:54px}
+  .lp-card-icon .msi{font-size:28px}
+  .lp-card-body{align-items:flex-start;flex:1}
+  .lp-card-desc{min-height:0}
+}
+</style>
 </head>
-<body data-page="team">
-<!-- SITE HEADER (協議会戻り動線) -->
-<header id="site-header" role="banner">
-  <a class="site-header-link" id="site-header-link" href="https://www.saitamabaseball.com" aria-label="埼玉県野球協議会のトップへ">
-    <span class="site-logo"><span class="msi">sports_baseball</span></span>
-    <span class="site-title">埼玉県野球協議会</span>
-  </a>
-  <span class="site-spacer"></span>
-  <a class="site-cross" id="site-cross" href="parks.html" aria-label="キャッチボールできる公園マップへ移動">
-    <span class="msi">park</span><span class="site-cross-text">公園マップ</span>
-  </a>
-  <a class="site-back" id="site-back" href="https://www.saitamabaseball.com" aria-label="協議会サイトに戻る">
-    <span class="msi">arrow_back</span><span class="site-back-text">協議会サイトへ</span>
+<body>
+<header class="lp-header">
+  <img class="lp-logo" src="logo.png" alt="">
+  <span class="lp-brand">埼玉県野球協議会</span>
+  <span class="lp-header-spacer"></span>
+  <a class="lp-back" id="lp-back" href="https://www.saitamabaseball.com" aria-label="協議会サイトに戻る">
+    <span class="msi">arrow_back</span>協議会サイトへ
   </a>
 </header>
 
-<!-- HEADER -->
-<a href="#map" class="skip-link" tabindex="1">地図にスキップ</a>
-<a href="#sidebar" class="skip-link" tabindex="2">メニューにスキップ</a>
+<main class="lp-main">
+  <h1 class="lp-title">埼玉県野球マップ</h1>
+  <p class="lp-sub">見たい地図を選んでください</p>
 
-<div id="tile-error-toast"><span class="msi" style="font-size:16px;vertical-align:-3px;margin-right:4px">public</span>地図タイルを読み込めませんでした</div>
-<div id="loading-overlay">
-  <div class="loading-brand"><span class="msi">sports_baseball</span>埼玉県野球協議会</div>
-  <div class="loading-ball"></div>
-  <div class="loading-text">読み込み中</div>
-  <div class="loading-sub">地図データを準備しています</div>
-</div>
-<div id="header">
-  <div id="hbg" onclick="toggleSidebar()" role="button" aria-label="メニューを開閉" tabindex="0"><span></span><span></span><span></span></div>
-  <div class="hdr-brand">
-    <div class="hdr-logo" style="display:inline-flex;align-items:center;gap:6px"><span class="msi" style="font-size:18px">groups</span>チームマップ</div>
-    <div class="hdr-sub">埼玉県内チーム・市町村別の野球競技者数を可視化</div>
-  </div>
-  <div class="hdr-stat">
-    <div class="hdr-kpi">
-      <div class="hdr-kpi-val" id="hdr-p">－</div>
-      <div class="hdr-kpi-lbl">競技人口</div>
-    </div>
-    <div class="hdr-kpi-sep"></div>
-    <div class="hdr-kpi">
-      <div class="hdr-kpi-val" id="hdr-city-count">63</div>
-      <div class="hdr-kpi-lbl" id="hdr-city-lbl">市町村</div>
-    </div>
-    <div class="hdr-kpi-sep"></div>
-    <div class="hdr-cats">
-      <span class="hdr-cat-badge cat-elem" id="hdr-cat-elem">547<span class="hdr-cat-lbl">小</span></span>
-      <span class="hdr-cat-badge cat-jhs"  id="hdr-cat-jhs">448<span class="hdr-cat-lbl">中</span></span>
-      <span class="hdr-cat-badge cat-hs"   id="hdr-cat-hs">174<span class="hdr-cat-lbl">高</span></span>
-      <span class="hdr-cat-badge cat-univ" id="hdr-cat-univ">8<span class="hdr-cat-lbl">大</span></span>
-      <span class="hdr-cat-badge cat-club" id="hdr-cat-club">965<span class="hdr-cat-lbl">企</span></span>
-      <span class="hdr-cat-badge cat-ind"  id="hdr-cat-ind">1<span class="hdr-cat-lbl">独</span></span>
-    </div>
-    <span id="hdr-teams" style="display:none"></span>
-  </div>
-  <!-- ヘッダー検索 -->
-  <div id="hdr-search-wrap">
-    <input type="text" id="hdr-search-input" placeholder="チーム名・住所で検索…" aria-label="チーム名・住所で検索" autocomplete="off"
-      oninput="window.onHdrSearch(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();window.hdrSearchEnter();}">
-    <button id="hdr-search-clear" onclick="window.clearHdrSearch()" title="クリア"><span class="msi" style="font-size:14px">close</span></button>
-    <div id="hdr-search-dropdown"></div>
-  </div>
-</div>
-<!-- APP -->
-<div id="app">
-  <div id="map-container" style="position:relative;flex:1;display:flex;">
-    <div id="map" style="flex:1;z-index:1;" role="application" aria-label="埼玉県野球チームマップ"></div>
-    <!-- スケルトンローディング（マップ初期化完了後にフェードアウト） -->
-    <div id="map-skeleton" aria-hidden="true">
-      <div class="sk-blocks">
-        <div class="sk-block sk-b1"></div>
-        <div class="sk-block sk-b2"></div>
-        <div class="sk-block sk-b3"></div>
-        <div class="sk-block sk-b4"></div>
-        <div class="sk-block sk-b5"></div>
-      </div>
-      <div class="sk-msg">
-        <div class="sk-spinner"></div>
-        <div class="sk-text">マップを準備しています…</div>
-      </div>
-    </div>
-    <!-- 地図タイプ切り替え -->
-    <div id="map-type-bar">
-      <button class="mtype-btn active" data-mtype="roadmap" onclick="window.setMapType('roadmap')">地図</button>
-      <button class="mtype-btn" data-mtype="satellite" onclick="window.setMapType('satellite')">航空写真</button>
-      <button class="mtype-btn" data-mtype="hybrid" onclick="window.setMapType('hybrid')">ハイブリッド</button>
-    </div>
-    <!-- 現在地タップモード案内 -->
-    <div id="loc-tap-banner">
-      <span class="msi" style="font-size:14px;vertical-align:-3px">touch_app</span> 地図をタップして現在地を設定してください
-      <small>位置情報の取得ができなかったため、地図上で位置を指定できます</small>
-      <div><button id="loc-tap-cancel" onclick="window.cancelTapMode()">キャンセル</button></div>
-    </div>
-    <!-- 地図アクションボタン（LEFT_TOP に map.controls で登録） -->
-    <div id="map-action-btns">
-      <button class="mab" id="btn-nearby" onclick="searchNearby()" aria-label="近くのチームを探す">
-        <span class="mab-icon msi">my_location</span><span class="mab-label">近くのチームを探す</span>
-      </button>
-      <button class="mab" id="btn-show-list" onclick="toggleTeamList()" aria-label="チームリストを開く">
-        <span class="mab-icon msi">list</span><span class="mab-label">チームリスト</span>
-      </button>
-      <button class="mab" id="btn-reset-view" onclick="window.resetMapView()" aria-label="全域を表示">
-        <span class="mab-icon msi">map</span><span class="mab-label">全域を表示</span>
-      </button>
-      <button class="mab" id="btn-area-filter" onclick="toggleAreaFilter()" aria-label="この範囲で絞込">
-        <span class="mab-icon msi">crop_free</span><span class="mab-label">この範囲で絞込</span>
-      </button>
-      <button class="mab" id="btn-area-filter-clear" onclick="clearAreaFilter()" aria-label="絞込を解除">
-        <span class="mab-icon msi">undo</span><span class="mab-label">絞込を解除</span>
-      </button>
-      <button class="mab" id="btn-share" onclick="window.shareCurrentView && window.shareCurrentView()" aria-label="現在の表示状態をリンク共有">
-        <span class="mab-icon msi">share</span><span class="mab-label">共有</span>
-      </button>
-    </div>
-  </div>
-  <!-- SIDEBAR -->
-  <div id="sidebar">
-    <div class="bs-handle" onclick="closeSidebar()" title="閉じる"></div>
-    <!-- 地図の種類（最上部に配置） -->
-    <div class="s-section" id="sidebar-maptype">
-      <div class="s-title">地図の種類</div>
-      <div style="display:flex;gap:4px;">
-        <button class="smtype-btn active" data-mtype="roadmap" onclick="window.setMapType('roadmap')">地図</button>
-        <button class="smtype-btn" data-mtype="satellite" onclick="window.setMapType('satellite')">航空写真</button>
-        <button class="smtype-btn" data-mtype="hybrid" onclick="window.setMapType('hybrid')">ハイブリッド</button>
-      </div>
-    </div>
-    <!-- 表示切替 -->
-    <div class="s-section">
-      <div class="s-title">表示スタイル</div>
-
-      <!-- ① 地図スタイル選択 -->
-      <div class="view-btns" style="margin-bottom:8px;">
-        <button class="vbtn on" id="btn-plain" onclick="setView('plain')">シンプル</button>
-        <button class="vbtn" id="btn-choro" onclick="setView('choro')">地域別</button>
-        <button class="vbtn" id="btn-bubble" onclick="setView('bubble')">バブル</button>
-      </div>
-
-      <!-- ② 指標選択 -->
-      <div class="ctrl-label" style="font-size:9px;color:#999;margin-bottom:3px;">指標</div>
-      <div class="idx-btns" style="margin-bottom:8px;">
-        <button class="ibtn on" id="idx-abs" onclick="setIndex('abs')">競技者数</button>
-        <button class="ibtn" id="idx-rate" onclick="setIndex('rate')" title="小学生カテゴリのみ対応">参加率<br><span style="font-size:8px;font-weight:400;opacity:0.85;">（小学生のみ）</span></button>
-      </div>
-
-      <!-- ③ 性別選択 -->
-      <div id="gender-wrap">
-        <div class="ctrl-label" style="font-size:9px;color:#999;margin-bottom:3px;">性別</div>
-        <div class="gender-btns">
-          <button class="gbtn on" id="gb-all" onclick="setGender('all')" aria-label="性別: 全体">全体</button>
-          <button class="gbtn" id="gb-male" onclick="setGender('male')" aria-label="性別: 男子">男子</button>
-          <button class="gbtn" id="gb-fem" onclick="setGender('female')" aria-label="性別: 女子">女子</button>
-        </div>
-      </div>
-
-      <div class="ward-row" style="margin-top:8px;">
-        <input type="checkbox" id="chk-ward" onchange="window.toggleWard(this.checked)">
-        <label for="chk-ward">さいたま市を区ごとに表示</label>
-      </div>
-    </div>
-    <!-- カテゴリ -->
-    <div class="s-section">
-      <div class="s-title">カテゴリ</div>
-      <div class="cat-btns">
-        <button class="cat-btn cb-elem on" onclick="toggleCat('elem',this)">小学生</button>
-        <button class="cat-btn cb-jhs on" onclick="toggleCat('jhs',this)">中学生</button>
-        <button class="cat-btn cb-hs on" onclick="toggleCat('hs',this)">高校生</button>
-        <button class="cat-btn cb-univ on" onclick="toggleCat('univ',this)">大学生</button>
-        <button class="cat-btn cb-club on" onclick="toggleCat('club',this)">企業・クラブ</button>
-        <button class="cat-btn cb-ind on" onclick="toggleCat('independent',this)">独立</button>
-      </div>
-    </div>
-    <!-- 地域 -->
-    <!-- 性別凡例（ピン表示時） -->
-    <div class="leg-section" id="leg-gender-pin">
-      <div class="leg-title">▍ピン色（性別）</div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">
-        <div style="display:flex;align-items:center;gap:4px;">
-          <div style="width:12px;height:12px;border-radius:50%;background:#3b82f6;"></div>
-          <span style="font-size:10px;color:#555;">男子</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:4px;">
-          <div style="width:12px;height:12px;border-radius:50%;background:#e0448a;"></div>
-          <span style="font-size:10px;color:#555;">女子</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:4px;">
-          <div style="width:12px;height:12px;border-radius:50%;background:#8844cc;"></div>
-          <span style="font-size:10px;color:#555;">混合</span>
-        </div>
-      </div>
-    </div>
-    <!-- 凡例 -->
-    <div class="leg-section" id="leg-choro">
-      <div class="leg-title">▍凡例（競技者数）</div>
-      <div style="width:100%;height:18px;border-radius:6px;background:linear-gradient(90deg,rgb(235,245,255),rgb(130,200,200),rgb(80,180,120),rgb(200,230,80),rgb(255,200,0),rgb(255,110,0),rgb(200,0,0));margin-bottom:4px"></div>
-      <div style="display:flex;justify-content:space-between;font-size:9px;color:#999"><span>少</span><span>多</span></div>
-    </div>
-    <div class="leg-section" id="leg-rate" style="display:none">
-      <div class="leg-title">▍凡例（参加率：小学生）</div>
-      <div style="width:100%;height:18px;border-radius:6px;background:linear-gradient(90deg,rgb(240,248,255),rgb(80,170,230),rgb(40,160,100),rgb(200,230,60),rgb(255,180,0),rgb(255,80,0),rgb(160,0,0));margin-bottom:4px"></div>
-      <div style="display:flex;justify-content:space-between;font-size:9px;color:#999"><span>低</span><span>高</span></div>
-      <div id="rate-note" style="display:none;font-size:9px;color:#999;margin-top:4px;line-height:1.6;">
-        <span class="msi" style="font-size:12px;vertical-align:-2px;color:#2563eb">push_pin</span> <strong style="color:#2563eb;">小学生</strong>カテゴリのみ対応<br>
-        小学生競技者数 ÷ 児童数（公立小学校在籍）<br>
-        <span style="color:#aaa;">出典：令和7年度埼玉県学校便覧</span>
-      </div>
-    </div>
-    <!-- チームフィルター -->
-    <div class="s-section">
-      <div class="s-title">チーム表示</div>
-      <div class="team-filter-row">
-        <input type="checkbox" id="chk-pins" checked onchange="window.togglePins(this.checked)">
-        <label for="chk-pins">少年野球チームのピンを表示（小学生のみ）</label>
-      </div>
-      <div class="search-wrap">
-        <input type="text" id="team-search" placeholder="チーム名・住所で検索..." oninput="onSearchInput()" onkeydown="if(event.key==='Enter'){event.preventDefault();onSearchInputJump();}">
-        <button id="search-clear" onclick="clearSearch()" title="検索をクリア"><span class="msi" style="font-size:14px">close</span></button>
-      </div>
-    </div>
-    <!-- 市町村絞り込み -->
-    <div class="s-section">
-      <div class="s-title" id="city-section-title">市町村絞り込み</div>
-      <div id="city-filter-bar">
-        <span id="city-filter-name"></span>
-        <span id="city-filter-count"></span>
-        <button class="cfbar-close" onclick="window.clearCityFilter()" aria-label="市町村絞込を解除"><span class="msi" style="font-size:14px" aria-hidden="true">close</span></button>
-      </div>
-      <select id="city-select" onchange="selectCityFilter(this.value)">
-        <option value="">── 市町村を選択 ──</option>
-      </select>
-    </div>
-    <!-- ランキング -->
-    <div class="s-section">
-      <div class="s-title" style="display:flex;align-items:center;justify-content:space-between;">
-        ランキング TOP10
-        <button onclick="window.openCmpModal()" style="font-size:10px;padding:2px 8px;background:#fff7ed;color:#d97706;border:1px solid #e5c9a0;border-radius:4px;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:3px"><span class="msi" style="font-size:12px">balance</span>市町村比較</button>
-      </div>
-      <div id="rank-cat-wrap">
-        <!-- カテゴリ選択（プルダウン） -->
-        <select id="rank-cat-select" onchange="_onRankCatChange(this.value)" style="width:100%;margin-bottom:5px;font-size:11px;padding:3px 4px;border:1px solid #e0e0de;border-radius:4px;color:#555;background:#f8f8f6;">
-          <option value="all">全カテゴリ</option>
-          <option value="elem">小学生</option>
-          <option value="jhs">中学生</option>
-          <option value="hs">高校生</option>
-          <option value="univ">大学生</option>
-          <option value="club">企業・クラブ</option>
-          <option value="independent">独立</option>
-        </select>
-        <!-- 男女ボタン -->
-        <div id="rank-gender-btns" style="display:flex;gap:4px;">
-          <button id="rgb-all"  onclick="_onRankGender('all')"    style="flex:1;padding:3px 2px;font-size:11px;border-radius:4px;border:1px solid #e0e0de;background:#2563eb;color:#fff;cursor:pointer;font-weight:700;">全体</button>
-          <button id="rgb-male" onclick="_onRankGender('male')"   style="flex:1;padding:3px 2px;font-size:11px;border-radius:4px;border:1px solid #e0e0de;background:#f0efed;color:#555;cursor:pointer;">男子</button>
-          <button id="rgb-fem"  onclick="_onRankGender('female')" style="flex:1;padding:3px 2px;font-size:11px;border-radius:4px;border:1px solid #e0e0de;background:#f0efed;color:#555;cursor:pointer;">女子</button>
-        </div>
-      </div>
-      <!-- 参加率モード時の注記 -->
-      <div id="rank-rate-note" style="display:none;font-size:10px;color:#555;margin-bottom:4px;">
-        小学生参加率（児童数比）で順位付け
-        <div style="color:#c07030;font-size:9px;margin-top:2px;display:inline-flex;align-items:center;gap:3px"><span class="msi" style="font-size:11px">warning</span>参加率は小学生カテゴリ・全体のみ（男女別の児童数データが必要なため非対応）</div>
-      </div>
-      <ol id="rank-list"></ol>
-    </div>
-    <!-- データ注記 -->
-    <div class="s-section" style="font-size:9px;color:#555;line-height:1.6">
-      <div style="font-size:10px;color:#2563eb;font-weight:700;margin-bottom:4px;display:inline-flex;align-items:center;gap:3px"><span class="msi" style="font-size:13px">event</span>データ更新: 2025年度（令和7年度）</div>
-      競技者数: 埼玉県野球協議会（2025年度）<br>
-      チームデータ: 埼玉県野球協議会（2025年度）<br>
-      児童数: 令和7年度埼玉県学校便覧（公立小学校）
-    </div>
-    <div id="geo-status" style="display:none;margin-top:6px;padding:5px 8px;background:#eff6ff;border-radius:6px;font-size:9px;color:#2563eb;text-align:center;">
-      <span id="geo-status-text"><span class="msi" style="font-size:13px;vertical-align:-2px">my_location</span> 活動場所を更新中...</span>
-      <div style="margin-top:3px;background:#c5dff0;border-radius:4px;height:4px;overflow:hidden;">
-        <div id="geo-status-fill" style="height:100%;background:#2563eb;width:0%;transition:width .3s;"></div>
-      </div>
-    </div>
-    <div id="sidebar-copyright" style="margin-top:8px;padding-top:8px;border-top:1px solid #dde5ef;font-size:9px;color:#999;text-align:center;line-height:1.8;">
-      © 埼玉県野球協議会<br>
-      <span style="font-size:8px;">地図: <a href="https://maps.google.com" target="_blank" rel="noopener" style="color:#999;">Google Maps</a></span>
-    </div>
-  </div><!-- /sidebar -->
-  <!-- サイドバー折りたたみトグル（PC専用） -->
-  <button id="sidebar-collapse-btn" type="button" onclick="window.toggleSidebarPC && window.toggleSidebarPC()" aria-label="サイドバーを折りたたむ" title="サイドバーを折りたたむ / 展開">
-    <span class="msi">chevron_right</span>
-    <span class="collapse-badge" id="collapse-badge" aria-hidden="true"></span>
-  </button>
-  <!-- U2: サイドバー折りたたみ時に凡例を参照するトグル（PC専用） -->
-  <button id="legend-fab" type="button" onclick="window.toggleLegendPop && window.toggleLegendPop()" aria-label="凡例を表示" aria-expanded="false" title="凡例">
-    <span class="msi">palette</span><span class="legend-fab-text">凡例</span>
-  </button>
-  <div id="legend-pop" role="dialog" aria-label="凡例" aria-hidden="true">
-    <div class="legend-pop-head">
-      <span class="legend-pop-title">凡例</span>
-      <button class="legend-pop-x" type="button" onclick="window.toggleLegendPop()" aria-label="凡例を閉じる"><span class="msi">close</span></button>
-    </div>
-    <div class="legend-pop-body" id="legend-pop-body"></div>
-  </div>
-  <!-- バックドロップ -->
-  <div id="backdrop" onclick="closeSidebar()"></div>
-</div><!-- /app -->
-<!-- チーム一覧パネル -->
-<div id="team-list-panel">
-  <div class="bs-handle" id="tlp-handle" onclick="mobTlpCycleSize()" style="cursor:pointer" title="サイズを変更"></div>
-  <div class="tlp-header">
-    <h3 style="display:inline-flex;align-items:center;gap:6px"><span class="msi" style="font-size:18px">sports_baseball</span>チーム一覧</h3>
-    <span id="tlp-count"></span>
-    <button id="tlp-expand" onclick="mobTlpCycleSize()" style="display:none;background:none;border:none;font-size:18px;cursor:pointer;padding:4px 8px;color:var(--ink-3)" title="展開/縮小">▲</button>
-    <select id="tlp-sort" onchange="setTlpSort(this.value)">
-      <option value="cat">カテゴリ順</option>
-      <option value="name">チーム名順</option>
-      <option value="city">市区町村順</option>
-    </select>
-    <button class="tlp-close" aria-label="チーム一覧を閉じる" onclick="closeTeamList()"><span class="msi" style="font-size:16px">close</span></button>
-  </div>
-  <div id="tlp-search-row">
-    <div class="tlp-search-wrap">
-      <input type="text" id="tlp-search-input" placeholder="チーム名で地図ジャンプ…" autocomplete="off"
-        oninput="window.onTlpSearch(this.value)" onkeydown="if(event.key==='Enter')window.tlpSearchJump(0)">
-      <button id="tlp-search-clear-btn" onclick="window.clearTlpSearch()" title="クリア"><span class="msi" style="font-size:14px">close</span></button>
-    </div>
-    <div id="tlp-search-dd"></div>
-  </div>
-  <div id="tlp-tabs">
-    <button class="tlp-tab on" data-cat="all" onclick="setTlpTab('all')">全て<span class="tlp-tab-count" id="tlp-tab-n-all"></span></button>
-    <button class="tlp-tab" data-cat="elem" onclick="setTlpTab('elem')">小学生<span class="tlp-tab-count" id="tlp-tab-n-elem"></span></button>
-    <button class="tlp-tab" data-cat="jhs" onclick="setTlpTab('jhs')">中学生<span class="tlp-tab-count" id="tlp-tab-n-jhs"></span></button>
-    <button class="tlp-tab" data-cat="hs" onclick="setTlpTab('hs')">高校生<span class="tlp-tab-count" id="tlp-tab-n-hs"></span></button>
-    <button class="tlp-tab" data-cat="club" onclick="setTlpTab('club')">企業・クラブ<span class="tlp-tab-count" id="tlp-tab-n-club"></span></button>
-  </div>
-  <div id="tlp-filter-bar">
-    <span id="tlp-filter-label">絞り込み中：</span>
-  </div>
-  <div id="team-count" style="padding:4px 12px;font-size:10px;color:#555"></div>
-  <div id="tlp-body"></div>
-</div>
-<!-- 近傍パネル -->
-<div id="nearby-panel">
-  <div class="nbp-header">
-    <div style="flex:1">
-      <h3 style="margin:0 0 1px;display:flex;align-items:center"><span class="msi" style="font-size:18px">my_location</span></h3>
-      <div id="nbp-dist" style="font-size:10px;color:var(--green)"></div>
-    </div>
-    <button class="nbp-close" aria-label="近くのチームパネルを閉じる" onclick="closeNearby()" style="width:28px;height:28px;border-radius:50%;background:var(--surface-2);border:1px solid var(--border);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span class="msi" style="font-size:14px">close</span></button>
-  </div>
-  <div id="nbp-body"></div>
-</div>
-<!-- チャートモーダル -->
-<div id="chart-modal" role="dialog" aria-modal="true" aria-labelledby="chart-title">
-  <div class="chart-box">
-    <button class="chart-close" onclick="closeChartModal()" aria-label="比較モーダルを閉じる"><span class="msi" style="font-size:16px" aria-hidden="true">close</span></button>
-    <div id="chart-title"></div>
-    <div id="chart-sub"></div>
-    <div id="chart-bars"></div>
-    <div id="chart-rate-area"></div>
-  </div>
-</div>
-<!-- 市町村比較モーダル -->
-<div id="cmp-modal" role="dialog" aria-modal="true" aria-labelledby="cmp-title">
-  <div class="cmp-box">
-    <div class="cmp-header">
-      <span class="cmp-title" id="cmp-title" style="display:inline-flex;align-items:center;gap:6px"><span class="msi" style="font-size:18px" aria-hidden="true">balance</span>市町村比較</span>
-      <button class="cmp-close" onclick="window.closeCmpModal()" aria-label="市町村比較モーダルを閉じる"><span class="msi" style="font-size:16px" aria-hidden="true">close</span></button>
-    </div>
-    <div class="cmp-selectors">
-      <div class="cmp-sel-wrap">
-        <span class="cmp-sel-label a">市町村 A</span>
-        <select class="cmp-select" id="cmp-sel-a" onchange="window.renderCmp()"></select>
-      </div>
-      <div class="cmp-sel-wrap">
-        <span class="cmp-sel-label b">市町村 B</span>
-        <select class="cmp-select" id="cmp-sel-b" onchange="window.renderCmp()"></select>
-      </div>
-    </div>
-    <div id="cmp-body"></div>
-  </div>
-</div>
-<!-- ボトムナビ（モバイル） -->
-<!-- モバイル FAB（地図操作ボタン群） -->
-<div id="mob-fab-wrap">
-  <button id="mob-fab" onclick="mobFabToggle()" aria-label="地図操作">＋</button>
-  <div id="mob-fab-menu">
-    <button class="mfi" id="mfi-area" onclick="toggleAreaFilter();mobFabClose()" title="エリア絞込"><span class="msi" style="font-size:20px">crop_free</span></button>
-    <button class="mfi" id="mfi-area-clear" onclick="clearAreaFilter();mobFabClose()" title="エリア解除" style="display:none"><span class="msi" style="font-size:20px">undo</span></button>
-    <button class="mfi" onclick="window.resetMapView();mobFabClose()" title="全域表示"><span class="msi" style="font-size:20px">map</span></button>
-  </div>
-</div>
-<div id="bnav">
-  <button class="bnav-btn" onclick="mobOpenSearch()">
-    <span class="bnav-icon msi">search</span>
-    <span>検索</span>
-  </button>
-  <button class="bnav-btn" id="bnav-list" onclick="bnavToggleList()">
-    <span class="bnav-icon msi">list</span>
-    <span>チーム</span>
-    <span class="bnav-badge" id="bnav-badge"></span>
-  </button>
-  <button class="bnav-btn" id="bnav-filter" onclick="toggleSidebar()">
-    <span class="bnav-icon msi">tune</span>
-    <span>絞込</span>
-    <span class="bnav-badge" id="bnav-filter-badge" aria-hidden="true"></span>
-  </button>
-  <button class="bnav-btn" onclick="searchNearby()">
-    <span class="bnav-icon msi">my_location</span>
-    <span>近く</span>
-  </button>
-</div>
-<!-- チームデータを外部ファイル化（初期HTMLサイズ削減のため） -->
-<script src="data/teams-data.js?v=20260612"></script>
-<!-- 境界 GeoJSON（市町村 / さいたま市の区） -->
-<script src="data/geo-cities.js?v=20260612"></script>
-<script src="data/geo-wards.js?v=20260612"></script>
-<script src="js/team-map.js?v=20260613g"></script>
-
-<!-- SITE FOOTER -->
-<footer id="site-footer" role="contentinfo">
-  <div class="ft-main">
-    <!-- ブランド -->
-    <a class="ft-brand" id="footer-brand" href="https://www.saitamabaseball.com" aria-label="埼玉県野球協議会のトップへ">
-      <span class="ft-brand-logo"><span class="msi" aria-hidden="true">sports_baseball</span></span>
-      <span class="ft-brand-name">埼玉県野球協議会</span>
+  <nav class="lp-choices" aria-label="マップの選択">
+    <a class="lp-card team" href="team.html" aria-label="チームマップを開く">
+      <span class="lp-card-icon"><span class="msi">groups</span></span>
+      <span class="lp-card-body">
+        <span class="lp-card-title">チームマップ</span>
+        <span class="lp-card-desc">市町村別の野球チーム・競技者数を地図で確認できます。</span>
+        <span class="lp-card-cta">ひらく<span class="msi">arrow_forward</span></span>
+      </span>
     </a>
-    <span class="ft-sep" aria-hidden="true"></span>
-    <!-- ナビ系（恒常リンク） -->
-    <nav class="ft-group" aria-label="サイト案内">
-      <a id="footer-saitamabaseball" href="https://www.saitamabaseball.com">協議会サイト</a>
-      <a id="footer-contact" href="https://www.saitamabaseball.com/contact-8">お問い合わせ</a>
-      <a href="/privacy.html">プライバシー</a>
-    </nav>
-    <span class="ft-sep" aria-hidden="true"></span>
-    <!-- 操作系（ユーザー機能） -->
-    <div class="ft-group ft-actions" aria-label="ツール">
-      <button type="button" onclick="window.openOnboarding && window.openOnboarding()" title="使い方を見る">
-        <span class="msi" aria-hidden="true">help_outline</span>使い方
-      </button>
-      <button type="button" onclick="window.reportTeamInfo && window.reportTeamInfo('')" title="チーム情報の追加・修正">
-        <span class="msi" aria-hidden="true">edit_note</span>情報修正
-      </button>
-      <button type="button" onclick="window.openCookieSettings && window.openCookieSettings()" title="Cookie 設定">
-        <span class="msi" aria-hidden="true">cookie</span>Cookie
-      </button>
-    </div>
-    <span class="ft-sep" aria-hidden="true"></span>
-    <!-- 連絡先 -->
-    <div class="ft-contact">
-      <a id="footer-email" href="mailto:info@saitamabaseball.com" title="メールでお問い合わせ">
-        <span class="msi" aria-hidden="true">mail</span><span>info@saitamabaseball.com</span>
-      </a>
-      <div class="ft-sns" id="footer-sns" style="display:none">
-        <a id="footer-ig" href="#" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
-        <a id="footer-x" href="#" target="_blank" rel="noopener" aria-label="X (Twitter)"><svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
-      </div>
-    </div>
+    <a class="lp-card parks" href="parks.html" aria-label="公園マップを開く">
+      <span class="lp-card-icon"><span class="msi">park</span></span>
+      <span class="lp-card-body">
+        <span class="lp-card-title">公園マップ</span>
+        <span class="lp-card-desc">キャッチボールができる埼玉県内の公園を探せます。</span>
+        <span class="lp-card-cta">ひらく<span class="msi">arrow_forward</span></span>
+      </span>
+    </a>
+  </nav>
+</main>
+
+<footer class="lp-footer">
+  <div class="lp-foot-links">
+    <a id="lp-foot-site" href="https://www.saitamabaseball.com">協議会サイト</a>
+    <a href="privacy.html">プライバシーポリシー</a>
   </div>
-  <div class="ft-copy-row">
-    <span class="ft-copy">© 2026 一般社団法人 埼玉県野球協議会 (SPBA). All rights reserved.</span>
-  </div>
+  <div>&copy; 埼玉県野球協議会</div>
 </footer>
 
-<!-- 設定ファイルとアナリティクス基盤の読み込み -->
 <script src="config.js?v=20260612"></script>
 <script src="analytics.js?v=20260612"></script>
 <script src="cookie-consent.js?v=20260612"></script>
-<script src="toast.js?v=20260612"></script>
-<script src="onboarding.js?v=20260612"></script>
 <script>
-(function(){
-  const cfg = window.APP_CONFIG || {};
-  const setHref = (id, url) => { const el = document.getElementById(id); if (el && url) el.href = url; };
-  setHref('site-header-link', cfg.SAITAMA_BASEBALL_URL);
-  setHref('site-back', cfg.SAITAMA_BASEBALL_URL);
-  setHref('footer-brand', cfg.SAITAMA_BASEBALL_URL);
-  setHref('footer-saitamabaseball', cfg.SAITAMA_BASEBALL_URL);
-  setHref('footer-contact', cfg.CONTACT_URL);
-  // メール
-  if (cfg.CONTACT_EMAIL) {
-    const em = document.getElementById('footer-email');
-    if (em) {
-      em.href = 'mailto:' + cfg.CONTACT_EMAIL;
-      const span = em.querySelector('span:last-child');
-      if (span) span.textContent = cfg.CONTACT_EMAIL;
+  // config.js の値で外部リンクを上書き（保守性のため）
+  (function(){
+    var cfg = window.APP_CONFIG || {};
+    if (cfg.SAITAMA_BASEBALL_URL) {
+      var b = document.getElementById('lp-back'); if (b) b.href = cfg.SAITAMA_BASEBALL_URL;
+      var f = document.getElementById('lp-foot-site'); if (f) f.href = cfg.SAITAMA_BASEBALL_URL;
     }
-  }
-  // SNS（URL設定時のみ表示）
-  const snsWrap = document.getElementById('footer-sns');
-  let snsShown = false;
-  if (cfg.INSTAGRAM_URL) { const a=document.getElementById('footer-ig'); if(a){a.href=cfg.INSTAGRAM_URL;snsShown=true;} } else { const a=document.getElementById('footer-ig'); if(a) a.style.display='none'; }
-  if (cfg.X_URL)         { const a=document.getElementById('footer-x');  if(a){a.href=cfg.X_URL;snsShown=true;}         } else { const a=document.getElementById('footer-x');  if(a) a.style.display='none'; }
-  if (snsWrap) snsWrap.style.display = snsShown ? 'flex' : 'none';
-  // ロゴ: 円形デザインの画像なので背景・枠を透明化して画像そのものを表示
-  if (cfg.LOGO_URL) {
-    document.querySelectorAll('#site-header .site-logo, #site-footer .ft-brand-logo').forEach(logo => {
-      logo.style.background = 'transparent';
-      logo.style.border = 'none';
-      logo.innerHTML = '<img src="' + cfg.LOGO_URL + '" alt="埼玉県野球協議会" style="width:100%;height:100%;object-fit:contain">';
-    });
-  }
-})();
+  })();
 </script>
 </body>
 </html>
