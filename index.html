@@ -57,92 +57,79 @@
 <link rel="stylesheet" href="css/tokens.css?v=20260612">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--spba-cream);color:var(--spba-navy);min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;position:relative;overflow-x:hidden;border-top:4px solid var(--spba-navy);-webkit-font-smoothing:antialiased}
+body{font-family:'Noto Sans JP',system-ui,sans-serif;background:linear-gradient(180deg,#fbf8f0 0%,#f5eede 100%);color:var(--spba-navy);min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;position:relative;overflow-x:hidden;border-top:4px solid var(--spba-navy);-webkit-font-smoothing:antialiased}
 .msi{font-family:'Material Symbols Rounded';font-weight:400;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;white-space:nowrap;font-feature-settings:'liga';-webkit-font-smoothing:antialiased;display:inline-block;vertical-align:middle;user-select:none}
 a{color:inherit}
 *:focus{outline:none}
 a:focus-visible,button:focus-visible{outline:2px solid var(--spba-red);outline-offset:3px;border-radius:10px}
-/* 背景の淡いベースボール・モチーフ */
 .lp-bg{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
 .lp-bg svg{position:absolute;color:var(--spba-navy)}
-.lp-bg .ball-tr{top:-100px;right:-80px;width:320px;height:320px;opacity:.045}
-.lp-bg .ball-bl{bottom:-120px;left:-90px;width:280px;height:280px;opacity:.035;color:var(--spba-red)}
-/* header */
-.lp-header{position:relative;z-index:2;display:flex;align-items:center;gap:11px;padding:15px 22px;background:rgba(255,255,255,0.55);border-bottom:1px solid rgba(27,40,66,0.1);backdrop-filter:saturate(1.1)}
+.lp-bg .ball-tr{top:-100px;right:-80px;width:320px;height:320px;opacity:.04}
+.lp-bg .ball-bl{bottom:-120px;left:-90px;width:280px;height:280px;opacity:.03;color:var(--spba-red)}
+.lp-header{position:relative;z-index:2;display:flex;align-items:center;gap:11px;padding:15px 22px;background:rgba(255,255,255,0.6);border-bottom:1px solid rgba(27,40,66,0.09)}
 .lp-logo{width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid var(--spba-red);flex-shrink:0;background:var(--spba-navy)}
 .lp-brand{font-weight:700;font-size:15px;letter-spacing:.02em;white-space:nowrap}
 .lp-header-spacer{flex:1}
 .lp-back{text-decoration:none;font-size:13px;font-weight:500;display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border-radius:9px;transition:background-color .15s,color .15s}
 .lp-back:hover{background:var(--spba-navy);color:var(--spba-cream)}
 .lp-back .msi{font-size:16px}
-/* main / hero */
-.lp-main{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:52px 20px 56px}
-.lp-hero{text-align:center;max-width:580px;margin-bottom:38px}
-.lp-eyebrow{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--spba-navy);background:rgba(27,40,66,0.07);padding:6px 13px;border-radius:999px;margin-bottom:18px}
+.lp-main{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:54px 20px 58px}
+.lp-hero{text-align:center;max-width:580px;margin-bottom:40px}
+.lp-eyebrow{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--spba-navy);background:rgba(27,40,66,0.06);padding:6px 13px;border-radius:999px;margin-bottom:18px}
 .lp-eyebrow .msi{font-size:15px;color:var(--spba-red)}
-.lp-title{font-size:40px;font-weight:800;letter-spacing:.04em;line-height:1.15}
+.lp-title{font-size:41px;font-weight:800;letter-spacing:.04em;line-height:1.14}
 .lp-tagline{font-size:17px;font-weight:600;color:var(--spba-red);margin-top:14px;letter-spacing:.05em}
-.lp-lead{font-size:14px;line-height:1.9;opacity:.7;margin-top:14px}
-/* choices */
-.lp-choices{display:grid;grid-template-columns:repeat(2,minmax(0,318px));gap:24px;width:100%;max-width:700px}
-.lp-card{position:relative;display:flex;flex-direction:column;background:#fff;border:1px solid rgba(27,40,66,0.09);border-radius:20px;text-decoration:none;color:var(--spba-navy);box-shadow:0 3px 14px rgba(27,40,66,0.07);transition:transform .22s cubic-bezier(.32,.72,0,1),box-shadow .22s,border-color .22s}
-.lp-card:hover{transform:translateY(-6px);box-shadow:0 18px 40px rgba(27,40,66,0.17)}
-/* media（マップ風ビジュアル面） */
-.lp-card-media{position:relative;height:126px;border-radius:20px 20px 0 0;overflow:hidden}
-.lp-card.team .lp-card-media{background:var(--spba-navy)}
-.lp-card.parks .lp-card-media{background:var(--spba-red)}
-.lp-card-media::before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,0.18) 1.3px,transparent 1.4px);background-size:15px 15px;opacity:.7;transition:transform .35s cubic-bezier(.32,.72,0,1)}
-.lp-card:hover .lp-card-media::before{transform:scale(1.08)}
-.lp-media-glyph{position:absolute;color:#fff}
-.lp-media-glyph.g1{top:20px;left:30px;font-size:22px;opacity:.32}
-.lp-media-glyph.g2{top:66px;left:118px;font-size:16px;opacity:.22}
-.lp-media-glyph.g3{top:26px;right:30px;font-size:40px;opacity:.16}
+.lp-lead{font-size:14px;line-height:1.9;opacity:.68;margin-top:14px}
+.lp-choices{display:grid;grid-template-columns:repeat(2,minmax(0,320px));gap:24px;width:100%;max-width:704px}
+.lp-card{position:relative;display:flex;flex-direction:column;background:#fff;border:1px solid rgba(27,40,66,0.08);border-radius:22px;text-decoration:none;color:var(--spba-navy);box-shadow:0 1px 2px rgba(27,40,66,0.05),0 10px 30px rgba(27,40,66,0.08);transition:transform .24s cubic-bezier(.32,.72,0,1),box-shadow .24s,border-color .24s}
+.lp-card:hover{transform:translateY(-6px);box-shadow:0 2px 6px rgba(27,40,66,0.06),0 24px 50px rgba(27,40,66,0.17)}
+.lp-card-media{position:relative;height:134px;border-radius:22px 22px 0 0;overflow:hidden;border-bottom:1px solid rgba(27,40,66,0.06)}
+.lp-mapsvg{display:block;width:100%;height:100%;transition:transform .4s cubic-bezier(.32,.72,0,1)}
+.lp-card:hover .lp-mapsvg{transform:scale(1.06)}
 .lp-card.team:hover{border-color:var(--spba-navy)}
 .lp-card.parks:hover{border-color:var(--spba-red)}
-/* アイコンチップ（media に半分かかる） */
-.lp-card-icon{position:absolute;top:96px;left:22px;width:58px;height:58px;border-radius:16px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(27,40,66,0.22);border:3px solid #fff;z-index:2}
+.lp-card-icon{position:absolute;top:104px;left:22px;width:60px;height:60px;border-radius:17px;display:flex;align-items:center;justify-content:center;box-shadow:0 5px 14px rgba(27,40,66,0.24);border:3px solid #fff;z-index:2}
 .lp-card.team .lp-card-icon{background:var(--spba-navy)}
 .lp-card.parks .lp-card-icon{background:var(--spba-red)}
-.lp-card-icon .msi{font-size:30px;color:#fff}
-/* body */
-.lp-card-body{flex:1;display:flex;flex-direction:column;gap:11px;padding:26px 22px 24px}
+.lp-card-icon .msi{font-size:31px;color:#fff}
+.lp-card-body{flex:1;display:flex;flex-direction:column;gap:11px;padding:28px 23px 24px}
 .lp-card-title{font-size:21px;font-weight:700}
-.lp-card-desc{font-size:13px;line-height:1.8;opacity:.7}
+.lp-card-desc{font-size:13px;line-height:1.8;opacity:.68}
 .lp-stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:1px}
-.lp-stat{display:inline-flex;align-items:baseline;gap:4px;background:rgba(27,40,66,0.05);padding:6px 11px;border-radius:9px;font-size:12px;color:rgba(27,40,66,0.68)}
+.lp-stat{display:inline-flex;align-items:baseline;gap:4px;background:rgba(27,40,66,0.045);padding:6px 11px;border-radius:9px;font-size:12px;color:rgba(27,40,66,0.66)}
 .lp-stat b{font-size:17px;font-weight:700;letter-spacing:.01em}
 .lp-card.team .lp-stat b{color:var(--spba-navy)}
 .lp-card.parks .lp-stat b{color:var(--spba-red)}
-.lp-cta{margin-top:auto;display:inline-flex;align-items:center;justify-content:center;gap:7px;font-size:14px;font-weight:600;padding:12px 16px;border-radius:12px;transition:gap .18s,filter .18s}
+.lp-cta{margin-top:auto;display:inline-flex;align-items:center;justify-content:center;gap:7px;font-size:14px;font-weight:600;padding:12px 16px;border-radius:13px;transition:gap .18s,filter .18s}
 .lp-card.team .lp-cta{background:var(--spba-navy);color:var(--spba-cream)}
 .lp-card.parks .lp-cta{background:var(--spba-red);color:#fff}
 .lp-card:hover .lp-cta{filter:brightness(1.08)}
 .lp-card:hover .lp-cta .msi{transform:translateX(4px)}
 .lp-cta .msi{font-size:18px;transition:transform .18s}
-/* footer */
-.lp-footer{position:relative;z-index:1;padding:18px 20px;border-top:2px solid var(--spba-red);background:rgba(255,255,255,0.55);text-align:center;font-size:12px;color:rgba(27,40,66,0.7)}
+.lp-footer{position:relative;z-index:1;padding:18px 20px;border-top:2px solid var(--spba-red);background:rgba(255,255,255,0.6);text-align:center;font-size:12px;color:rgba(27,40,66,0.7)}
 .lp-foot-links{display:flex;gap:18px;justify-content:center;margin-bottom:7px;flex-wrap:wrap}
 .lp-foot-links a{text-decoration:none;color:var(--spba-navy);opacity:.85}
 .lp-foot-links a:hover{opacity:1;color:var(--spba-red);text-decoration:underline;text-underline-offset:3px}
-/* 入場アニメーション */
 @keyframes lp-rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
 .lp-hero{animation:lp-rise .6s cubic-bezier(.22,.61,.36,1) both;animation-delay:.04s}
 .lp-card{animation:lp-rise .6s cubic-bezier(.22,.61,.36,1) both}
 .lp-card.team{animation-delay:.15s}
 .lp-card.parks{animation-delay:.25s}
-@media(prefers-reduced-motion:reduce){.lp-hero,.lp-card{animation:none}.lp-card-media::before,.lp-cta .msi{transition:none}}
+@media(prefers-reduced-motion:reduce){.lp-hero,.lp-card{animation:none}.lp-mapsvg,.lp-cta .msi{transition:none}}
 @media(max-width:560px){
   .lp-main{padding:34px 16px 40px}
   .lp-title{font-size:30px}
   .lp-tagline{font-size:15px}
   .lp-hero{margin-bottom:26px}
   .lp-choices{grid-template-columns:1fr;max-width:400px;gap:18px}
-  .lp-card-media{height:108px}
-  .lp-card-icon{top:80px}
+  .lp-card-media{height:116px}
+  .lp-card-icon{top:88px}
 }
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="mappin" viewBox="0 0 24 32"><path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 20 12 20s12-11 12-20C24 5.4 18.6 0 12 0z"/><circle cx="12" cy="12" r="4.4" fill="#fff"/></symbol></defs></svg>
+
 <div class="lp-bg" aria-hidden="true">
   <svg class="ball-tr" viewBox="0 0 200 200" fill="none" stroke="currentColor" stroke-width="3"><circle cx="100" cy="100" r="92"/><path d="M42 32 Q78 100 42 168"/><path d="M158 32 Q122 100 158 168"/></svg>
   <svg class="ball-bl" viewBox="0 0 200 200" fill="none" stroke="currentColor" stroke-width="3"><circle cx="100" cy="100" r="92"/><path d="M42 32 Q78 100 42 168"/><path d="M158 32 Q122 100 158 168"/></svg>
@@ -161,16 +148,26 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--spba-red);outline-o
   <section class="lp-hero">
     <span class="lp-eyebrow"><span class="msi">verified</span>埼玉県野球協議会 公式</span>
     <h1 class="lp-title">埼玉県野球マップ</h1>
-    <p class="lp-tagline">埼玉の野球を、地図で。</p>
+    <p class="lp-tagline">埼玉の野球を、地図でひらく。</p>
     <p class="lp-lead">市町村別の競技者データも、キャッチボールができる公園も、地図でひと目で。見たい地図を選んでください。</p>
   </section>
 
   <nav class="lp-choices" aria-label="マップの選択">
     <a class="lp-card team" href="team.html" aria-label="チームマップを開く">
       <span class="lp-card-media">
-        <span class="msi lp-media-glyph g1">location_on</span>
-        <span class="msi lp-media-glyph g2">location_on</span>
-        <span class="msi lp-media-glyph g3">sports_baseball</span>
+        <svg class="lp-mapsvg" viewBox="0 0 320 134" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <rect width="320" height="134" fill="#e9edf3"/>
+          <path d="M-10 -10H142V66H-10Z" fill="#e2e8f0"/>
+          <path d="M150 52H330V144H150Z" fill="#e3e9f1"/>
+          <g stroke="#dde4ec" stroke-width="2.5" fill="none"><path d="M-10 26 L330 16"/><path d="M162 -10 L150 144"/></g>
+          <g stroke="#ffffff" stroke-width="7" fill="none" stroke-linecap="round" opacity=".95"><path d="M-10 88 L110 52 L205 94 L330 58"/><path d="M64 -10 L104 66 L86 144"/><path d="M205 -10 L236 72 L302 114"/></g>
+          <use href="#mappin" x="40" y="20" width="19" height="25" fill="#1b2842"/>
+          <use href="#mappin" x="116" y="42" width="15" height="20" fill="#3a4f73"/>
+          <use href="#mappin" x="86" y="66" width="22" height="29" fill="#1b2842"/>
+          <use href="#mappin" x="176" y="26" width="14" height="19" fill="#3a4f73"/>
+          <use href="#mappin" x="232" y="62" width="18" height="24" fill="#1b2842"/>
+          <use href="#mappin" x="270" y="32" width="14" height="19" fill="#3a4f73"/>
+        </svg>
       </span>
       <span class="lp-card-icon"><span class="msi">groups</span></span>
       <span class="lp-card-body">
@@ -185,9 +182,17 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--spba-red);outline-o
     </a>
     <a class="lp-card parks" href="parks.html" aria-label="公園マップを開く">
       <span class="lp-card-media">
-        <span class="msi lp-media-glyph g1">location_on</span>
-        <span class="msi lp-media-glyph g2">location_on</span>
-        <span class="msi lp-media-glyph g3">park</span>
+        <svg class="lp-mapsvg" viewBox="0 0 320 134" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <rect width="320" height="134" fill="#ecf1ea"/>
+          <path d="M150 -12 C224 -6 268 28 252 72 C238 122 150 144 108 122 C66 100 84 -18 150 -12 Z" fill="#d6e7c6"/>
+          <g stroke="#dde6dc" stroke-width="2.5" fill="none"><path d="M-10 30 L330 22"/></g>
+          <g stroke="#ffffff" stroke-width="7" fill="none" stroke-linecap="round" opacity=".95"><path d="M-10 94 L120 62 L210 98 L330 66"/><path d="M48 -10 L86 72 L70 144"/></g>
+          <circle cx="206" cy="48" r="13" fill="#6aa84f"/>
+          <rect x="203.5" y="55" width="5" height="13" rx="1.5" fill="#7a5a3a"/>
+          <use href="#mappin" x="64" y="34" width="19" height="25" fill="#c8202e"/>
+          <use href="#mappin" x="146" y="66" width="22" height="29" fill="#c8202e"/>
+          <use href="#mappin" x="244" y="38" width="16" height="21" fill="#c8202e"/>
+        </svg>
       </span>
       <span class="lp-card-icon"><span class="msi">park</span></span>
       <span class="lp-card-body">
