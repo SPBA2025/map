@@ -2,5 +2,6 @@ User-agent: *
 Allow: /
 Disallow: /admin.html
 Disallow: /admin/
+Disallow: /og-src/
 
 Sitemap: https://map.saitamabaseball.com/sitemap.xml
