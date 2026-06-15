@@ -863,6 +863,14 @@ window.initMap = function() {
   // ポップアップ連動：ズーム・再表示なしで絞り込みだけ行う
   // ── ヘッダーチーム名検索 ─────────────────────────────
   const CAT_COLOR_MAP = {elem:'#3b82f6',jhs:'#059669',hs:'#d97706',univ:'#7c3aed',club:'#dc2626',independent:'#64748b'};
+  // U3: 日本語あいまい一致用の正規化（全角/半角・カタカナ/ひらがな・記号差を吸収）
+  function _normJP(s){
+    return (s||'').normalize('NFKC').toLowerCase()
+      .replace(/[ァ-ヶ]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60))
+      .replace(/[\s　・･_\-‐－—~〜/／()（）「」『』.,、。]/g, '');
+  }
+  function _jpInc(hay, needle){ return _normJP(hay).includes(_normJP(needle)); }
+  function _jpStarts(hay, needle){ return _normJP(hay).startsWith(_normJP(needle)); }
   let _hdrMatches = [];
   window.onHdrSearch = function(val) {
     const q = val.trim();
@@ -871,12 +879,11 @@ window.initMap = function() {
     clearBtn.classList.toggle('show', q.length > 0);
     if (!q) { dd.classList.remove('show'); dd.innerHTML=''; _hdrMatches=[]; return; }
     // チーム名・市町村名で前方一致→部分一致の順でソート
-    const q_lc = q.toLowerCase();
     _hdrMatches = teamData
-      .filter(t => t.name.toLowerCase().includes(q_lc) || t.city.includes(q))
+      .filter(t => _jpInc(t.name, q) || _jpInc(t.city, q))
       .sort((a,b) => {
-        const aStart = a.name.toLowerCase().startsWith(q_lc) ? 0 : 1;
-        const bStart = b.name.toLowerCase().startsWith(q_lc) ? 0 : 1;
+        const aStart = _jpStarts(a.name, q) ? 0 : 1;
+        const bStart = _jpStarts(b.name, q) ? 0 : 1;
         return aStart - bStart || a.name.localeCompare(b.name,'ja');
       })
       .slice(0, 30);
@@ -1089,12 +1096,11 @@ window.initMap = function() {
     const dd = document.getElementById('tlp-search-dd');
     clearBtn.classList.toggle('show', q.length > 0);
     if (!q) { dd.classList.remove('show'); dd.innerHTML=''; _tlpMatches=[]; return; }
-    const q_lc = q.toLowerCase();
     _tlpMatches = teamData
-      .filter(t => t.name.toLowerCase().includes(q_lc) || t.city.includes(q))
+      .filter(t => _jpInc(t.name, q) || _jpInc(t.city, q))
       .sort((a,b) => {
-        const aS = a.name.toLowerCase().startsWith(q_lc) ? 0 : 1;
-        const bS = b.name.toLowerCase().startsWith(q_lc) ? 0 : 1;
+        const aS = _jpStarts(a.name, q) ? 0 : 1;
+        const bS = _jpStarts(b.name, q) ? 0 : 1;
         return aS - bS || a.name.localeCompare(b.name,'ja');
       })
       .slice(0, 25);
@@ -1990,7 +1996,7 @@ window.initMap = function() {
     const baseFilter = t => {
       if(currentGender==='male' && t.gender==='female') return false;
       if(currentGender==='female' && t.gender!=='female' && t.gender!=='mixed') return false;
-      if(kw&&!t.name.includes(kw)&&!t.city.includes(kw)) return false;
+      if(kw&&!_jpInc(t.name,kw)&&!_jpInc(t.city,kw)) return false;
       if(selectedCity && !_cityMatch(t.city, selectedCity)) return false;
       if(selectedCityCat && t.cat !== selectedCityCat) return false;
       if(_areaBounds && !(t.lat && t.lng && _areaBounds.contains(new google.maps.LatLng(t.lat, t.lng)))) return false;
@@ -2068,10 +2074,7 @@ window.initMap = function() {
     clearTimeout(_searchEventTimer);
     _searchEventTimer = setTimeout(() => {
       if (kw.length < 2) return; // 短すぎる入力は無視
-      const matched = teamData.filter(t => {
-        const s = (t.name + ' ' + (t.city||'') + ' ' + (t.league||'')).toLowerCase();
-        return s.includes(kw.toLowerCase());
-      });
+      const matched = teamData.filter(t => _jpInc(t.name + ' ' + (t.city||'') + ' ' + (t.league||''), kw));
       if (window.Analytics) {
         window.Analytics.keywordSearch(kw, matched.length);
         if (matched.length === 0) {
@@ -2085,7 +2088,7 @@ window.initMap = function() {
     const kw = (document.getElementById('team-search').value || '').trim();
     if (!kw) return;
     // 現在のフィルター結果からチェック
-    const matched = tlpAllFiltered.filter(t => t.name.includes(kw));
+    const matched = tlpAllFiltered.filter(t => _jpInc(t.name, kw));
     if (matched.length === 1) {
       const t = matched[0];
       if (t.cat === 'elem') {

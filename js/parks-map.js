@@ -438,9 +438,17 @@ function updateStats() {
   document.getElementById('catchball-parks').textContent = matchedRegistered;
 }
 
+// U3: 日本語あいまい一致用の正規化（全角/半角・カタカナ/ひらがな・記号差を吸収）
+function _normJP(s){
+  return (s||'').normalize('NFKC').toLowerCase()
+    .replace(/[ァ-ヶ]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60))
+    .replace(/[\s　・･_\-‐－—~〜/／()（）「」『』.,、。]/g, '');
+}
+function _jpInc(hay, needle){ return _normJP(hay).includes(_normJP(needle)); }
+
 function renderParkList() {
   const list       = document.getElementById('park-list');
-  const searchTerm = document.getElementById('hdr-search-input').value.toLowerCase();
+  const searchTerm = (document.getElementById('hdr-search-input').value || '').trim();
   const bounds     = map.getBounds();
   if (!bounds) return;
   const sortMode = document.getElementById('sort-select')?.value || 'name';
@@ -451,7 +459,7 @@ function renderParkList() {
       if (!p) return false;
       if (!bounds.contains(new google.maps.LatLng(p.lat, p.lng))) return false;
       if (activeFilters.catchball && p.catchball !== true) return false;
-      if (searchTerm && !p.name.toLowerCase().includes(searchTerm)) return false;
+      if (searchTerm && !_jpInc(p.name, searchTerm) && !_jpInc(p.city || '', searchTerm)) return false;
       return true;
     })
     .map(m => m._parkInfo);
