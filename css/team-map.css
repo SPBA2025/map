@@ -353,6 +353,14 @@ input:focus-visible{outline-offset:0}
 .city-popup-wrap .pu-body{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;padding-bottom:6px}
 .city-popup-wrap .pu-body::-webkit-scrollbar{width:5px}
 .city-popup-wrap .pu-body::-webkit-scrollbar-thumb{background:rgba(27,40,66,0.25);border-radius:3px}
+/* U5: モバイルの片手操作 — ポップアップ下部の大きな「閉じる」バー＋×拡大 */
+.pu-close-bar{display:none}
+@media(max-width:768px){
+  .pu-close-bar{display:block;flex-shrink:0;width:100%;margin-top:6px;padding:13px;border:none;border-top:1px solid var(--border);background:var(--surface-2);color:var(--ink);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;border-radius:0 0 6px 6px}
+  .pu-close-bar:active{background:var(--border)}
+  .gm-style .gm-ui-hover-effect{width:38px!important;height:38px!important;opacity:.95!important;top:2px!important;right:2px!important}
+  .gm-style .gm-ui-hover-effect>span{width:24px!important;height:24px!important;margin:7px!important}
+}
 .city-popup-wrap .pu-body::-webkit-scrollbar-thumb:hover{background:rgba(27,40,66,0.45)}
 /* スクロール可能であることを示す下端フェード */
 .city-popup-wrap .pu-body{background:linear-gradient(to bottom, transparent calc(100% - 24px), rgba(248,242,230,0.0) 100%)}

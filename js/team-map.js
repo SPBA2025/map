@@ -251,6 +251,8 @@ window.initMap = function() {
   function getDisplayVal(d){
     return currentIndex==='rate' ? calcRate(d) : calcVal(d);
   }
+  // U5: ポップアップを閉じる共通関数（モバイルの下部「閉じる」バー用）
+  window.closeMapPopup = function(){ try{ (window.__allInfoWindows||new Set()).forEach(iw => iw.close()); }catch(e){} };
   function popupHTML(d){
     const total=calcVal(d);
     const male=CATS.reduce((s,c)=>s+(activeCats.has(c)?d[c+'_m']||0:0),0);
@@ -363,6 +365,7 @@ window.initMap = function() {
         <button class="pu-btn pu-btn-chart" onclick="window.openChartModal('${d.city}')"><span class="msi" style="font-size:14px">bar_chart</span>詳細グラフ</button>
         <button class="pu-btn pu-btn-cmp" onclick="window.openCmpModal('${d.city}')"><span class="msi" style="font-size:14px">balance</span>比較</button>
       </div>
+      <button type="button" class="pu-close-bar" onclick="window.closeMapPopup()">閉じる</button>
     </div>`;
   }
   function calcSingle(d,c){
@@ -1507,6 +1510,7 @@ window.initMap = function() {
           <span class="msi" style="font-size:12px;vertical-align:-2px">edit_note</span>情報の修正を提案
         </a>
       </div>
+      <button type="button" class="pu-close-bar" onclick="window.closeMapPopup()">閉じる</button>
     </div>`;
   }
   window.PLACE_COORDS = window.PLACE_COORDS || {};

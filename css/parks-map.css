@@ -183,6 +183,12 @@ input:focus-visible{outline-offset:0}
   overflow-y:auto;
   box-shadow:var(--shadow-card);
 }
+/* U5: モバイルの片手操作 — モーダル下部の大きな「閉じる」バー */
+.park-close-bar{display:none}
+@media(max-width:768px){
+  .park-close-bar{display:block;width:100%;margin-top:12px;padding:14px;border:none;background:var(--surface-2);color:var(--ink);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;border-radius:12px}
+  .park-close-bar:active{background:var(--border)}
+}
 .park-box::-webkit-scrollbar{width:4px}
 .park-box::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 .park-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border)}
