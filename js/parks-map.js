@@ -130,7 +130,6 @@ async function initMap() {
 
   setupMapTypeButtons();
   setupEventListeners();
-  setupReportLink();
 
   // map.controls にボタンを登録（Googleコントロールとの重なり防止）
   map.controls[google.maps.ControlPosition.TOP_RIGHT].push(
@@ -985,10 +984,17 @@ function setupReportLink() {
   rl.href = cfg.PARK_FORM_URL
     ? cfg.PARK_FORM_URL + (cfg.PARK_FORM_URL.includes('?') ? '&' : '?') + 'usp=pp_url'
     : (cfg.CONTACT_URL || 'https://www.saitamabaseball.com/contact-8');
-  rl.addEventListener('click', () => {
-    if (window.Analytics) window.Analytics.infoMissingReport('park_missing', 'park_report_form_link');
-  });
+  if (!rl.dataset.bound) {
+    rl.dataset.bound = '1';
+    rl.addEventListener('click', () => {
+      if (window.Analytics) window.Analytics.infoMissingReport('park_missing', 'park_report_form_link');
+    });
+  }
 }
+// 地図の読み込みに依存せず、DOM構築後（config.js実行後）に報告リンクを設定する。
+// ※initMap 内だけだと、地図が遅い/失敗したときリンクが href="#" のまま死ぬため。
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setupReportLink);
+else setupReportLink();
 
 // 一覧パネルトグル（モバイル用 - サイドバー開閉）
 window.parkToggleList = function() {
