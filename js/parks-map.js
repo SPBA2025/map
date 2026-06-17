@@ -155,6 +155,7 @@ async function initMap() {
 
   // 地図移動完了時: 一覧を表示範囲で更新
   map.addListener('idle', () => {
+    renderOsmPins();
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
       renderParkList();
@@ -312,6 +313,39 @@ function applyFilters() {
   clusterer.addMarkers(visible);
   updateStats();
   renderParkList();
+  renderOsmPins();
+}
+
+/* ═══════════════════════════════════════════════
+   未登録公園（OSM由来）のグレーピン
+   ズームイン時(>=14)のみ、表示範囲内を最大120件だけ描画。
+   タップ→showParkModalで「情報未登録」表示＋情報提供フォーム。
+═══════════════════════════════════════════════ */
+let osmMarkers = {};
+const OSM_MIN_ZOOM = 14;
+function renderOsmPins() {
+  if (typeof parkOsmData === 'undefined' || !map) return;
+  const clearAll = () => { for (const k in osmMarkers) { osmMarkers[k].map = null; delete osmMarkers[k]; } };
+  // 「キャッチボール可のみ」絞込中、または広域ズームでは未登録ピンを出さない
+  if (activeFilters.catchball || map.getZoom() < OSM_MIN_ZOOM) { clearAll(); return; }
+  const b = map.getBounds();
+  if (!b) return;
+  // 表示範囲外を撤去
+  for (const k in osmMarkers) {
+    const p = parkOsmData[k];
+    if (!p || !b.contains(new google.maps.LatLng(p.lat, p.lng))) { osmMarkers[k].map = null; delete osmMarkers[k]; }
+  }
+  // 表示範囲内を追加（最大120件で頭打ち）
+  let count = Object.keys(osmMarkers).length;
+  for (let i = 0; i < parkOsmData.length && count < 120; i++) {
+    if (osmMarkers[i]) continue;
+    const p = parkOsmData[i];
+    if (!b.contains(new google.maps.LatLng(p.lat, p.lng))) continue;
+    const m = createMarker(p.lat, p.lng, { name: p.name, lat: p.lat, lng: p.lng, unregistered: true });
+    m.map = map;
+    osmMarkers[i] = m;
+    count++;
+  }
 }
 
 /* ═══════════════════════════════════════════════
