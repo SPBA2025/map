@@ -524,6 +524,8 @@ function closeParkModal() {
 // ── 全モーダル共通: ESCで閉じる ──
 document.addEventListener('keydown', function(e) {
   if (e.key !== 'Escape') return;
+  // 場所指定モード中なら最優先でキャンセル
+  if (document.getElementById('park-pick-banner') || document.getElementById('park-pick-confirm')) { window.cancelParkPick(); return; }
   const modal = document.getElementById('park-modal');
   if (modal && modal.classList.contains('open')) { closeParkModal(); return; }
   // モバイルのサイドバー
@@ -974,27 +976,100 @@ window.parkToggleCatchball = function() {
   if (window.Toast) Toast.show(activeFilters.catchball ? 'キャッチボール可の公園のみ表示' : '全公園を表示');
 };
 
-// ─── 報告リンク（地図にない公園・情報の誤りを報告）───
-// 共用フォームを直接開く控えめな導線。<a target="_blank"> なのでポップアップブロックされず、
-// モバイル/PC問わず確実に動く（旧：地図タップ→ポップアップ方式は不安定だったため廃止）。
-function setupReportLink() {
-  const rl = document.getElementById('report-missing-link');
-  if (!rl) return;
-  const cfg = window.APP_CONFIG || {};
-  rl.href = cfg.PARK_FORM_URL
-    ? cfg.PARK_FORM_URL + (cfg.PARK_FORM_URL.includes('?') ? '&' : '?') + 'usp=pp_url'
-    : (cfg.CONTACT_URL || 'https://www.saitamabaseball.com/contact-8');
-  if (!rl.dataset.bound) {
-    rl.dataset.bound = '1';
-    rl.addEventListener('click', () => {
-      if (window.Analytics) window.Analytics.infoMissingReport('park_missing', 'park_report_form_link');
-    });
+// ─── 地図にない公園を「地図で場所を指定」して報告 ───
+// 流れ: リンク → 地図タップで仮ピン → 確認カードの「この場所で報告する」(実リンク) でフォーム起動。
+// ポイント: フォームを開くのは確認カードの <a> クリック（直接のユーザー操作）なのでポップアップブロックされない。
+//          バナー/カードは inline スタイルで生成し、CSSアニメ非依存で確実に表示される。
+let _pickListener = null, _pickMarker = null;
+
+window.startParkPick = function() {
+  if (typeof map === 'undefined' || !map) {
+    if (window.Toast) Toast.show('地図の読み込み中です。少し待ってお試しください', { duration: 2500 });
+    return;
   }
+  if (window.Analytics) window.Analytics.infoMissingReport('park_pick_start', 'park_pick');
+  // モバイル: サイドバー(ボトムシート)を閉じて地図を見せる
+  document.getElementById('sidebar')?.classList.remove('open');
+  document.getElementById('hbg')?.classList.remove('open');
+  _clearPickUI();
+  _showPickBanner();
+  document.getElementById('map')?.style.setProperty('cursor', 'crosshair');
+  _pickListener = map.addListener('click', (e) => {
+    const lat = Math.round(e.latLng.lat() * 1e6) / 1e6;
+    const lng = Math.round(e.latLng.lng() * 1e6) / 1e6;
+    _onPick(lat, lng);
+  });
+};
+
+window.cancelParkPick = function() {
+  if (_pickListener) { google.maps.event.removeListener(_pickListener); _pickListener = null; }
+  _clearPickUI();
+  document.getElementById('map')?.style.removeProperty('cursor');
+};
+
+function _onPick(lat, lng) {
+  if (_pickListener) { google.maps.event.removeListener(_pickListener); _pickListener = null; }
+  _removePickEl('park-pick-banner');
+  _dropPickMarker(lat, lng);
+  _showPickConfirm(lat, lng);
 }
-// 地図の読み込みに依存せず、DOM構築後（config.js実行後）に報告リンクを設定する。
-// ※initMap 内だけだと、地図が遅い/失敗したときリンクが href="#" のまま死ぬため。
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setupReportLink);
-else setupReportLink();
+
+function _clearPickUI() {
+  _removePickEl('park-pick-banner');
+  _removePickEl('park-pick-confirm');
+  if (_pickMarker) { _pickMarker.map = null; _pickMarker = null; }
+}
+function _removePickEl(id) { document.getElementById(id)?.remove(); }
+
+function _showPickBanner() {
+  _removePickEl('park-pick-banner');
+  const b = document.createElement('div');
+  b.id = 'park-pick-banner';
+  b.style.cssText = 'position:fixed;top:90px;left:50%;transform:translateX(-50%);z-index:3000;background:#1b2842;color:#fff;padding:11px 16px;border-radius:24px;font-size:13px;font-weight:700;box-shadow:0 6px 20px rgba(0,0,0,.3);border:2px solid #c8202e;display:flex;align-items:center;gap:10px;max-width:92vw';
+  b.innerHTML = '<span class="msi" style="font-size:18px">touch_app</span><span>公園の場所を地図でタップ</span>';
+  const cancel = document.createElement('button');
+  cancel.type = 'button';
+  cancel.textContent = 'キャンセル';
+  cancel.style.cssText = 'background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600';
+  cancel.onclick = window.cancelParkPick;
+  b.appendChild(cancel);
+  document.body.appendChild(b);
+}
+
+function _dropPickMarker(lat, lng) {
+  if (_pickMarker) { _pickMarker.map = null; _pickMarker = null; }
+  const wrap = document.createElement('div');
+  wrap.innerHTML = makeMarkerHtml(null); // 橙の「?」ピン（＝報告位置の目印）
+  _pickMarker = new google.maps.marker.AdvancedMarkerElement({ position: { lat, lng }, content: wrap.firstElementChild, map });
+  try { map.panTo({ lat, lng }); } catch (e) {}
+}
+
+function _showPickConfirm(lat, lng) {
+  const cfg = window.APP_CONFIG || {};
+  const form = cfg.PARK_FORM_URL || '';
+  let url = form ? form + (form.includes('?') ? '&' : '?') + 'usp=pp_url' : (cfg.CONTACT_URL || 'https://www.saitamabaseball.com/contact-8');
+  if (form) {
+    if (cfg.PARK_FORM_ENTRY_LAT) url += `&${cfg.PARK_FORM_ENTRY_LAT}=${lat}`;
+    if (cfg.PARK_FORM_ENTRY_LNG) url += `&${cfg.PARK_FORM_ENTRY_LNG}=${lng}`;
+  }
+  _removePickEl('park-pick-confirm');
+  const c = document.createElement('div');
+  c.id = 'park-pick-confirm';
+  c.style.cssText = 'position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 84px);transform:translateX(-50%);z-index:3000;background:#fff;border:1px solid #e4e4e4;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.2);padding:14px 16px;width:min(92vw,340px);text-align:center;font-family:inherit';
+  c.innerHTML =
+    '<div style="font-size:13px;font-weight:700;color:#222;margin-bottom:4px;display:flex;align-items:center;justify-content:center;gap:6px"><span class="msi" style="font-size:18px;color:#00a854">place</span>この場所で報告しますか？</div>' +
+    '<div style="font-size:11px;color:#888;margin-bottom:12px">' + lat.toFixed(5) + ', ' + lng.toFixed(5) + '</div>' +
+    '<div style="display:flex;gap:8px">' +
+      '<button type="button" id="pick-redo" style="flex:1;padding:10px;border:1px solid #e4e4e4;background:#fff;border-radius:10px;font-size:12px;font-weight:600;color:#555;cursor:pointer;font-family:inherit">やり直す</button>' +
+      '<a id="pick-go" href="' + url + '" target="_blank" rel="noopener" style="flex:2;padding:10px;background:#c8202e;color:#fff;border-radius:10px;font-size:12px;font-weight:700;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px"><span class="msi" style="font-size:16px">edit</span>この場所で報告する</a>' +
+    '</div>';
+  document.body.appendChild(c);
+  document.getElementById('pick-redo').onclick = () => { _removePickEl('park-pick-confirm'); if (_pickMarker) { _pickMarker.map = null; _pickMarker = null; } window.startParkPick(); };
+  document.getElementById('pick-go').onclick = () => {
+    if (window.Analytics) window.Analytics.infoMissingReport('park_pick:' + lat + ',' + lng, 'park_pick_form');
+    setTimeout(() => window.cancelParkPick(), 150);
+  };
+}
 
 // 一覧パネルトグル（モバイル用 - サイドバー開閉）
 window.parkToggleList = function() {
