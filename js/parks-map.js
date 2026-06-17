@@ -189,6 +189,7 @@ async function loadGasData() {
     if (json.parks && json.parks.length > 0) {
       json.parks.forEach(p => { curated[p.name] = p; });
       console.log(`✓ GASから${json.parks.length}件の承認済みデータを取得`);
+      renderGasReportedParks(json.parks);
     }
     if (json.updated) {
       gasUpdated = new Date(json.updated);
@@ -197,6 +198,34 @@ async function loadGasData() {
   } catch(e) {
     console.warn('GASデータ取得エラー（parks-data.jsのみ使用）:', e);
   }
+}
+
+/* GAS承認済みの「報告のある公園」を地図へ反映。
+   既存ピンと同名 → showParkModal でモーダルにマージ表示（ピンは増やさない）。
+   地図に無い報告公園 → 新規ピンとして追加（タップで報告内容が見える）。 */
+function renderGasReportedParks(gasParks) {
+  if (!Array.isArray(gasParks) || !map) return;
+  const existingNames = {};
+  Object.values(placesMarkers).forEach(m => { if (m._parkInfo) existingNames[m._parkInfo.name] = true; });
+  let added = 0;
+  gasParks.forEach(g => {
+    if (!g.lat || !g.lng) return;
+    if (existingNames[g.name]) return;                 // 同名の既存ピンあり → モーダルでマージ表示
+    const key = 'gas-' + g.id;
+    if (placesMarkers[key]) return;                    // 二重追加防止
+    // 登録済みピンと近接(80m以内)なら重複とみなしスキップ
+    const dup = Object.values(placesMarkers).some(m => {
+      const i = m._parkInfo; if (!i || i.lat == null) return false;
+      return Math.hypot((i.lat - g.lat) * 111000, (i.lng - g.lng) * 91000) < 80;
+    });
+    if (dup) return;
+    const info = Object.assign({ place_id: key }, g);
+    const mk = createMarker(g.lat, g.lng, info);
+    placesMarkers[key] = mk;
+    if (!activeFilters.catchball || g.catchball === true) clusterer.addMarker(mk);
+    added++;
+  });
+  if (added) { updateStats(); renderParkList(); console.log(`[GAS] 報告のある公園 ${added}件を地図に追加`); }
 }
 
 /* ═══════════════════════════════════════════════
@@ -404,6 +433,16 @@ function renderModalContent(park, toilet, parking) {
 }
 
 async function showParkModal(park) {
+  // GAS承認済みの報告集計があれば取り込んで表示（ピン色＝catchball は手動データを尊重し上書きしない）
+  if (typeof curated !== 'undefined') {
+    const g = curated[park.name];
+    if (g && g.reports != null && g !== park) {
+      park = Object.assign({}, park, {
+        reports: g.reports, yes_count: g.yes_count, no_count: g.no_count,
+        unknown_count: g.unknown_count, notes: park.notes || g.notes || ''
+      });
+    }
+  }
   document.getElementById('modal-park-name').textContent = park.name;
   // アナリティクス: 公園ピン/モーダル開封
   if (window.Analytics) {
