@@ -55,9 +55,11 @@
 <!-- MarkerClusterer for Google Maps -->
 <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
 <!-- 公園データ（parks-data.js に追記してデータ更新）-->
-<script src="data/parks-data.js?v=20260615"></script>
+<script src="data/parks-data.js?v=20260618"></script>
 <!-- 未登録公園データ（OSM由来・グレーピン用。© OpenStreetMap contributors）-->
-<script src="data/parks-osm.js?v=20260615" defer></script>
+<script src="data/parks-osm.js?v=20260618" defer></script>
+<!-- 自治体コード→名称（さいたま市は区まで）。未登録公園の住所をタップ時に取得する用 -->
+<script src="data/saitama-muni.js?v=20260618"></script>
 <script>
   // API_KEY / GAS_URL は config.js より前に必要なためここに据え置く
   // （API_KEY: Maps ローダーが即時使用 / GAS_URL: HTTP リファラー制限で保護済み）
@@ -87,7 +89,7 @@
 </script>
 <link rel="stylesheet" href="css/tokens.css?v=20260612">
 <link rel="stylesheet" href="css/common.css?v=20260613b">
-<link rel="stylesheet" href="css/parks-map.css?v=20260615">
+<link rel="stylesheet" href="css/parks-map.css?v=20260618">
 </head>
 <body data-page="park">
 
@@ -365,7 +367,7 @@
   </div>
 </div>
 
-<script src="js/parks-map.js?v=20260615b"></script>
+<script src="js/parks-map.js?v=20260618"></script>
 
 <!-- モバイルボトムナビ -->
 <div id="parks-bnav">

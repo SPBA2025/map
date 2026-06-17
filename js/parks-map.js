@@ -374,7 +374,7 @@ function renderModalContent(park, toilet, parking) {
     </div>
     <div class="park-row">
       <span class="park-row-label">住所</span>
-      <span class="park-row-value"><a href="${gmapUrl}" target="_blank" style="color:var(--action);text-decoration:none">${park.address || park.city || '地図で見る'} ↗</a></span>
+      <span class="park-row-value" id="modal-addr"><a href="${gmapUrl}" target="_blank" style="color:var(--action);text-decoration:none">${park.address || park.city || '地図で見る'} ↗</a></span>
     </div>
     ${park.area ? `<div class="park-row"><span class="park-row-label">広さ</span><span class="park-row-value">${park.area}</span></div>` : ''}
     ${toiletHtml}
@@ -416,7 +416,36 @@ async function showParkModal(park) {
   renderModalContent(park, initToilet, initParking);
   setupModalLinks(park);
 
+  // 住所が事前埋め込みされていない（グレー/未登録）公園は、タップ時に国土地理院で1回だけ取得（無料）
+  if (!park.address && park.lat && park.lng) fetchParkAddress(park);
+
   // 注意: Places API 系は課金されるため、このマップでは使用禁止（docs/REFACTORING_PLAN.md 参照）
+}
+
+// ── 未登録公園の住所をタップ時に取得（国土地理院リバースジオコーディング・無料） ──
+const _addrCache = {};
+async function fetchParkAddress(park) {
+  const el = document.getElementById('modal-addr');
+  if (!el) return;
+  const gmapUrl = `https://www.google.com/maps/search/${encodeURIComponent(park.name + ' 埼玉県')}`;
+  const link = txt => `<a href="${gmapUrl}" target="_blank" style="color:var(--action);text-decoration:none">${txt} ↗</a>`;
+  const key = park.lat.toFixed(5) + ',' + park.lng.toFixed(5);
+  if (_addrCache[key] !== undefined) { el.innerHTML = link(_addrCache[key] || '地図で見る'); return; }
+  el.innerHTML = '<span style="color:var(--ink-3)">住所を取得中…</span>';
+  try {
+    const r = await fetch(`https://mreversegeocoder.gsi.go.jp/reverse-geocoder/LonLatToAddress?lat=${park.lat}&lon=${park.lng}`);
+    const d = await r.json();
+    const res = d && d.results;
+    if (res && res.muniCd && res.lv01Nm) {
+      const muni = (window.SAITAMA_MUNI && window.SAITAMA_MUNI[res.muniCd]) || '';
+      const addr = (muni + res.lv01Nm).replace(/^−$|^-$/, '');
+      _addrCache[key] = addr;
+      el.innerHTML = link(addr || '地図で見る');
+      return;
+    }
+  } catch (e) { /* ネットワーク失敗時はフォールバック */ }
+  _addrCache[key] = '';
+  el.innerHTML = link('地図で見る');
 }
 
 function setupModalLinks(park) {
