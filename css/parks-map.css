@@ -402,17 +402,10 @@ input:focus-visible{outline-offset:0}
 .mab:hover{border-color:var(--ink);box-shadow:var(--shadow-hover);color:var(--ink)}
 .mab-icon{font-size:15px;flex-shrink:0;line-height:1}
 .mab-label{line-height:1}
-/* 公園報告ボタン: アクセントカラー */
-#pbtn-report{background:#1b2842;color:#f8f2e6;border-color:#1b2842}
-#pbtn-report:hover{background:#c8202e;border-color:#c8202e;color:#fff}
-#pbtn-report .mab-icon{color:#f8f2e6}
-#pbtn-report.active{background:#c8202e;border-color:#c8202e}
-/* 公園報告モード案内バナー */
-#park-report-banner{display:none;position:fixed;top:calc(40px + 46px + 12px);left:50%;transform:translateX(-50%);z-index:1200;background:#1b2842;color:#fff;padding:10px 16px;border-radius:24px;font-size:13px;font-weight:600;box-shadow:0 4px 16px rgba(27,40,66,0.3);max-width:90%;text-align:center;border:2px solid #c8202e}
-#park-report-banner.show{display:block;animation:prb-pop .3s cubic-bezier(0.32,0.72,0,1) both}
-@keyframes prb-pop{from{opacity:0;transform:translateX(-50%) translateY(-8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
-/* 報告モード中はマップカーソルを十字に */
-#map.report-mode{cursor:crosshair !important}
+/* 報告リンク（サイドバーの控えめな補助導線）*/
+.report-link{display:flex;align-items:center;gap:8px;padding:10px 12px;font-size:12px;font-weight:600;color:var(--ink-2);text-decoration:none;border:1px solid var(--border);border-radius:10px;transition:background .15s,border-color .15s,color .15s}
+.report-link .msi{color:var(--action)}
+.report-link:hover{background:var(--surface-2);border-color:var(--action);color:var(--ink)}
 #pbtn-catchball.active{background:var(--green)!important;border-color:var(--green)!important;color:#fff!important}
 @media(max-width:768px){#park-action-btns{display:none!important}#park-map-type-bar{display:none!important}}
 

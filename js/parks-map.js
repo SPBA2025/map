@@ -130,6 +130,7 @@ async function initMap() {
 
   setupMapTypeButtons();
   setupEventListeners();
+  setupReportLink();
 
   // map.controls にボタンを登録（Googleコントロールとの重なり防止）
   map.controls[google.maps.ControlPosition.TOP_RIGHT].push(
@@ -524,8 +525,6 @@ function closeParkModal() {
 // ── 全モーダル共通: ESCで閉じる ──
 document.addEventListener('keydown', function(e) {
   if (e.key !== 'Escape') return;
-  // 公園報告モード中なら最優先でキャンセル
-  if (_parkReportMode) { window.cancelParkReportMode(); return; }
   const modal = document.getElementById('park-modal');
   if (modal && modal.classList.contains('open')) { closeParkModal(); return; }
   // モバイルのサイドバー
@@ -976,56 +975,19 @@ window.parkToggleCatchball = function() {
   if (window.Toast) Toast.show(activeFilters.catchball ? 'キャッチボール可の公園のみ表示' : '全公園を表示');
 };
 
-// ─── 公園報告モード（地図タップで未登録公園を報告）───
-let _parkReportMode = false;
-let _parkReportListener = null;
-
-window.startParkReportMode = function() {
-  _parkReportMode = true;
-  document.getElementById('pbtn-report')?.classList.add('active');
-  document.getElementById('park-report-banner')?.classList.add('show');
-  document.getElementById('map')?.classList.add('report-mode');
-  if (window.Toast) Toast.show('地図上で公園の位置をタップしてください', { duration: 3000 });
-
-  // マップクリックリスナーを登録（1回だけ）
-  _parkReportListener = map.addListener('click', (e) => {
-    const lat = Math.round(e.latLng.lat() * 1000000) / 1000000;
-    const lng = Math.round(e.latLng.lng() * 1000000) / 1000000;
-    window.cancelParkReportMode();
-    openParkReportForm(lat, lng);
-  });
-};
-
-window.cancelParkReportMode = function() {
-  _parkReportMode = false;
-  document.getElementById('pbtn-report')?.classList.remove('active');
-  document.getElementById('park-report-banner')?.classList.remove('show');
-  document.getElementById('map')?.classList.remove('report-mode');
-  if (_parkReportListener) {
-    google.maps.event.removeListener(_parkReportListener);
-    _parkReportListener = null;
-  }
-};
-
-function openParkReportForm(lat, lng) {
+// ─── 報告リンク（地図にない公園・情報の誤りを報告）───
+// 共用フォームを直接開く控えめな導線。<a target="_blank"> なのでポップアップブロックされず、
+// モバイル/PC問わず確実に動く（旧：地図タップ→ポップアップ方式は不安定だったため廃止）。
+function setupReportLink() {
+  const rl = document.getElementById('report-missing-link');
+  if (!rl) return;
   const cfg = window.APP_CONFIG || {};
-  // 公園情報提供フォーム（共用）に座標をプリフィルして開く
-  const formUrl  = cfg.PARK_FORM_URL || '';
-  const entryLat = cfg.PARK_FORM_ENTRY_LAT || '';
-  const entryLng = cfg.PARK_FORM_ENTRY_LNG || '';
-  if (window.Analytics) window.Analytics.infoMissingReport('park_new:' + lat + ',' + lng, 'park_new_report');
-  if (formUrl) {
-    let url = formUrl + (formUrl.includes('?') ? '&' : '?') + 'usp=pp_url';
-    if (entryLat) url += `&${entryLat}=${lat}`;
-    if (entryLng) url += `&${entryLng}=${lng}`;
-    window.open(url, '_blank', 'noopener');
-    if (window.Toast) Toast.show('報告フォームを開きました（座標入力済み）', { type: 'success', duration: 3000 });
-  } else {
-    // 万一フォーム未設定: 座標をクリップボードにコピーして案内
-    const coordText = `${lat}, ${lng}`;
-    if (navigator.clipboard) navigator.clipboard.writeText(coordText).catch(() => {});
-    if (window.Toast) Toast.show(`座標 ${coordText} をコピーしました`, { duration: 4000 });
-  }
+  rl.href = cfg.PARK_FORM_URL
+    ? cfg.PARK_FORM_URL + (cfg.PARK_FORM_URL.includes('?') ? '&' : '?') + 'usp=pp_url'
+    : (cfg.CONTACT_URL || 'https://www.saitamabaseball.com/contact-8');
+  rl.addEventListener('click', () => {
+    if (window.Analytics) window.Analytics.infoMissingReport('park_missing', 'park_report_form_link');
+  });
 }
 
 // 一覧パネルトグル（モバイル用 - サイドバー開閉）
