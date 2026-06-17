@@ -457,12 +457,20 @@ function setupModalLinks(park) {
     linkBtn.style.display = 'none';
   }
   const cfg = window.APP_CONFIG || {};
-  const FORM_URL = cfg.PARK_INFO_FORM_URL || '';
-  const NAME_ENTRY = cfg.PARK_INFO_ENTRY_NAME || 'entry.837577971';
+  const FORM_URL   = cfg.PARK_FORM_URL || '';
+  const NAME_ENTRY = cfg.PARK_FORM_ENTRY_NAME || 'entry.837577971';
+  const LAT_ENTRY  = cfg.PARK_FORM_ENTRY_LAT || '';
+  const LNG_ENTRY  = cfg.PARK_FORM_ENTRY_LNG || '';
   const reportLink = document.getElementById('modal-report-link');
-  reportLink.href = FORM_URL
-    ? `${FORM_URL}?usp=pp_url&${NAME_ENTRY}=${encodeURIComponent(park.name)}`
-    : (cfg.CONTACT_URL || 'https://www.saitamabaseball.com/contact-8');
+  if (FORM_URL) {
+    let url = `${FORM_URL}?usp=pp_url&${NAME_ENTRY}=${encodeURIComponent(park.name)}`;
+    // 登録済み・グレーピンとも座標を持つので一緒にプリフィル（グレーの座標捨てを解消）
+    if (LAT_ENTRY && park.lat != null) url += `&${LAT_ENTRY}=${park.lat}`;
+    if (LNG_ENTRY && park.lng != null) url += `&${LNG_ENTRY}=${park.lng}`;
+    reportLink.href = url;
+  } else {
+    reportLink.href = cfg.CONTACT_URL || 'https://www.saitamabaseball.com/contact-8';
+  }
   // 情報修正ボタンクリックでアナリティクスイベントを発火
   reportLink.onclick = function() {
     if (window.Analytics) window.Analytics.infoMissingReport('park:' + park.name, 'park_report_form');
@@ -962,23 +970,22 @@ window.cancelParkReportMode = function() {
 
 function openParkReportForm(lat, lng) {
   const cfg = window.APP_CONFIG || {};
-  // 新規公園報告フォーム（座標プリフィル対応）。 未設定時は既存の公園情報提供フォームにフォールバック
-  const formUrl = cfg.PARK_REPORT_FORM_URL || '';
+  // 公園情報提供フォーム（共用）に座標をプリフィルして開く
+  const formUrl  = cfg.PARK_FORM_URL || '';
+  const entryLat = cfg.PARK_FORM_ENTRY_LAT || '';
+  const entryLng = cfg.PARK_FORM_ENTRY_LNG || '';
   if (window.Analytics) window.Analytics.infoMissingReport('park_new:' + lat + ',' + lng, 'park_new_report');
   if (formUrl) {
-    // entry ID は config.js の PARK_REPORT_ENTRY_LAT / _LNG で指定（フォーム作成後に設定）
-    const entryLat = cfg.PARK_REPORT_ENTRY_LAT || '';
-    const entryLng = cfg.PARK_REPORT_ENTRY_LNG || '';
     let url = formUrl + (formUrl.includes('?') ? '&' : '?') + 'usp=pp_url';
     if (entryLat) url += `&${entryLat}=${lat}`;
     if (entryLng) url += `&${entryLng}=${lng}`;
     window.open(url, '_blank', 'noopener');
     if (window.Toast) Toast.show('報告フォームを開きました（座標入力済み）', { type: 'success', duration: 3000 });
   } else {
-    // フォーム未設定: 座標をクリップボードにコピーして案内
+    // 万一フォーム未設定: 座標をクリップボードにコピーして案内
     const coordText = `${lat}, ${lng}`;
     if (navigator.clipboard) navigator.clipboard.writeText(coordText).catch(() => {});
-    if (window.Toast) Toast.show(`座標 ${coordText} をコピーしました（フォーム準備中）`, { duration: 4000 });
+    if (window.Toast) Toast.show(`座標 ${coordText} をコピーしました`, { duration: 4000 });
   }
 }
 

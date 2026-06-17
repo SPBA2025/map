@@ -30,24 +30,18 @@ window.APP_CONFIG = {
   // 連絡先メール（フッター表示用）
   CONTACT_EMAIL: 'info@saitamabaseball.com',
 
-  // チーム情報修正・追加用Googleフォーム（埼玉県競技者人口マップ 情報提供フォーム）
+  // チーム情報修正・追加用Googleフォーム（チームマップ 情報提供フォーム）
   // チーム名欄の entry ID は 1520807350（マップポップアップから自動入力される）
   TEAM_INFO_FORM_URL: 'https://docs.google.com/forms/d/e/1FAIpQLSd92jK-e9g52C5ux9Q1a_LMUePVJljIua9HBpP1NwePEOr3Iw/viewform',
 
-  // 公園情報の修正・提供用Googleフォーム（公園詳細モーダルから開く）
-  // 公園名欄の entry ID は 837577971（公園名が自動入力される）
-  PARK_INFO_FORM_URL: 'https://docs.google.com/forms/d/e/1FAIpQLSdwOG0eAVXRFkIsgplkszA45sMHCYYf3NwseniMI5iP2jG2yw/viewform',
-  PARK_INFO_ENTRY_NAME: 'entry.837577971',
-
-  // 新規公園報告用Googleフォーム（地図タップで座標プリフィル）
-  // 未設定時は座標をクリップボードコピーして案内する
-  // 設定例:
-  //   PARK_REPORT_FORM_URL: 'https://docs.google.com/forms/d/e/XXXXX/viewform',
-  //   PARK_REPORT_ENTRY_LAT: 'entry.111111111',  // 緯度欄の entry ID
-  //   PARK_REPORT_ENTRY_LNG: 'entry.222222222',  // 経度欄の entry ID
-  PARK_REPORT_FORM_URL: '',
-  PARK_REPORT_ENTRY_LAT: '',
-  PARK_REPORT_ENTRY_LNG: '',
+  // 公園情報の提供用Googleフォーム（埼玉県公園マップ 情報提供フォーム・全報告導線で共用）
+  //   ① 登録済み公園モーダル / ② グレー未登録ピン → 公園名＋座標を自動入力
+  //   ③「公園を報告」→ 地図タップ → 座標を自動入力
+  // entry ID: 公園名=837577971 / 緯度=651590452 / 経度=186265272
+  PARK_FORM_URL: 'https://docs.google.com/forms/d/e/1FAIpQLSdwOG0eAVXRFkIsgplkszA45sMHCYYf3NwseniMI5iP2jG2yw/viewform',
+  PARK_FORM_ENTRY_NAME: 'entry.837577971',
+  PARK_FORM_ENTRY_LAT: 'entry.651590452',
+  PARK_FORM_ENTRY_LNG: 'entry.186265272',
 
   // SNSアカウント（空文字なら非表示）
   INSTAGRAM_URL: '',
