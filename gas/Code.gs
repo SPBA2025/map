@@ -31,7 +31,7 @@ const ANSWER_NO     = 'できない';
 // ▼ リアルタイム反映・Teams承認 用 ▼
 const TEAMS_WEBHOOK_URL = '';            // ← TeamsのIncoming Webhook URL（空なら通知しない）
 const APPROVE_TOKEN     = 'spba-park-2026';  // ← 承認リンクの合言葉（任意の文字列に変更可）
-const WEBAPP_URL        = '';            // ← デプロイ済みウェブアプリの /exec URL（parks.htmlのGAS_URLと同じ。空なら自動取得）
+const WEBAPP_URL        = 'https://script.google.com/macros/s/AKfycbyBqycA_v8614sI_4vWtqniSlValz6q-3BtfF-5iXyCKTeB3oScXR4RcRNR7ZYbQjFi/exec'; // デプロイ済みウェブアプリ /exec URL
 
 // ═══ WebアプリGET ═══
 function doGet(e) {
