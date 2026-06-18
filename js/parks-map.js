@@ -183,7 +183,7 @@ async function loadGasData() {
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 5000);
-    const res  = await fetch(`${GAS_URL}?action=approved`, { signal: controller.signal });
+    const res  = await fetch(`${GAS_URL}?action=live`, { signal: controller.signal });
     clearTimeout(timer);
     const json = await res.json();
     if (json.parks && json.parks.length > 0) {
@@ -191,6 +191,8 @@ async function loadGasData() {
       console.log(`✓ GASから${json.parks.length}件の承認済みデータを取得`);
       renderGasReportedParks(json.parks);
     }
+    // 確認中（未承認）の報告を即時表示
+    renderPendingParks(Array.isArray(json.pending) ? json.pending : []);
     if (json.updated) {
       gasUpdated = new Date(json.updated);
       updateLastUpdated();
@@ -198,6 +200,37 @@ async function loadGasData() {
   } catch(e) {
     console.warn('GASデータ取得エラー（parks-data.jsのみ使用）:', e);
   }
+}
+
+/* ── 確認中(pending)の報告 ── */
+let pendingByName = {};
+let pendingMarkers = {};
+function renderPendingParks(list) {
+  pendingByName = {};
+  (list || []).forEach(p => { if (p && p.name) pendingByName[p.name] = p; });
+  if (typeof map === 'undefined' || !map) return;
+  // 既存ピンと同名なら（モーダルでバッジ表示するので）ピンは増やさない
+  const existing = {};
+  Object.values(placesMarkers).forEach(m => { if (m._parkInfo) existing[m._parkInfo.name] = true; });
+  // 既存の確認中ピンを一旦撤去（承認されたら消えるように）
+  for (const k in pendingMarkers) { pendingMarkers[k].map = null; delete pendingMarkers[k]; }
+  (list || []).forEach(p => {
+    if (!p || existing[p.name]) return;
+    if (!(p.lat && p.lng)) return;
+    pendingMarkers[p.name] = createPendingMarker(p);
+  });
+}
+function createPendingMarker(p) {
+  const wrap = document.createElement('div');
+  wrap.innerHTML = '<div style="position:relative;width:30px;height:40px;filter:drop-shadow(0 2px 5px rgba(245,166,35,.5));cursor:pointer">'
+    + '<div style="position:absolute;top:0;left:0;width:30px;height:30px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#f5a623;border:2px dashed #fff"></div>'
+    + '<div style="position:absolute;top:0;left:0;width:30px;height:30px;display:flex;align-items:center;justify-content:center;color:#fff"><span class="msi" style="font-size:15px">schedule</span></div>'
+    + '</div>';
+  const content = wrap.firstElementChild;
+  content.addEventListener('click', e => { e.stopPropagation(); showParkModal(p); });
+  const m = new google.maps.marker.AdvancedMarkerElement({ position: { lat: p.lat, lng: p.lng }, content, title: p.name + '（確認中）' });
+  m.map = map;
+  return m;
 }
 
 /* GAS承認済みの「報告のある公園」を地図へ反映。
@@ -454,6 +487,19 @@ async function showParkModal(park) {
   const initParking = park.parking !== undefined ? park.parking : null;
   renderModalContent(park, initToilet, initParking);
   setupModalLinks(park);
+
+  // 確認中（未承認）の報告があれば、票数だけ「確認中」として表示（事務局の承認後に正式反映）
+  const _pend = (typeof pendingByName !== 'undefined') && pendingByName[park.name];
+  if (_pend && _pend.reports > 0) {
+    const host = document.getElementById('modal-park-content');
+    if (host) {
+      const d = document.createElement('div');
+      d.style.cssText = 'display:flex;align-items:flex-start;gap:8px;padding:10px 12px;border-radius:10px;margin-bottom:12px;background:rgba(245,166,35,0.12);color:#9a6700;border:1px solid rgba(245,166,35,0.4)';
+      d.innerHTML = '<span class="msi" style="font-size:18px">schedule</span><div style="font-size:12px;font-weight:700">確認中の新しい報告 ' + _pend.reports + '件'
+        + '<div style="font-weight:500;color:#a8801f;margin-top:2px">できる ' + (_pend.yes_count||0) + '・できない ' + (_pend.no_count||0) + '・不明 ' + (_pend.unknown_count||0) + '<br>（事務局の確認後にマップへ正式反映されます）</div></div>';
+      host.insertBefore(d, host.firstChild);
+    }
+  }
 
   // 住所が事前埋め込みされていない（グレー/未登録）公園は、タップ時に国土地理院で1回だけ取得（無料）
   if (!park.address && park.lat && park.lng) fetchParkAddress(park);
