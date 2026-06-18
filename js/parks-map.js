@@ -1024,7 +1024,7 @@ function _buildPickUI() {
   const b = document.createElement('div');
   b.id = 'park-pick-banner';
   b.style.cssText = 'position:fixed;top:90px;left:50%;transform:translateX(-50%);z-index:3000;background:#1b2842;color:#fff;padding:10px 16px;border-radius:24px;font-size:13px;font-weight:700;box-shadow:0 6px 20px rgba(0,0,0,.3);border:2px solid #c8202e;max-width:92vw;text-align:center';
-  b.textContent = '地図を動かして、公園の位置に〇を合わせてください';
+  b.textContent = '地図を動かして、中央のピンの先を公園に合わせてください';
   document.body.appendChild(b);
   // 下部の確定バー
   const bar = document.createElement('div');
