@@ -214,7 +214,8 @@ function notifyTeams_(name, cb, approveUrl) {
           { type: 'FactSet', facts: [
             { title: '公園名', value: name },
             { title: 'キャッチボール', value: cb || '(未回答)' }
-          ] }
+          ] },
+          { type: 'TextBlock', text: '👉 [✅ 承認して公開する](' + approveUrl + ')', wrap: true, weight: 'Bolder', color: 'Accent', spacing: 'Medium' }
         ],
         actions: [{ type: 'Action.OpenUrl', title: '✅ 承認して公開', url: approveUrl }]
       }
