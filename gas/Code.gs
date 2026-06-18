@@ -200,14 +200,27 @@ function onFormSubmit(e) {
 }
 
 function notifyTeams_(name, cb, approveUrl) {
-  const card = {
-    '@type': 'MessageCard', '@context': 'http://schema.org/extensions',
-    themeColor: '1b2842', summary: '新しい公園報告',
-    title: '🆕 公園マップに報告が届きました',
-    sections: [{ facts: [{ name: '公園名', value: name }, { name: 'キャッチボール', value: cb || '(未回答)' }] }],
-    potentialAction: [{ '@type': 'OpenUri', name: '✅ 承認して公開', targets: [{ os: 'default', uri: approveUrl }] }]
+  // Teams「Workflows」(Power Automate)のWebhook向け Adaptiveカード形式
+  const payload = {
+    type: 'message',
+    attachments: [{
+      contentType: 'application/vnd.microsoft.card.adaptive',
+      content: {
+        type: 'AdaptiveCard',
+        $schema: 'http://adaptivecards.io/schemas/adaptive-card.json',
+        version: '1.4',
+        body: [
+          { type: 'TextBlock', text: '🆕 公園マップに報告が届きました', weight: 'Bolder', size: 'Medium' },
+          { type: 'FactSet', facts: [
+            { title: '公園名', value: name },
+            { title: 'キャッチボール', value: cb || '(未回答)' }
+          ] }
+        ],
+        actions: [{ type: 'Action.OpenUrl', title: '✅ 承認して公開', url: approveUrl }]
+      }
+    }]
   };
-  UrlFetchApp.fetch(TEAMS_WEBHOOK_URL, { method: 'post', contentType: 'application/json', payload: JSON.stringify(card), muteHttpExceptions: true });
+  UrlFetchApp.fetch(TEAMS_WEBHOOK_URL, { method: 'post', contentType: 'application/json', payload: JSON.stringify(payload), muteHttpExceptions: true });
 }
 
 // 通知トリガーを設定（メニューから一度だけ実行）
