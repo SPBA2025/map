@@ -413,6 +413,33 @@ function renderOsmPins() {
 /* ═══════════════════════════════════════════════
    MODAL
 ═══════════════════════════════════════════════ */
+/* ── 写真（Cloudinary 無署名アップロード・無料） ── */
+let _modalPhotoUrl = '';   // モーダルで添付した写真URL（報告に連結）
+function uploadToCloudinary(file) {
+  const cfg = window.APP_CONFIG || {};
+  if (!cfg.CLOUDINARY_CLOUD || !cfg.CLOUDINARY_PRESET) return Promise.reject(new Error('Cloudinary未設定'));
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('upload_preset', cfg.CLOUDINARY_PRESET);
+  fd.append('folder', 'park-photos');
+  return fetch('https://api.cloudinary.com/v1_1/' + cfg.CLOUDINARY_CLOUD + '/image/upload', { method: 'POST', body: fd })
+    .then(r => r.json())
+    .then(j => { if (j.secure_url) return j.secure_url; throw new Error(j.error ? j.error.message : 'upload failed'); });
+}
+// secure_url の /upload/ 直後に変換指定を挿入し、最適化サムネにする（配信量を最小化）
+function cloudinaryThumb(url, w) {
+  if (!url || url.indexOf('/upload/') < 0) return url || '';
+  return url.replace('/upload/', '/upload/w_' + (w || 600) + ',q_auto,f_auto/');
+}
+function openPhotoLightbox(url) {
+  const ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:16px;cursor:zoom-out';
+  ov.innerHTML = '<img src="' + cloudinaryThumb(url, 1200) + '" style="max-width:100%;max-height:100%;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.6)">';
+  ov.onclick = () => ov.remove();
+  document.body.appendChild(ov);
+}
+window.openPhotoLightbox = openPhotoLightbox;
+
 function renderModalContent(park, toilet, parking) {
   const toiletHtml  = toilet  !== null ? `<div class="park-row"><span class="park-row-label">トイレ</span><span class="park-row-value">${toilet  ? 'あり' : 'なし'}</span></div>` : '';
   const parkingHtml = parking !== null ? `<div class="park-row"><span class="park-row-label">駐車場</span><span class="park-row-value">${parking ? 'あり' : 'なし'}</span></div>` : '';
@@ -442,6 +469,7 @@ function renderModalContent(park, toilet, parking) {
     ${toiletHtml}
     ${parkingHtml}
     ${park.notes ? `<div class="park-row"><span class="park-row-label">備考</span><span class="park-row-value">${park.notes}</span></div>` : ''}
+    ${park.photo ? `<div style="margin-top:12px"><img src="${cloudinaryThumb(park.photo, 600)}" alt="${park.name}の写真" loading="lazy" onclick="openPhotoLightbox('${park.photo}')" style="width:100%;border-radius:10px;cursor:zoom-in;display:block"></div>` : ''}
     <div style="margin-top:16px;border:1px solid var(--border);border-radius:12px;overflow:hidden">
       <div style="padding:12px 14px;background:var(--surface-2);border-bottom:1px solid var(--border)">
         <div style="font-size:11px;font-weight:700;color:var(--ink);margin-bottom:8px">
@@ -453,6 +481,11 @@ function renderModalContent(park, toilet, parking) {
           <span style="display:inline-flex;align-items:center;gap:3px;padding:3px 10px;background:rgba(255,56,92,0.1);border-radius:14px;color:#ff385c;font-size:11px;font-weight:600"><span class="msi" style="font-size:13px">close</span>できない ${park.no_count || 0}票</span>
           <span style="display:inline-flex;align-items:center;gap:3px;padding:3px 10px;background:rgba(196,85,0,0.1);border-radius:14px;color:#c45500;font-size:11px;font-weight:600"><span class="msi" style="font-size:13px">help</span>不明 ${park.unknown_count || 0}票</span>
         </div>` : `<div style="font-size:12px;color:var(--ink-3)">まだ報告がありません。最初の報告者になりましょう！</div>`}
+      </div>
+      <div style="padding:10px 14px;border-bottom:1px solid var(--border);background:var(--surface)">
+        <input type="file" accept="image/*" id="modal-photo-input" style="display:none">
+        <button type="button" id="modal-photo-btn" style="display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:9px;border:1px dashed var(--border);border-radius:8px;background:var(--surface-2);color:var(--ink-2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit"><span class="msi" style="font-size:16px">photo_camera</span>写真を追加（任意）</button>
+        <div id="modal-photo-preview" style="margin-top:8px;display:none"></div>
       </div>
       <a id="modal-report-link" href="#" target="_blank"
          style="display:flex;align-items:center;justify-content:center;gap:6px;padding:11px 14px;background:var(--surface);color:var(--ink-2);font-size:12px;font-weight:600;text-decoration:none;transition:.15s"
@@ -466,6 +499,7 @@ function renderModalContent(park, toilet, parking) {
 }
 
 async function showParkModal(park) {
+  _modalPhotoUrl = '';   // モーダルを開くたびに写真添付状態をリセット
   // GAS承認済みの報告集計があれば取り込んで表示（ピン色＝catchball は手動データを尊重し上書きしない）
   if (typeof curated !== 'undefined') {
     const g = curated[park.name];
@@ -546,20 +580,52 @@ function setupModalLinks(park) {
   const NAME_ENTRY = cfg.PARK_FORM_ENTRY_NAME || 'entry.837577971';
   const LAT_ENTRY  = cfg.PARK_FORM_ENTRY_LAT || '';
   const LNG_ENTRY  = cfg.PARK_FORM_ENTRY_LNG || '';
+  const PHOTO_ENTRY = cfg.PARK_FORM_ENTRY_PHOTO || '';
   const reportLink = document.getElementById('modal-report-link');
-  if (FORM_URL) {
+  // 報告フォームURLを組み立て（写真URLが添付されていれば連結）
+  function buildReportHref() {
+    if (!FORM_URL) return cfg.CONTACT_URL || 'https://www.saitamabaseball.com/contact-8';
     let url = `${FORM_URL}?usp=pp_url&${NAME_ENTRY}=${encodeURIComponent(park.name)}`;
-    // 登録済み・グレーピンとも座標を持つので一緒にプリフィル（グレーの座標捨てを解消）
     if (LAT_ENTRY && park.lat != null) url += `&${LAT_ENTRY}=${park.lat}`;
     if (LNG_ENTRY && park.lng != null) url += `&${LNG_ENTRY}=${park.lng}`;
-    reportLink.href = url;
-  } else {
-    reportLink.href = cfg.CONTACT_URL || 'https://www.saitamabaseball.com/contact-8';
+    if (PHOTO_ENTRY && _modalPhotoUrl) url += `&${PHOTO_ENTRY}=${encodeURIComponent(_modalPhotoUrl)}`;
+    return url;
   }
-  // 情報修正ボタンクリックでアナリティクスイベントを発火
+  reportLink.href = buildReportHref();
   reportLink.onclick = function() {
     if (window.Analytics) window.Analytics.infoMissingReport('park:' + park.name, 'park_report_form');
   };
+
+  // 写真添付（Cloudinaryへアップロード → 報告リンクに写真URLを連結）
+  const pInput = document.getElementById('modal-photo-input');
+  const pBtn   = document.getElementById('modal-photo-btn');
+  const pPrev  = document.getElementById('modal-photo-preview');
+  if (pBtn && pInput) {
+    pBtn.onclick = () => pInput.click();
+    pInput.onchange = async () => {
+      const f = pInput.files && pInput.files[0];
+      if (!f) return;
+      if (f.size > 10 * 1024 * 1024) { if (window.Toast) Toast.show('写真は10MBまでにしてください', { type: 'error' }); pInput.value = ''; return; }
+      const reset = () => { pBtn.disabled = false; };
+      pBtn.disabled = true;
+      pBtn.innerHTML = '<span class="msi" style="font-size:16px">hourglass_top</span>アップロード中…';
+      try {
+        const url = await uploadToCloudinary(f);
+        _modalPhotoUrl = url;
+        reportLink.href = buildReportHref();   // 写真URLを報告リンクへ連結
+        if (pPrev) {
+          pPrev.style.display = 'block';
+          pPrev.innerHTML = '<img src="' + cloudinaryThumb(url, 300) + '" style="width:100%;border-radius:8px;display:block">'
+            + '<div style="font-size:11px;color:#00a854;font-weight:600;margin-top:4px">✓ 写真を添付しました（報告と一緒に送られます）</div>';
+        }
+        pBtn.innerHTML = '<span class="msi" style="font-size:16px">check_circle</span>写真を変更';
+      } catch (e) {
+        if (window.Toast) Toast.show('写真のアップロードに失敗しました', { type: 'error' });
+        pBtn.innerHTML = '<span class="msi" style="font-size:16px">photo_camera</span>写真を追加（任意）';
+      }
+      reset();
+    };
+  }
   document.getElementById('park-modal').classList.add('open');
 }
 

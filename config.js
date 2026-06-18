@@ -42,6 +42,11 @@ window.APP_CONFIG = {
   PARK_FORM_ENTRY_NAME: 'entry.837577971',
   PARK_FORM_ENTRY_LAT: 'entry.651590452',
   PARK_FORM_ENTRY_LNG: 'entry.186265272',
+  PARK_FORM_ENTRY_PHOTO: 'entry.1750882233',
+
+  // 写真アップロード（Cloudinary 無署名・無料。カード未登録のため課金なし）
+  CLOUDINARY_CLOUD: 'dpzmmr7r8',
+  CLOUDINARY_PRESET: 'park_unsigned',
 
   // SNSアカウント（空文字なら非表示）
   INSTAGRAM_URL: '',

@@ -76,7 +76,8 @@ function getApprovedParks() {
       parking: row[8] === true || row[8] === 'TRUE' ? true : (row[8] === false || row[8] === 'FALSE' ? false : null),
       parkful_url: row[9] || '', notes: row[10] || '',
       reports: parseInt(row[11]) || 0, majority: parseInt(row[12]) || 0,
-      yes_count: parseInt(row[13]) || 0, no_count: parseInt(row[14]) || 0, unknown_count: parseInt(row[15]) || 0
+      yes_count: parseInt(row[13]) || 0, no_count: parseInt(row[14]) || 0, unknown_count: parseInt(row[15]) || 0,
+      photo: row[16] || ''
     });
   }
   return { parks, pending: [], updated: new Date().toISOString() };
@@ -119,7 +120,7 @@ function aggregateLive() {
     if (!name) continue;
     const cb = String(row[c.cb] || '').trim();
     const note = String(row[c.note] || '').trim();
-    if (!map[name]) map[name] = { name, yes: 0, no: 0, unknown: 0, notes: [], lat: 0, lng: 0 };
+    if (!map[name]) map[name] = { name, yes: 0, no: 0, unknown: 0, notes: [], lat: 0, lng: 0, photo: '' };
     if (cb.indexOf(ANSWER_YES) >= 0 && cb.indexOf(ANSWER_NO) < 0) map[name].yes++;
     else if (cb.indexOf(ANSWER_NO) >= 0) map[name].no++;
     else map[name].unknown++;
@@ -128,6 +129,7 @@ function aggregateLive() {
       const la = parseFloat(row[c.lat]), ln = parseFloat(row[c.lng]);
       if (la >= 35 && la <= 37 && ln >= 138 && ln <= 141) { map[name].lat = la; map[name].lng = ln; }
     }
+    if (c.photo >= 0) { const ph = String(row[c.photo] || '').trim(); if (/^https?:\/\//.test(ph)) map[name].photo = ph; }
   }
   return map;
 }
@@ -143,7 +145,8 @@ function detectCols_(headers) {
     cb:   find(['キャッチ'], COL_CATCHBALL - 1),
     note: find(['備考', '補足', '気づい'], COL_NOTES - 1),
     lat:  find(['緯度'], -1),
-    lng:  find(['経度'], -1)
+    lng:  find(['経度'], -1),
+    photo: find(['写真', 'photo'], -1)
   };
 }
 
@@ -158,7 +161,7 @@ function approveByName(name, token) {
 
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let sh = ss.getSheetByName(APPROVED_SHEET_NAME);
-  const HEADERS = ['id', 'name', 'address', 'lat', 'lng', 'catchball', 'area', 'toilet', 'parking', 'parkful_url', 'notes', 'reports', 'majority', 'yes_count', 'no_count', 'unknown_count'];
+  const HEADERS = ['id', 'name', 'address', 'lat', 'lng', 'catchball', 'area', 'toilet', 'parking', 'parkful_url', 'notes', 'reports', 'majority', 'yes_count', 'no_count', 'unknown_count', 'photo'];
   if (!sh) { sh = ss.insertSheet(APPROVED_SHEET_NAME); sh.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]); }
 
   const total = p.yes + p.no + p.unknown;
@@ -175,7 +178,7 @@ function approveByName(name, token) {
   let rowIdx = -1;
   for (let i = 1; i < data.length; i++) { if (String(data[i][1]).trim() === name) { rowIdx = i; break; } }
   const id = rowIdx >= 0 ? data[rowIdx][0] : (1000 + (data.length - 1));
-  const rowVals = [id, name, address, lat, lng, catchball, '', null, null, '', note, total, majority, p.yes, p.no, p.unknown];
+  const rowVals = [id, name, address, lat, lng, catchball, '', null, null, '', note, total, majority, p.yes, p.no, p.unknown, p.photo || ''];
   if (rowIdx >= 0) sh.getRange(rowIdx + 1, 1, 1, HEADERS.length).setValues([rowVals]);
   else sh.appendRow(rowVals);
 
@@ -192,33 +195,32 @@ function onFormSubmit(e) {
     const vals = (e && e.values) ? e.values : [];
     const name = String(vals[c.name] || '').trim();
     const cb = String(vals[c.cb] || '').trim();
+    const photo = (c.photo >= 0) ? String(vals[c.photo] || '').trim() : '';
     if (!name) return;
     const base = WEBAPP_URL || ScriptApp.getService().getUrl();
     const approveUrl = base + '?action=approve&token=' + encodeURIComponent(APPROVE_TOKEN) + '&name=' + encodeURIComponent(name);
-    notifyTeams_(name, cb, approveUrl);
+    notifyTeams_(name, cb, approveUrl, photo);
   } catch (err) { console.warn('onFormSubmit', err); }
 }
 
-function notifyTeams_(name, cb, approveUrl) {
+function notifyTeams_(name, cb, approveUrl, photo) {
   // Teams「Workflows」(Power Automate)のWebhook向け Adaptiveカード形式
+  const body = [
+    { type: 'TextBlock', text: '🆕 公園マップに報告が届きました', weight: 'Bolder', size: 'Medium' },
+    { type: 'FactSet', facts: [
+      { title: '公園名', value: name },
+      { title: 'キャッチボール', value: cb || '(未回答)' }
+    ] }
+  ];
+  if (photo && /^https?:\/\//.test(photo)) {
+    body.push({ type: 'Image', url: photo, size: 'Large', altText: name + 'の写真' });
+  }
+  body.push({ type: 'TextBlock', text: '👉 [✅ 承認して公開する](' + approveUrl + ')', wrap: true, weight: 'Bolder', color: 'Accent', spacing: 'Medium' });
   const payload = {
     type: 'message',
     attachments: [{
       contentType: 'application/vnd.microsoft.card.adaptive',
-      content: {
-        type: 'AdaptiveCard',
-        $schema: 'http://adaptivecards.io/schemas/adaptive-card.json',
-        version: '1.4',
-        body: [
-          { type: 'TextBlock', text: '🆕 公園マップに報告が届きました', weight: 'Bolder', size: 'Medium' },
-          { type: 'FactSet', facts: [
-            { title: '公園名', value: name },
-            { title: 'キャッチボール', value: cb || '(未回答)' }
-          ] },
-          { type: 'TextBlock', text: '👉 [✅ 承認して公開する](' + approveUrl + ')', wrap: true, weight: 'Bolder', color: 'Accent', spacing: 'Medium' }
-        ],
-        actions: [{ type: 'Action.OpenUrl', title: '✅ 承認して公開', url: approveUrl }]
-      }
+      content: { type: 'AdaptiveCard', $schema: 'http://adaptivecards.io/schemas/adaptive-card.json', version: '1.4', body: body, actions: [{ type: 'Action.OpenUrl', title: '✅ 承認して公開', url: approveUrl }] }
     }]
   };
   UrlFetchApp.fetch(TEAMS_WEBHOOK_URL, { method: 'post', contentType: 'application/json', payload: JSON.stringify(payload), muteHttpExceptions: true });
