@@ -525,7 +525,7 @@ function closeParkModal() {
 document.addEventListener('keydown', function(e) {
   if (e.key !== 'Escape') return;
   // 場所指定モード中なら最優先でキャンセル
-  if (document.getElementById('park-pick-banner') || document.getElementById('park-pick-confirm')) { window.cancelParkPick(); return; }
+  if (document.getElementById('park-pick-banner') || document.getElementById('park-pick-bar')) { window.cancelParkPick(); return; }
   const modal = document.getElementById('park-modal');
   if (modal && modal.classList.contains('open')) { closeParkModal(); return; }
   // モバイルのサイドバー
@@ -976,11 +976,11 @@ window.parkToggleCatchball = function() {
   if (window.Toast) Toast.show(activeFilters.catchball ? 'キャッチボール可の公園のみ表示' : '全公園を表示');
 };
 
-// ─── 地図にない公園を「地図で場所を指定」して報告 ───
-// 流れ: リンク → 地図タップで仮ピン → 確認カードの「この場所で報告する」(実リンク) でフォーム起動。
-// ポイント: フォームを開くのは確認カードの <a> クリック（直接のユーザー操作）なのでポップアップブロックされない。
-//          バナー/カードは inline スタイルで生成し、CSSアニメ非依存で確実に表示される。
-let _pickListener = null, _pickMarker = null;
+// ─── 地図にない公園を「画面中央の照準に合わせて」報告 ───
+// 方式: 地図クリックに依存せず、画面中央に固定した照準(〇)に地図を動かして合わせ、
+//       下部「この場所で報告する」(href は地図移動のたび map.getCenter() で更新する実<a>) で
+//       座標入りフォームを開く。Uber等の位置選択と同じ。タップ取りこぼし・ポップアップブロックが起きない。
+let _pickIdle = null, _pickResize = null;
 
 window.startParkPick = function() {
   if (typeof map === 'undefined' || !map) {
@@ -992,59 +992,75 @@ window.startParkPick = function() {
   document.getElementById('sidebar')?.classList.remove('open');
   document.getElementById('hbg')?.classList.remove('open');
   _clearPickUI();
-  _showPickBanner();
-  document.getElementById('map')?.style.setProperty('cursor', 'crosshair');
-  _pickListener = map.addListener('click', (e) => {
-    const lat = Math.round(e.latLng.lat() * 1e6) / 1e6;
-    const lng = Math.round(e.latLng.lng() * 1e6) / 1e6;
-    _onPick(lat, lng);
-  });
+  _buildPickUI();
+  _placeCrosshair();
+  _updatePickTarget();
+  _pickIdle = map.addListener('idle', _updatePickTarget);
+  _pickResize = () => _placeCrosshair();
+  window.addEventListener('resize', _pickResize);
 };
 
 window.cancelParkPick = function() {
-  if (_pickListener) { google.maps.event.removeListener(_pickListener); _pickListener = null; }
+  if (_pickIdle) { google.maps.event.removeListener(_pickIdle); _pickIdle = null; }
+  if (_pickResize) { window.removeEventListener('resize', _pickResize); _pickResize = null; }
   _clearPickUI();
-  document.getElementById('map')?.style.removeProperty('cursor');
 };
 
-function _onPick(lat, lng) {
-  if (_pickListener) { google.maps.event.removeListener(_pickListener); _pickListener = null; }
-  _removePickEl('park-pick-banner');
-  _dropPickMarker(lat, lng);
-  _showPickConfirm(lat, lng);
-}
-
 function _clearPickUI() {
-  _removePickEl('park-pick-banner');
-  _removePickEl('park-pick-confirm');
-  if (_pickMarker) { _pickMarker.map = null; _pickMarker = null; }
+  ['park-pick-crosshair', 'park-pick-banner', 'park-pick-bar'].forEach(id => document.getElementById(id)?.remove());
 }
-function _removePickEl(id) { document.getElementById(id)?.remove(); }
 
-function _showPickBanner() {
-  _removePickEl('park-pick-banner');
+function _buildPickUI() {
+  // 画面中央の照準ピン（地図操作を妨げないよう pointer-events:none）
+  const x = document.createElement('div');
+  x.id = 'park-pick-crosshair';
+  x.style.cssText = 'position:fixed;z-index:2999;pointer-events:none;transform:translate(-50%,-100%);filter:drop-shadow(0 3px 5px rgba(0,0,0,.4))';
+  x.innerHTML = '<div style="width:36px;height:46px;position:relative">'
+    + '<div style="position:absolute;top:0;left:0;width:36px;height:36px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#c8202e;border:3px solid #fff"></div>'
+    + '<div style="position:absolute;top:0;left:0;width:36px;height:36px;display:flex;align-items:center;justify-content:center;color:#fff"><span class="msi" style="font-size:18px">sports_baseball</span></div>'
+    + '</div>';
+  document.body.appendChild(x);
+  // 上部の案内バナー
   const b = document.createElement('div');
   b.id = 'park-pick-banner';
-  b.style.cssText = 'position:fixed;top:90px;left:50%;transform:translateX(-50%);z-index:3000;background:#1b2842;color:#fff;padding:11px 16px;border-radius:24px;font-size:13px;font-weight:700;box-shadow:0 6px 20px rgba(0,0,0,.3);border:2px solid #c8202e;display:flex;align-items:center;gap:10px;max-width:92vw';
-  b.innerHTML = '<span class="msi" style="font-size:18px">touch_app</span><span>公園の場所を地図でタップ</span>';
-  const cancel = document.createElement('button');
-  cancel.type = 'button';
-  cancel.textContent = 'キャンセル';
-  cancel.style.cssText = 'background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600';
-  cancel.onclick = window.cancelParkPick;
-  b.appendChild(cancel);
+  b.style.cssText = 'position:fixed;top:90px;left:50%;transform:translateX(-50%);z-index:3000;background:#1b2842;color:#fff;padding:10px 16px;border-radius:24px;font-size:13px;font-weight:700;box-shadow:0 6px 20px rgba(0,0,0,.3);border:2px solid #c8202e;max-width:92vw;text-align:center';
+  b.textContent = '地図を動かして、公園の位置に〇を合わせてください';
   document.body.appendChild(b);
+  // 下部の確定バー
+  const bar = document.createElement('div');
+  bar.id = 'park-pick-bar';
+  bar.style.cssText = 'position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 76px);transform:translateX(-50%);z-index:3000;background:#fff;border:1px solid #e4e4e4;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.22);padding:12px;width:min(92vw,360px);font-family:inherit';
+  bar.innerHTML =
+    '<div id="pick-coord" style="text-align:center;font-size:11px;color:#888;margin-bottom:10px">位置を取得中…</div>'
+    + '<div style="display:flex;gap:8px">'
+    + '<button type="button" id="pick-cancel" style="flex:1;padding:11px;border:1px solid #e4e4e4;background:#fff;border-radius:10px;font-size:12px;font-weight:600;color:#555;cursor:pointer;font-family:inherit">キャンセル</button>'
+    + '<a id="pick-go" href="#" target="_blank" rel="noopener" style="flex:2;padding:11px;background:#c8202e;color:#fff;border-radius:10px;font-size:13px;font-weight:700;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px"><span class="msi" style="font-size:16px">edit</span>この場所で報告する</a>'
+    + '</div>';
+  document.body.appendChild(bar);
+  document.getElementById('pick-cancel').onclick = window.cancelParkPick;
+  document.getElementById('pick-go').onclick = () => {
+    if (window.Analytics) window.Analytics.infoMissingReport('park_pick_form', 'park_pick_form');
+    setTimeout(() => window.cancelParkPick(), 200);
+  };
 }
 
-function _dropPickMarker(lat, lng) {
-  if (_pickMarker) { _pickMarker.map = null; _pickMarker = null; }
-  const wrap = document.createElement('div');
-  wrap.innerHTML = makeMarkerHtml(null); // 橙の「?」ピン（＝報告位置の目印）
-  _pickMarker = new google.maps.marker.AdvancedMarkerElement({ position: { lat, lng }, content: wrap.firstElementChild, map });
-  try { map.panTo({ lat, lng }); } catch (e) {}
+// 照準を「地図要素の中央ピクセル」に置く（map.getCenter() の地理中心と一致させる）
+function _placeCrosshair() {
+  const x = document.getElementById('park-pick-crosshair');
+  const m = document.getElementById('map');
+  if (!x || !m) return;
+  const r = m.getBoundingClientRect();
+  x.style.left = (r.left + r.width / 2) + 'px';
+  x.style.top  = (r.top + r.height / 2) + 'px';
 }
 
-function _showPickConfirm(lat, lng) {
+// 地図の現在の中心座標を「この場所で報告する」リンクと座標表示へ反映
+function _updatePickTarget() {
+  const go = document.getElementById('pick-go');
+  if (!go || typeof map === 'undefined' || !map) return;
+  const c = map.getCenter();
+  if (!c) return;
+  const lat = Math.round(c.lat() * 1e6) / 1e6, lng = Math.round(c.lng() * 1e6) / 1e6;
   const cfg = window.APP_CONFIG || {};
   const form = cfg.PARK_FORM_URL || '';
   let url = form ? form + (form.includes('?') ? '&' : '?') + 'usp=pp_url' : (cfg.CONTACT_URL || 'https://www.saitamabaseball.com/contact-8');
@@ -1052,23 +1068,9 @@ function _showPickConfirm(lat, lng) {
     if (cfg.PARK_FORM_ENTRY_LAT) url += `&${cfg.PARK_FORM_ENTRY_LAT}=${lat}`;
     if (cfg.PARK_FORM_ENTRY_LNG) url += `&${cfg.PARK_FORM_ENTRY_LNG}=${lng}`;
   }
-  _removePickEl('park-pick-confirm');
-  const c = document.createElement('div');
-  c.id = 'park-pick-confirm';
-  c.style.cssText = 'position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 84px);transform:translateX(-50%);z-index:3000;background:#fff;border:1px solid #e4e4e4;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.2);padding:14px 16px;width:min(92vw,340px);text-align:center;font-family:inherit';
-  c.innerHTML =
-    '<div style="font-size:13px;font-weight:700;color:#222;margin-bottom:4px;display:flex;align-items:center;justify-content:center;gap:6px"><span class="msi" style="font-size:18px;color:#00a854">place</span>この場所で報告しますか？</div>' +
-    '<div style="font-size:11px;color:#888;margin-bottom:12px">' + lat.toFixed(5) + ', ' + lng.toFixed(5) + '</div>' +
-    '<div style="display:flex;gap:8px">' +
-      '<button type="button" id="pick-redo" style="flex:1;padding:10px;border:1px solid #e4e4e4;background:#fff;border-radius:10px;font-size:12px;font-weight:600;color:#555;cursor:pointer;font-family:inherit">やり直す</button>' +
-      '<a id="pick-go" href="' + url + '" target="_blank" rel="noopener" style="flex:2;padding:10px;background:#c8202e;color:#fff;border-radius:10px;font-size:12px;font-weight:700;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px"><span class="msi" style="font-size:16px">edit</span>この場所で報告する</a>' +
-    '</div>';
-  document.body.appendChild(c);
-  document.getElementById('pick-redo').onclick = () => { _removePickEl('park-pick-confirm'); if (_pickMarker) { _pickMarker.map = null; _pickMarker = null; } window.startParkPick(); };
-  document.getElementById('pick-go').onclick = () => {
-    if (window.Analytics) window.Analytics.infoMissingReport('park_pick:' + lat + ',' + lng, 'park_pick_form');
-    setTimeout(() => window.cancelParkPick(), 150);
-  };
+  go.href = url;
+  const cd = document.getElementById('pick-coord');
+  if (cd) cd.textContent = '緯度 ' + lat.toFixed(5) + ' / 経度 ' + lng.toFixed(5);
 }
 
 // 一覧パネルトグル（モバイル用 - サイドバー開閉）
