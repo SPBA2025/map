@@ -469,7 +469,7 @@ function renderModalContent(park, toilet, parking) {
     ${toiletHtml}
     ${parkingHtml}
     ${park.notes ? `<div class="park-row"><span class="park-row-label">備考</span><span class="park-row-value">${park.notes}</span></div>` : ''}
-    ${park.photo ? `<div style="margin-top:12px"><img src="${cloudinaryThumb(park.photo, 600)}" alt="${park.name}の写真" loading="lazy" onclick="openPhotoLightbox('${park.photo}')" style="width:100%;border-radius:10px;cursor:zoom-in;display:block"></div>` : ''}
+    ${park.photo ? `<div style="margin-top:12px"><img src="${cloudinaryThumb(park.photo, 400)}" alt="${park.name}の写真" loading="lazy" onclick="openPhotoLightbox('${park.photo}')" style="max-height:160px;max-width:100%;border-radius:10px;cursor:zoom-in;display:block" title="タップで拡大"></div>` : ''}
     <div style="margin-top:16px;border:1px solid var(--border);border-radius:12px;overflow:hidden">
       <div style="padding:12px 14px;background:var(--surface-2);border-bottom:1px solid var(--border)">
         <div style="font-size:11px;font-weight:700;color:var(--ink);margin-bottom:8px">
@@ -615,10 +615,13 @@ function setupModalLinks(park) {
         reportLink.href = buildReportHref();   // 写真URLを報告リンクへ連結
         if (pPrev) {
           pPrev.style.display = 'block';
-          pPrev.innerHTML = '<img src="' + cloudinaryThumb(url, 300) + '" style="width:100%;border-radius:8px;display:block">'
-            + '<div style="font-size:11px;color:#00a854;font-weight:600;margin-top:4px">✓ 写真を添付しました（報告と一緒に送られます）</div>';
+          pPrev.innerHTML = '<img src="' + cloudinaryThumb(url, 240) + '" style="max-height:120px;max-width:100%;border-radius:8px;display:block">'
+            + '<div style="font-size:11px;color:#00a854;font-weight:600;margin-top:4px">✓ 写真を添付しました。報告フォームを開きます…</div>';
         }
         pBtn.innerHTML = '<span class="msi" style="font-size:16px">check_circle</span>写真を変更';
+        // 写真添付が完了したら、自動で報告フォームを開く
+        // （ファイル選択というユーザー操作の直後＝ブラウザのポップアップ許可内に実行）
+        window.open(reportLink.href, '_blank', 'noopener');
       } catch (e) {
         if (window.Toast) Toast.show('写真のアップロードに失敗しました', { type: 'error' });
         pBtn.innerHTML = '<span class="msi" style="font-size:16px">photo_camera</span>写真を追加（任意）';
