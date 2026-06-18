@@ -212,9 +212,9 @@ function notifyTeams_(name, cb, approveUrl, photo) {
       { title: 'キャッチボール', value: cb || '(未回答)' }
     ] }
   ];
-  if (photo && /^https?:\/\//.test(photo)) {
-    body.push({ type: 'Image', url: photo, size: 'Large', altText: name + 'の写真' });
-  }
+  (photo ? String(photo).split('|') : []).map(function (s) { return s.trim(); }).filter(function (u) { return /^https?:\/\//.test(u); }).slice(0, 4).forEach(function (u) {
+    body.push({ type: 'Image', url: u, size: 'Large', altText: name + 'の写真' });
+  });
   body.push({ type: 'TextBlock', text: '👉 [✅ 承認して公開する](' + approveUrl + ')', wrap: true, weight: 'Bolder', color: 'Accent', spacing: 'Medium' });
   const payload = {
     type: 'message',

@@ -414,7 +414,8 @@ function renderOsmPins() {
    MODAL
 ═══════════════════════════════════════════════ */
 /* ── 写真（Cloudinary 無署名アップロード・無料） ── */
-let _modalPhotoUrl = '';   // モーダルで添付した写真URL（報告に連結）
+let _modalPhotoUrls = [];   // モーダルで添付した写真URL配列（報告に連結）
+const MAX_PHOTOS = 4;       // 1報告あたりの上限枚数
 function uploadToCloudinary(file) {
   const cfg = window.APP_CONFIG || {};
   if (!cfg.CLOUDINARY_CLOUD || !cfg.CLOUDINARY_PRESET) return Promise.reject(new Error('Cloudinary未設定'));
@@ -469,7 +470,7 @@ function renderModalContent(park, toilet, parking) {
     ${toiletHtml}
     ${parkingHtml}
     ${park.notes ? `<div class="park-row"><span class="park-row-label">備考</span><span class="park-row-value">${park.notes}</span></div>` : ''}
-    ${park.photo ? `<div style="margin-top:12px"><img src="${cloudinaryThumb(park.photo, 400)}" alt="${park.name}の写真" loading="lazy" onclick="openPhotoLightbox('${park.photo}')" style="max-height:160px;max-width:100%;border-radius:10px;cursor:zoom-in;display:block" title="タップで拡大"></div>` : ''}
+    ${park.photo ? `<div style="margin-top:12px;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px">${String(park.photo).split('|').map(s=>s.trim()).filter(u=>/^https?:\/\//.test(u)).map(u=>`<img src="${cloudinaryThumb(u,300)}" alt="${park.name}の写真" loading="lazy" onclick="openPhotoLightbox('${u}')" style="height:150px;flex:0 0 auto;border-radius:8px;cursor:zoom-in;display:block" title="タップで拡大">`).join('')}</div>` : ''}
     <div style="margin-top:16px;border:1px solid var(--border);border-radius:12px;overflow:hidden">
       <div style="padding:12px 14px;background:var(--surface-2);border-bottom:1px solid var(--border)">
         <div style="font-size:11px;font-weight:700;color:var(--ink);margin-bottom:8px">
@@ -483,9 +484,10 @@ function renderModalContent(park, toilet, parking) {
         </div>` : `<div style="font-size:12px;color:var(--ink-3)">まだ報告がありません。最初の報告者になりましょう！</div>`}
       </div>
       <div style="padding:10px 14px;border-bottom:1px solid var(--border);background:var(--surface)">
-        <input type="file" accept="image/*" id="modal-photo-input" style="display:none">
-        <button type="button" id="modal-photo-btn" style="display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:9px;border:1px dashed var(--border);border-radius:8px;background:var(--surface-2);color:var(--ink-2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit"><span class="msi" style="font-size:16px">photo_camera</span>写真を追加（任意）</button>
-        <div id="modal-photo-preview" style="margin-top:8px;display:none"></div>
+        <input type="file" accept="image/*" multiple id="modal-photo-input" style="display:none">
+        <button type="button" id="modal-photo-btn" style="display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:9px;border:1px dashed var(--border);border-radius:8px;background:var(--surface-2);color:var(--ink-2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit"><span class="msi" style="font-size:16px">photo_camera</span>写真を追加（任意・最大4枚）</button>
+        <div id="modal-photo-preview" style="margin-top:8px;display:none;gap:6px;flex-wrap:wrap"></div>
+        <div id="modal-photo-note" style="margin-top:6px;font-size:11px;color:var(--ink-3);line-height:1.5">写真を選ぶと、アップロード後に<b>報告フォームが自動で開きます</b>。フォームで送信してください。</div>
       </div>
       <a id="modal-report-link" href="#" target="_blank"
          style="display:flex;align-items:center;justify-content:center;gap:6px;padding:11px 14px;background:var(--surface);color:var(--ink-2);font-size:12px;font-weight:600;text-decoration:none;transition:.15s"
@@ -499,7 +501,7 @@ function renderModalContent(park, toilet, parking) {
 }
 
 async function showParkModal(park) {
-  _modalPhotoUrl = '';   // モーダルを開くたびに写真添付状態をリセット
+  _modalPhotoUrls = [];   // モーダルを開くたびに写真添付状態をリセット
   // GAS承認済みの報告集計があれば取り込んで表示（ピン色＝catchball は手動データを尊重し上書きしない）
   if (typeof curated !== 'undefined') {
     const g = curated[park.name];
@@ -582,13 +584,13 @@ function setupModalLinks(park) {
   const LNG_ENTRY  = cfg.PARK_FORM_ENTRY_LNG || '';
   const PHOTO_ENTRY = cfg.PARK_FORM_ENTRY_PHOTO || '';
   const reportLink = document.getElementById('modal-report-link');
-  // 報告フォームURLを組み立て（写真URLが添付されていれば連結）
+  // 報告フォームURLを組み立て（添付写真があれば | 区切りで連結）
   function buildReportHref() {
     if (!FORM_URL) return cfg.CONTACT_URL || 'https://www.saitamabaseball.com/contact-8';
     let url = `${FORM_URL}?usp=pp_url&${NAME_ENTRY}=${encodeURIComponent(park.name)}`;
     if (LAT_ENTRY && park.lat != null) url += `&${LAT_ENTRY}=${park.lat}`;
     if (LNG_ENTRY && park.lng != null) url += `&${LNG_ENTRY}=${park.lng}`;
-    if (PHOTO_ENTRY && _modalPhotoUrl) url += `&${PHOTO_ENTRY}=${encodeURIComponent(_modalPhotoUrl)}`;
+    if (PHOTO_ENTRY && _modalPhotoUrls.length) url += `&${PHOTO_ENTRY}=${encodeURIComponent(_modalPhotoUrls.join('|'))}`;
     return url;
   }
   reportLink.href = buildReportHref();
@@ -596,37 +598,54 @@ function setupModalLinks(park) {
     if (window.Analytics) window.Analytics.infoMissingReport('park:' + park.name, 'park_report_form');
   };
 
-  // 写真添付（Cloudinaryへアップロード → 報告リンクに写真URLを連結）
+  // 写真添付（複数可・最大MAX_PHOTOS枚 → Cloudinaryへ → 報告リンクへ連結 → 自動でフォームを開く）
   const pInput = document.getElementById('modal-photo-input');
   const pBtn   = document.getElementById('modal-photo-btn');
   const pPrev  = document.getElementById('modal-photo-preview');
+  const pNote  = document.getElementById('modal-photo-note');
+  function renderPhotoPreviews() {
+    if (!pPrev) return;
+    if (!_modalPhotoUrls.length) { pPrev.style.display = 'none'; pPrev.innerHTML = ''; return; }
+    pPrev.style.display = 'flex';
+    pPrev.innerHTML = _modalPhotoUrls.map(u => '<img src="' + cloudinaryThumb(u, 160) + '" style="height:64px;width:64px;object-fit:cover;border-radius:6px;display:block">').join('');
+  }
   if (pBtn && pInput) {
     pBtn.onclick = () => pInput.click();
     pInput.onchange = async () => {
-      const f = pInput.files && pInput.files[0];
-      if (!f) return;
-      if (f.size > 10 * 1024 * 1024) { if (window.Toast) Toast.show('写真は10MBまでにしてください', { type: 'error' }); pInput.value = ''; return; }
-      const reset = () => { pBtn.disabled = false; };
+      const files = Array.from(pInput.files || []);
+      pInput.value = '';
+      if (!files.length) return;
+      const room = MAX_PHOTOS - _modalPhotoUrls.length;
+      if (room <= 0) { if (window.Toast) Toast.show('写真は最大' + MAX_PHOTOS + '枚までです', { type: 'error' }); return; }
+      const targets = files.slice(0, room);
+      if (files.length > room && window.Toast) Toast.show('最大' + MAX_PHOTOS + '枚まで。' + targets.length + '枚を追加します');
+      if (targets.some(f => f.size > 10 * 1024 * 1024)) { if (window.Toast) Toast.show('10MBを超える写真があります', { type: 'error' }); return; }
       pBtn.disabled = true;
       pBtn.innerHTML = '<span class="msi" style="font-size:16px">hourglass_top</span>アップロード中…';
       try {
-        const url = await uploadToCloudinary(f);
-        _modalPhotoUrl = url;
-        reportLink.href = buildReportHref();   // 写真URLを報告リンクへ連結
-        if (pPrev) {
-          pPrev.style.display = 'block';
-          pPrev.innerHTML = '<img src="' + cloudinaryThumb(url, 240) + '" style="max-height:120px;max-width:100%;border-radius:8px;display:block">'
-            + '<div style="font-size:11px;color:#00a854;font-weight:600;margin-top:4px">✓ 写真を添付しました。報告フォームを開きます…</div>';
+        const urls = await Promise.all(targets.map(uploadToCloudinary));
+        _modalPhotoUrls.push(...urls);
+        reportLink.href = buildReportHref();
+        renderPhotoPreviews();
+        const remain = MAX_PHOTOS - _modalPhotoUrls.length;
+        pBtn.innerHTML = '<span class="msi" style="font-size:16px">add_photo_alternate</span>' + (remain > 0 ? '写真を追加（あと' + remain + '枚）' : '上限（' + MAX_PHOTOS + '枚）');
+        // 自動で報告フォームを開く（ファイル選択操作の直後＝ポップアップ許可内）。開けたか判定
+        const w = window.open(reportLink.href, '_blank');
+        if (pNote) {
+          if (w) {
+            pNote.innerHTML = '✓ 写真' + _modalPhotoUrls.length + '枚を添付し、<b>報告フォームを開きました</b>。フォームで内容を確認して<b>送信</b>してください。';
+            pNote.style.color = '#00a854';
+          } else {
+            pNote.innerHTML = '✓ 写真' + _modalPhotoUrls.length + '枚を添付しました。<br>⚠️ フォームが自動で開きませんでした。下の<b>「この公園の情報を提供する」</b>を押して開いてください 👇';
+            pNote.style.color = '#c45500';
+            if (window.Toast) Toast.show('下のボタンから報告フォームを開いてください', { duration: 4000 });
+          }
         }
-        pBtn.innerHTML = '<span class="msi" style="font-size:16px">check_circle</span>写真を変更';
-        // 写真添付が完了したら、自動で報告フォームを開く
-        // （ファイル選択というユーザー操作の直後＝ブラウザのポップアップ許可内に実行）
-        window.open(reportLink.href, '_blank', 'noopener');
       } catch (e) {
         if (window.Toast) Toast.show('写真のアップロードに失敗しました', { type: 'error' });
-        pBtn.innerHTML = '<span class="msi" style="font-size:16px">photo_camera</span>写真を追加（任意）';
+        pBtn.innerHTML = '<span class="msi" style="font-size:16px">photo_camera</span>写真を追加（任意・最大' + MAX_PHOTOS + '枚）';
       }
-      reset();
+      pBtn.disabled = false;
     };
   }
   document.getElementById('park-modal').classList.add('open');
