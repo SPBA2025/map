@@ -17,7 +17,7 @@ const parkData = [
   { id:16,  name:'中元児童公園',       city:'さいたま市', catchball:true, lat:35.862, lng:139.6264, address:'さいたま市桜区南元宿二丁目' },
   // 川越市
   { id:17,  name:'増形緑地',           city:'川越市', catchball:true, lat:35.8927, lng:139.4231, address:'川越市大字増形' },
-  { id:18,  name:'高階運動広場',       city:'川越市', catchball:true, lat:35.9141, lng:139.5095, address:'川越市大字高島' },
+  { id:18,  name:'高階運動広場',       city:'川越市', catchball:true, lat:35.895704, lng:139.501314, address:'川越市大字砂' },
   { id:19,  name:'笠幡公園',           city:'川越市', catchball:true, lat:35.9224, lng:139.4122, address:'川越市川鶴二丁目' },
   { id:20,  name:'安比奈親水公園',     city:'川越市', catchball:true, lat:35.9016, lng:139.4253, address:'川越市大字安比奈新田' },
   { id:21,  name:'的場緑地',           city:'川越市', catchball:true, lat:35.906921, lng:139.434364, address:'川越市大字的場' },
@@ -86,7 +86,7 @@ const parkData = [
   { id:78,  name:'ふるさと広場',       city:'加須市', catchball:true, lat:36.1314, lng:139.6019, address:'加須市三俣二丁目' },
   { id:79,  name:'藤ノ木公園',         city:'加須市', catchball:true, lat:36.090287, lng:139.582222, address:'加須市鴻茎' },
   { id:80,  name:'けやき公園',         city:'加須市', catchball:true, lat:36.0959, lng:139.578, address:'加須市西ノ谷' },
-  { id:81,  name:'騎西城山公園',       city:'加須市', catchball:true, lat:36.1039, lng:139.5722, address:'加須市騎西' },
+  { id:81,  name:'騎西城山公園',       city:'加須市', catchball:true, lat:36.103838, lng:139.582557, address:'加須市外川' },
   { id:82,  name:'騎西中央公園',       city:'加須市', catchball:true, lat:36.1072, lng:139.5754, address:'加須市騎西' },
   { id:83,  name:'騎西総合公園',       city:'加須市', catchball:true, lat:36.1039, lng:139.5722, address:'加須市騎西' },
   { id:84,  name:'花崎北公園',         city:'加須市', catchball:true, lat:36.1122, lng:139.6359, address:'加須市花崎北二丁目' },
@@ -106,7 +106,7 @@ const parkData = [
   { id:97,  name:'本庄市宮内公園',     city:'本庄市', catchball:true, lat:36.1827, lng:139.0818, address:'本庄市児玉町宮内' },
   // 東松山市
   { id:98,  name:'松風公園',           city:'東松山市', catchball:true, lat:35.9948, lng:139.3806, address:'東松山市松風台' },
-  { id:99,  name:'唐子中央公園',       city:'東松山市', catchball:true, lat:36.0271, lng:139.3638, address:'東松山市大字下唐子' },
+  { id:99,  name:'唐子中央公園',       city:'東松山市', catchball:true, lat:36.028109, lng:139.364168, address:'東松山市大字下唐子' },
   { id:100, name:'五領沼公園',         city:'東松山市', catchball:true, lat:36.0307, lng:139.4106, address:'東松山市若松町一丁目' },
   { id:101, name:'五領町近隣公園',     city:'東松山市', catchball:true, lat:36.0311, lng:139.4158, address:'東松山市五領町' },
   { id:102, name:'岩鼻運動公園',       city:'東松山市', catchball:true, lat:36.0512, lng:139.4132, address:'東松山市大字松山' },
