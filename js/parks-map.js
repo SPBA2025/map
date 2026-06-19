@@ -427,7 +427,7 @@ window.parkQuickVote = function (vote) {
   const row = document.getElementById('quick-vote-row');
   let already = false;
   try { already = !!localStorage.getItem(key); } catch (e) {}
-  if (already) { if (msg) { msg.style.display = 'block'; msg.textContent = '✓ この公園には投票済みです。ありがとうございます！'; } return; }
+  if (already) { if (msg) { msg.style.display = 'block'; msg.textContent = 'この公園には投票済みです。ありがとうございます！'; } return; }
   try { localStorage.setItem(key, vote); } catch (e) {}
   try {
     if (typeof GAS_URL !== 'undefined' && GAS_URL) {
@@ -437,7 +437,7 @@ window.parkQuickVote = function (vote) {
   } catch (e) {}
   if (window.Analytics) window.Analytics.infoMissingReport('park_vote:' + vote, 'quick_vote');
   if (row) row.querySelectorAll('button').forEach(function (b) { b.disabled = true; b.style.opacity = '0.5'; b.style.cursor = 'default'; });
-  if (msg) { msg.style.display = 'block'; msg.style.color = '#00a854'; msg.innerHTML = '✓ 投票ありがとうございます！数件集まると地図に反映されます。'; }
+  if (msg) { msg.style.display = 'block'; msg.style.color = '#00a854'; msg.innerHTML = '<span class="msi" style="font-size:13px;vertical-align:-2px">check_circle</span> 投票ありがとうございます！数件集まると地図に反映されます。'; }
   if (window.Toast) Toast.show('投票ありがとうございます！', { type: 'success' });
 };
 function uploadToCloudinary(file) {
@@ -497,7 +497,7 @@ function renderModalContent(park, toilet, parking) {
     ${park.photo ? `<div style="margin-top:12px;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px">${String(park.photo).split('|').map(s=>s.trim()).filter(u=>/^https?:\/\//.test(u)).map(u=>`<img src="${cloudinaryThumb(u,300)}" alt="${park.name}の写真" loading="lazy" onclick="openPhotoLightbox('${u}')" style="height:150px;flex:0 0 auto;border-radius:8px;cursor:zoom-in;display:block" title="タップで拡大">`).join('')}</div>` : ''}
     <div style="margin-top:16px;border:1px solid var(--border);border-radius:12px;overflow:hidden">
       <div style="padding:9px 14px;font-size:11px;line-height:1.55;color:var(--ink-2);background:rgba(0,168,84,0.07);border-bottom:1px solid var(--border)">
-        📣 <b>みんなでつくる、キャッチボールマップ。</b><br>公園のルールや状況は変わります。実際に訪れた方の情報で、もっと正確に。気づいたことを教えてください。
+        <span class="msi" style="font-size:14px;vertical-align:-2px">campaign</span> <b>みんなでつくる、キャッチボールマップ。</b><br>公園のルールや状況は変わります。実際に訪れた方の情報で、もっと正確に。気づいたことを教えてください。
       </div>
       <div style="padding:12px 14px;background:var(--surface-2);border-bottom:1px solid var(--border)">
         <div style="font-size:11px;font-weight:700;color:var(--ink);margin-bottom:8px">
@@ -513,8 +513,8 @@ function renderModalContent(park, toilet, parking) {
       <div id="quick-vote-row" style="padding:11px 14px;border-bottom:1px solid var(--border)">
         <div style="font-size:11px;font-weight:700;color:var(--ink);margin-bottom:7px">この公園でキャッチボールできた？（タップで投票）</div>
         <div style="display:flex;gap:8px">
-          <button type="button" onclick="window.parkQuickVote('yes')" style="flex:1;padding:10px;border:1px solid rgba(0,168,84,0.4);border-radius:10px;background:rgba(0,168,84,0.08);color:#00a854;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">👍 できた</button>
-          <button type="button" onclick="window.parkQuickVote('no')" style="flex:1;padding:10px;border:1px solid rgba(255,56,92,0.4);border-radius:10px;background:rgba(255,56,92,0.08);color:#ff385c;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">👎 できなかった</button>
+          <button type="button" onclick="window.parkQuickVote('yes')" style="flex:1;padding:10px;border:1px solid rgba(0,168,84,0.4);border-radius:10px;background:rgba(0,168,84,0.08);color:#00a854;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit"><span class="msi" style="font-size:16px;vertical-align:-3px">thumb_up</span> できた</button>
+          <button type="button" onclick="window.parkQuickVote('no')" style="flex:1;padding:10px;border:1px solid rgba(255,56,92,0.4);border-radius:10px;background:rgba(255,56,92,0.08);color:#ff385c;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit"><span class="msi" style="font-size:16px;vertical-align:-3px">thumb_down</span> できなかった</button>
         </div>
         <div id="quick-vote-msg" style="font-size:11px;color:var(--ink-3);margin-top:6px;display:none"></div>
       </div>
@@ -567,7 +567,7 @@ async function showParkModal(park) {
       if (_vr) {
         _vr.querySelectorAll('button').forEach(function (b) { b.disabled = true; b.style.opacity = '0.5'; b.style.cursor = 'default'; });
         const _vm = document.getElementById('quick-vote-msg');
-        if (_vm) { _vm.style.display = 'block'; _vm.textContent = '✓ この公園には投票済みです。ありがとうございます！'; }
+        if (_vm) { _vm.style.display = 'block'; _vm.textContent = 'この公園には投票済みです。ありがとうございます！'; }
       }
     }
   } catch (e) {}
@@ -711,10 +711,10 @@ function setupModalLinks(park) {
         const w = window.open(reportLink.href, '_blank');
         if (pNote) {
           if (w) {
-            pNote.innerHTML = '✓ 写真' + _modalPhotoUrls.length + '枚を添付し、<b>報告フォームを開きました</b>。フォームで内容を確認して<b>送信</b>してください。';
+            pNote.innerHTML = '<span class="msi" style="font-size:13px;vertical-align:-2px">check_circle</span> 写真' + _modalPhotoUrls.length + '枚を添付し、<b>報告フォームを開きました</b>。フォームで内容を確認して<b>送信</b>してください。';
             pNote.style.color = '#00a854';
           } else {
-            pNote.innerHTML = '✓ 写真' + _modalPhotoUrls.length + '枚を添付しました。<br>⚠️ フォームが自動で開きませんでした。下の<b>「この公園の情報を提供する」</b>を押して開いてください 👇';
+            pNote.innerHTML = '<span class="msi" style="font-size:13px;vertical-align:-2px">check_circle</span> 写真' + _modalPhotoUrls.length + '枚を添付しました。<br><span class="msi" style="font-size:13px;vertical-align:-2px">warning</span> フォームが自動で開きませんでした。下の<b>「この公園の情報を提供する」</b>を押して開いてください。';
             pNote.style.color = '#c45500';
             if (window.Toast) Toast.show('下のボタンから報告フォームを開いてください', { duration: 4000 });
           }
