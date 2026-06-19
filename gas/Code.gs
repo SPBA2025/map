@@ -370,6 +370,55 @@ function rejectedRowSet_() {
   return set;
 }
 
+// 選択した行の公園を承認して公開（集計結果 or フォームの回答 で行を選んで実行）。プロファイル非依存。
+function approveSelected() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sh = ss.getActiveSheet();
+  const ui = SpreadsheetApp.getUi();
+  const row = sh.getActiveRange().getRow();
+  if (row <= 1) { ui.alert('承認したい公園の行（2行目以降）を選んでから実行してください。'); return; }
+  let name = '';
+  if (sh.getName() === '集計結果') {
+    name = String(sh.getRange(row, 1).getValue() || '').trim();
+  } else if (sh.getName() === SHEET_NAME) {
+    const headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
+    const c = detectCols_(headers);
+    name = String(sh.getRange(row, c.name + 1).getValue() || '').trim();
+  } else {
+    ui.alert('「集計結果」または「' + SHEET_NAME + '」シートで、公園の行を選んでから実行してください。'); return;
+  }
+  if (!name) { ui.alert('この行に公園名がありません。'); return; }
+  const r = approveByName(name, APPROVE_TOKEN);
+  if (r && r.ok) ui.alert('「' + name + '」を公開しました。数分でマップに反映されます。');
+  else ui.alert('公開できませんでした：' + ((r && r.error) || '不明') + '\n※「却下ログ」に入っている場合は、先に「却下を取り消す」で戻してください。');
+}
+
+// 「フォームの回答 1」で選択した報告（行）を却下（非破壊で却下ログに記録）
+function rejectSelectedResponse() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sh = ss.getActiveSheet();
+  const ui = SpreadsheetApp.getUi();
+  if (sh.getName() !== SHEET_NAME) { ui.alert('「' + SHEET_NAME + '」シートで、却下したい報告の行を選んでから実行してください。'); return; }
+  const row = sh.getActiveRange().getRow();
+  if (row <= 1) { ui.alert('見出し行ではなく、報告の行（2行目以降）を選んでください。'); return; }
+  const tsCell = sh.getRange(row, 1).getValue();
+  const ts = (tsCell instanceof Date) ? String(tsCell.getTime()) : '';
+  if (!ts) { ui.alert('この行の送信時刻（A列）が読み取れません。'); return; }
+  const headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
+  const c = detectCols_(headers);
+  const name = String(sh.getRange(row, c.name + 1).getValue() || '').trim();
+  const res = ui.alert('この報告を却下しますか？', '「' + name + '」のこの報告1件を集計から除外します（非破壊。あとで「却下を取り消す」で戻せます）。', ui.ButtonSet.OK_CANCEL);
+  if (res !== ui.Button.OK) return;
+  let rj = ss.getSheetByName('却下ログ');
+  if (!rj) { rj = ss.insertSheet('却下ログ'); rj.getRange(1, 1, 1, 5).setValues([['submissionId', 'name', 'キャッチボール', '備考', 'rejectedAt']]); }
+  const d = rj.getDataRange().getValues();
+  for (let i = 1; i < d.length; i++) { if (String(d[i][0]) === ts) { ui.alert('この報告は既に却下済みです。'); return; } }
+  const cbVal = String(sh.getRange(row, c.cb + 1).getValue() || '');
+  const noteVal = (c.note >= 0) ? String(sh.getRange(row, c.note + 1).getValue() || '') : '';
+  rj.appendRow([ts, name, cbVal, noteVal, new Date()]);
+  ui.alert('「' + name + '」の報告を却下しました。次回マップ読み込みで集計から外れます。');
+}
+
 // 「却下ログ」で選択した行の却下を取り消す（行を削除→次回読み込みで報告が集計に復活）
 function unrejectSelected() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -452,9 +501,12 @@ function aggregateReports() {
   const data = sheet.getDataRange().getValues();
   if (data.length <= 1) { SpreadsheetApp.getUi().alert('回答データがありません。'); return; }
   const c = detectCols_(data[0]);
+  const rejected = rejectedRowSet_();
   const parkMap = {};
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
+    const _tms = (row[0] instanceof Date) ? row[0].getTime() : (row[0] ? new Date(row[0]).getTime() : NaN);
+    if (!isNaN(_tms) && rejected[String(_tms)]) continue;   // 却下した報告は集計に出さない
     const name = String(row[c.name] || '').trim();
     const catchball = String(row[c.cb] || '').trim();
     const notes = String(row[c.note] || '').trim();
@@ -493,10 +545,19 @@ function publishApproved() {
   const resultSheet = ss.getSheetByName('集計結果');
   if (!resultSheet) { SpreadsheetApp.getUi().alert('先に「①集計」を実行してください。'); return; }
   const data = resultSheet.getDataRange().getValues();
-  const approved = data.slice(1).filter(row => String(row[8]).trim() === '✓');
-  if (approved.length === 0) { SpreadsheetApp.getUi().alert('承認済みデータがありません。I列に✓を入力してください。'); return; }
-  approved.forEach(row => approveByName(row[0], APPROVE_TOKEN));
-  SpreadsheetApp.getUi().alert(`✅ ${approved.length}件を公開しました！マップに反映されます。`);
+  const approved = data.slice(1).filter(function (row) {
+    const v = String(row[8]).trim().toUpperCase();
+    return v && v !== 'FALSE' && v !== '0';
+  });
+  if (approved.length === 0) { SpreadsheetApp.getUi().alert('承認マークが付いた行がありません。I列に ✓ を入れてください。'); return; }
+  let ok = 0; const fails = [];
+  approved.forEach(function (row) {
+    const r = approveByName(row[0], APPROVE_TOKEN);
+    if (r && r.ok) ok++; else fails.push('・' + row[0] + ' … ' + ((r && r.error) || '不明'));
+  });
+  let msg = '公開できた：' + ok + '件';
+  if (fails.length) msg += '\n\n公開できなかった：' + fails.length + '件\n' + fails.join('\n');
+  SpreadsheetApp.getUi().alert(msg);
 }
 
 function geocodeParkName(name) {
@@ -524,6 +585,9 @@ function escapeHtml(s) { return String(s).replace(/[&<>"']/g, m => ({ '&': '&amp
 
 function onOpen() {
   SpreadsheetApp.getUi().createMenu('📊 公園マップ管理')
+    .addItem('選択した公園を承認（集計結果で行を選んで）', 'approveSelected')
+    .addItem('選択した報告を却下（フォームの回答で行を選んで）', 'rejectSelectedResponse')
+    .addSeparator()
     .addItem('① 集計する', 'aggregateReports')
     .addItem('② 承認済みデータを公開', 'publishApproved')
     .addSeparator()
