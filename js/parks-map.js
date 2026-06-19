@@ -65,6 +65,7 @@ async function initMap() {
   const PARK_LAST_VIEW_TTL = 24 * 60 * 60 * 1000;
   let pInitCenter = { lat: 35.8617, lng: 139.6455 };
   let pInitZoom = 11;
+  let pHasSavedView = false;   // 保存された前回表示位置を復元したか（無ければ県全域にフィット）
   try {
     const raw = localStorage.getItem(PARK_LAST_VIEW_KEY);
     if (raw) {
@@ -72,6 +73,7 @@ async function initMap() {
       if (v && v.ts && (Date.now() - v.ts < PARK_LAST_VIEW_TTL) && typeof v.lat === 'number' && typeof v.lng === 'number') {
         pInitCenter = { lat: v.lat, lng: v.lng };
         if (typeof v.zoom === 'number' && v.zoom >= 7 && v.zoom <= 18) pInitZoom = v.zoom;
+        pHasSavedView = true;
       }
     }
   } catch(e) {}
@@ -105,6 +107,12 @@ async function initMap() {
       } catch(e) {}
     }, 800);
   });
+
+  // 保存された前回表示位置が無ければ、初期表示で埼玉県全体にフィット
+  // （fitBounds はマップ要素の実サイズが確定してから＝最初の idle/tilesloaded 後に呼ぶ）
+  if (!pHasSavedView) {
+    google.maps.event.addListenerOnce(map, 'idle', () => { fitSaitamaBounds(); });
+  }
 
   // スケルトン非表示（初回 idle で）
   let _parkSkeletonHidden = false;
@@ -1136,10 +1144,21 @@ function setupEventListeners() {
   });
 }
 
-// 全域表示
+// 埼玉県全体がきれいに画面内へ収まる境界（SW / NE）
+const SAITAMA_VIEW_BOUNDS = {
+  sw: { lat: 35.74, lng: 138.71 },
+  ne: { lat: 36.29, lng: 139.92 }
+};
+// 埼玉県全体を画面にフィット（PC/モバイル両方で全域が見える）
+function fitSaitamaBounds() {
+  if (!map || !window.google || !google.maps) return;
+  const bounds = new google.maps.LatLngBounds(SAITAMA_VIEW_BOUNDS.sw, SAITAMA_VIEW_BOUNDS.ne);
+  map.fitBounds(bounds, 24);
+}
+
+// 全域表示（埼玉県全体にフィット）
 window.parkResetView = function() {
-  map.setCenter({ lat: 35.8617, lng: 139.6455 });
-  map.setZoom(11);
+  fitSaitamaBounds();
 };
 
 // ── PC サイドバー折りたたみ ──

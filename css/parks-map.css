@@ -56,11 +56,13 @@ input:focus-visible{outline-offset:0}
 #hbg.open span:nth-child(2){opacity:0}
 #hbg.open span:nth-child(3){transform:rotate(-45deg) translate(4px,-4px)}
 
-.hdr-brand{display:flex;align-items:center;gap:8px;min-width:0}
-.hdr-logo{font-size:14px;font-weight:700;color:var(--action);letter-spacing:-.3px;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.hdr-brand{display:flex;align-items:center;gap:8px;min-width:0;flex:0 1 auto}
+.hdr-logo{font-size:14px;font-weight:700;color:var(--action);letter-spacing:-.3px;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;flex-shrink:0}
 /* Material Symbols (Rounded) アイコン共通 */
 .msi{font-family:'Material Symbols Rounded';font-weight:400;font-style:normal;display:inline-block;line-height:1;letter-spacing:normal;text-transform:none;white-space:nowrap;font-feature-settings:'liga';-webkit-font-smoothing:antialiased;vertical-align:middle;user-select:none}
-.hdr-sub{font-size:11px;color:var(--ink-3);letter-spacing:.01em;white-space:nowrap;border-left:1px solid var(--border);padding-left:8px}
+.hdr-sub{font-size:11px;color:var(--ink-3);letter-spacing:.01em;white-space:nowrap;border-left:1px solid var(--border);padding-left:8px;min-width:0;overflow:hidden;text-overflow:ellipsis}
+/* サブ見出しが現在地ボタン・KPI等と被らないよう、中間幅では非表示にする */
+@media(max-width:1100px){.hdr-sub{display:none}}
 
 .hdr-stat{display:flex;align-items:center;gap:0;margin-left:auto}
 .hdr-kpi{text-align:center;padding:0 14px}
