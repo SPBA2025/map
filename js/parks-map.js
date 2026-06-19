@@ -472,6 +472,9 @@ function renderModalContent(park, toilet, parking) {
     ${park.notes ? `<div class="park-row"><span class="park-row-label">備考</span><span class="park-row-value">${park.notes}</span></div>` : ''}
     ${park.photo ? `<div style="margin-top:12px;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px">${String(park.photo).split('|').map(s=>s.trim()).filter(u=>/^https?:\/\//.test(u)).map(u=>`<img src="${cloudinaryThumb(u,300)}" alt="${park.name}の写真" loading="lazy" onclick="openPhotoLightbox('${u}')" style="height:150px;flex:0 0 auto;border-radius:8px;cursor:zoom-in;display:block" title="タップで拡大">`).join('')}</div>` : ''}
     <div style="margin-top:16px;border:1px solid var(--border);border-radius:12px;overflow:hidden">
+      <div style="padding:9px 14px;font-size:11px;line-height:1.55;color:var(--ink-2);background:rgba(0,168,84,0.07);border-bottom:1px solid var(--border)">
+        📣 <b>みんなでつくる、キャッチボールマップ。</b><br>公園のルールや状況は変わります。実際に訪れた方の情報で、もっと正確に。気づいたことを教えてください。
+      </div>
       <div style="padding:12px 14px;background:var(--surface-2);border-bottom:1px solid var(--border)">
         <div style="font-size:11px;font-weight:700;color:var(--ink);margin-bottom:8px">
           ユーザー報告${park.reports > 0 ? `（${park.reports}件）` : ''}
