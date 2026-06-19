@@ -510,7 +510,7 @@ input:focus-visible{outline-offset:0}
   .bnav-icon{font-size:22px;line-height:1.1}
 
   /* ── FAB（地図操作ボタン群） ── */
-  #mob-fab-wrap{display:flex;bottom:calc(64px + env(safe-area-inset-bottom) + var(--safari-chrome-bottom, 0px))}
+  #mob-fab-wrap{display:flex;bottom:calc(64px + env(safe-area-inset-bottom) + var(--safari-chrome-bottom, 0px) + 30px)}
   /* アクションボタンはモバイルでは非表示（bnav・FABで代替） */
   #map-action-btns{display:none!important}
 
