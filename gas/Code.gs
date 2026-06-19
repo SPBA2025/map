@@ -178,7 +178,12 @@ function approveByName(name, token) {
   let rowIdx = -1;
   for (let i = 1; i < data.length; i++) { if (String(data[i][1]).trim() === name) { rowIdx = i; break; } }
   const id = rowIdx >= 0 ? data[rowIdx][0] : (1000 + (data.length - 1));
-  const rowVals = [id, name, address, lat, lng, catchball, '', null, null, '', note, total, majority, p.yes, p.no, p.unknown, p.photo || ''];
+  // 写真は「上書き」ではなく既存の承認済み写真に今回分を追加（重複除去・最新12枚まで保持）
+  const existingPhoto = (rowIdx >= 0) ? String(data[rowIdx][16] || '') : '';
+  const photoSet = [];
+  (existingPhoto + '|' + (p.photo || '')).split('|').forEach(function (s) { const u = s.trim(); if (/^https?:\/\//.test(u) && photoSet.indexOf(u) < 0) photoSet.push(u); });
+  const photoStr = photoSet.slice(-12).join('|');
+  const rowVals = [id, name, address, lat, lng, catchball, '', null, null, '', note, total, majority, p.yes, p.no, p.unknown, photoStr];
   if (rowIdx >= 0) sh.getRange(rowIdx + 1, 1, 1, HEADERS.length).setValues([rowVals]);
   else sh.appendRow(rowVals);
 
