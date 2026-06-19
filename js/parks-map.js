@@ -603,7 +603,8 @@ async function showParkModal(park) {
     if (g && g.reports != null && g !== park) {
       park = Object.assign({}, park, {
         reports: g.reports, yes_count: g.yes_count, no_count: g.no_count,
-        unknown_count: g.unknown_count, notes: park.notes || g.notes || ''
+        unknown_count: g.unknown_count, notes: park.notes || g.notes || '',
+        photo: g.photo || park.photo, updated: g.updated || park.updated
       });
     }
   }
