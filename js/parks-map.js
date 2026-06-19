@@ -52,6 +52,12 @@ function isInSaitama(lat, lng) {
   return pointInPolygon(lat, lng, SAITAMA_POLYGON);
 }
 
+/* park.photo（| 区切りURL文字列）に有効な画像URLが1つ以上あれば「写真あり」 */
+function hasParkPhoto(park) {
+  if (!park || !park.photo) return false;
+  return String(park.photo).split('|').some(u => /^https?:\/\//.test(u.trim()));
+}
+
 /* parks-data.js をインデックス化 */
 parkData.forEach(p => { curated[p.name] = p; });
 
@@ -336,7 +342,7 @@ function addRegisteredParkToMap(place, parkEntry) {
 ═══════════════════════════════════════════════ */
 function createMarker(lat, lng, parkInfo) {
   const wrapper = document.createElement('div');
-  wrapper.innerHTML = makeMarkerHtml(parkInfo.catchball);
+  wrapper.innerHTML = makeMarkerHtml(parkInfo.catchball, hasParkPhoto(parkInfo));
   const content = wrapper.firstElementChild;
   content.style.cursor = 'pointer';
   content.addEventListener('click', (e) => {
@@ -353,17 +359,22 @@ function createMarker(lat, lng, parkInfo) {
   return marker;
 }
 
-/* Airbnb 風ピン HTML */
-function makeMarkerHtml(catchball) {
+/* Airbnb 風ピン HTML（hasPhoto=true で右上に小さなカメラバッジを重ねる） */
+function makeMarkerHtml(catchball, hasPhoto) {
   let bg, shadow, icon;
   if (catchball === true)       { bg='#00a854'; shadow='rgba(0,168,84,0.4)';  icon='sports_baseball'; }
   else if (catchball === false) { bg='#ff385c'; shadow='rgba(255,56,92,0.4)'; icon='close'; }
   else if (catchball === null)  { bg='#c45500'; shadow='rgba(196,85,0,0.4)';  icon='help'; }
   else                          { bg='#717171'; shadow='rgba(0,0,0,0.2)';     icon='place'; }
+  // 写真ありバッジ（白丸背景＋photo_camera）。ピン本体の色・形は変えず右上に小さく重ねる
+  const photoBadge = hasPhoto
+    ? `<div style="position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:#fff;border:1px solid rgba(0,0,0,0.12);box-shadow:0 1px 2px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center"><span class="msi" style="font-size:11px;color:${bg}">photo_camera</span></div>`
+    : '';
   return `
     <div style="position:relative;width:32px;height:42px;filter:drop-shadow(0 2px 6px ${shadow});cursor:pointer">
       <div style="position:absolute;top:0;left:0;width:32px;height:32px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:${bg};border:2px solid #fff"></div>
       <div style="position:absolute;top:0;left:0;width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:#fff"><span class="msi" style="font-size:16px">${icon}</span></div>
+      ${photoBadge}
     </div>`;
 }
 
@@ -851,6 +862,7 @@ function renderParkList() {
       <div class="park-item-meta">
         <span class="park-item-addr">${park.address || park.city || ''}</span>
         ${park.reports > 0 ? `<span style="font-size:9px;color:var(--ink-3);display:inline-flex;align-items:center;gap:2px"><span class="msi" style="font-size:11px">comment</span>${park.reports}件</span>` : ''}
+        ${hasParkPhoto(park) ? `<span class="park-item-photo" style="font-size:9px;color:var(--green);display:inline-flex;align-items:center;gap:2px"><span class="msi" style="font-size:11px">photo_camera</span>写真</span>` : ''}
         ${distText ? `<span class="park-item-dist">${distText}</span>` : ''}
       </div>
     `;
