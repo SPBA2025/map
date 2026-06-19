@@ -603,11 +603,42 @@ function setupModalLinks(park) {
   const pBtn   = document.getElementById('modal-photo-btn');
   const pPrev  = document.getElementById('modal-photo-preview');
   const pNote  = document.getElementById('modal-photo-note');
+  function updateBtnLabel() {
+    if (!pBtn) return;
+    const remain = MAX_PHOTOS - _modalPhotoUrls.length;
+    pBtn.innerHTML = '<span class="msi" style="font-size:16px">' + (_modalPhotoUrls.length ? 'add_photo_alternate' : 'photo_camera') + '</span>'
+      + (_modalPhotoUrls.length ? (remain > 0 ? '写真を追加（あと' + remain + '枚）' : '上限に達しました（' + MAX_PHOTOS + '枚）') : '写真を追加（任意・最大' + MAX_PHOTOS + '枚）');
+  }
+  function setIdleNote() {
+    if (!pNote) return;
+    pNote.style.color = '';
+    pNote.innerHTML = _modalPhotoUrls.length
+      ? '写真' + _modalPhotoUrls.length + '枚を添付中。下の「この公園の情報を提供する」で報告フォームを開いて送信してください。'
+      : '写真を選ぶと、アップロード後に<b>報告フォームが自動で開きます</b>。フォームで送信してください。';
+  }
   function renderPhotoPreviews() {
     if (!pPrev) return;
     if (!_modalPhotoUrls.length) { pPrev.style.display = 'none'; pPrev.innerHTML = ''; return; }
     pPrev.style.display = 'flex';
-    pPrev.innerHTML = _modalPhotoUrls.map(u => '<img src="' + cloudinaryThumb(u, 160) + '" style="height:64px;width:64px;object-fit:cover;border-radius:6px;display:block">').join('');
+    pPrev.style.paddingTop = '7px';
+    pPrev.innerHTML = '';
+    _modalPhotoUrls.forEach((u, i) => {
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'position:relative;flex:0 0 auto';
+      const img = document.createElement('img');
+      img.src = cloudinaryThumb(u, 160);
+      img.style.cssText = 'height:64px;width:64px;object-fit:cover;border-radius:6px;display:block';
+      const del = document.createElement('button');
+      del.type = 'button'; del.title = '削除'; del.textContent = '×';
+      del.style.cssText = 'position:absolute;top:-7px;right:-7px;width:20px;height:20px;border-radius:50%;border:2px solid #fff;background:#222;color:#fff;font-size:13px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0';
+      del.onclick = () => {
+        _modalPhotoUrls.splice(i, 1);
+        reportLink.href = buildReportHref();
+        renderPhotoPreviews(); updateBtnLabel(); setIdleNote();
+      };
+      wrap.appendChild(img); wrap.appendChild(del);
+      pPrev.appendChild(wrap);
+    });
   }
   if (pBtn && pInput) {
     pBtn.onclick = () => pInput.click();
@@ -627,8 +658,7 @@ function setupModalLinks(park) {
         _modalPhotoUrls.push(...urls);
         reportLink.href = buildReportHref();
         renderPhotoPreviews();
-        const remain = MAX_PHOTOS - _modalPhotoUrls.length;
-        pBtn.innerHTML = '<span class="msi" style="font-size:16px">add_photo_alternate</span>' + (remain > 0 ? '写真を追加（あと' + remain + '枚）' : '上限（' + MAX_PHOTOS + '枚）');
+        updateBtnLabel();
         // 自動で報告フォームを開く（ファイル選択操作の直後＝ポップアップ許可内）。開けたか判定
         const w = window.open(reportLink.href, '_blank');
         if (pNote) {
