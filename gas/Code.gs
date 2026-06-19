@@ -30,7 +30,7 @@ const ANSWER_NO     = 'できない';
 
 // ▼ リアルタイム反映・Teams承認 用 ▼
 const TEAMS_WEBHOOK_URL = '';            // ← TeamsのIncoming Webhook URL（空なら通知しない）
-const APPROVE_TOKEN     = 'spba-park-2026';  // ← 承認リンクの合言葉（任意の文字列に変更可）
+const APPROVE_TOKEN     = '__SET_IN_DEPLOYED_GAS__';  // ← 合言葉。公開リポジトリには実値を書かない。デプロイ済みGASだけに本物を設定する
 const WEBAPP_URL        = 'https://script.google.com/macros/s/AKfycbyBqycA_v8614sI_4vWtqniSlValz6q-3BtfF-5iXyCKTeB3oScXR4RcRNR7ZYbQjFi/exec'; // デプロイ済みウェブアプリ /exec URL
 
 // ═══ WebアプリPOST（ワンタップ投票） ═══
