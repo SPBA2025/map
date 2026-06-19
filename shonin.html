@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/png" href="logo.png">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#1b2842">
+<title>公園マップ 承認ページ（事務局用）</title>
+<!-- Material Symbols (Rounded) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&display=block">
+<link rel="stylesheet" href="css/tokens.css?v=20260612">
+<script>
+  // GAS_URL は parks.html と同じ値
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbyBqycA_v8614sI_4vWtqniSlValz6q-3BtfF-5iXyCKTeB3oScXR4RcRNR7ZYbQjFi/exec';
+</script>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--surface);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue','Hiragino Kaku Gothic ProN',Meiryo,sans-serif;line-height:1.6;min-height:100vh;display:flex;flex-direction:column}
+  .msi{font-family:'Material Symbols Rounded';font-weight:400;font-style:normal;display:inline-block;line-height:1;letter-spacing:normal;text-transform:none;white-space:nowrap;font-feature-settings:'liga';-webkit-font-smoothing:antialiased;vertical-align:middle;user-select:none}
+
+  /* ── ヘッダー ── */
+  #admin-header{background:var(--spba-navy);color:var(--spba-cream);padding:13px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;box-shadow:0 1px 4px rgba(27,40,66,0.2);position:sticky;top:0;z-index:10}
+  #admin-header .ah-logo{width:30px;height:30px;border-radius:50%;background:var(--surface-1);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;border:1.5px solid var(--spba-red)}
+  #admin-header .ah-logo .msi{font-size:18px;color:var(--spba-navy)}
+  #admin-header .ah-title{font-weight:700;font-size:15px;letter-spacing:.01em;line-height:1.25}
+  #admin-header .ah-sub{font-size:11px;font-weight:500;opacity:.82}
+  #admin-header .ah-spacer{flex:1}
+  #admin-header .ah-refresh{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,0.12);color:var(--spba-cream);border:1px solid rgba(255,255,255,0.22);border-radius:999px;padding:7px 13px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:background-color .15s}
+  #admin-header .ah-refresh:hover{background:rgba(255,255,255,0.22)}
+  #admin-header .ah-refresh .msi{font-size:16px}
+
+  /* ── メイン ── */
+  #admin-main{flex:1;width:100%;max-width:760px;margin:0 auto;padding:16px 14px 48px}
+
+  /* ── 合言葉ゲート ── */
+  #gate{max-width:380px;margin:48px auto;background:var(--surface-1);border:1px solid var(--border);border-radius:14px;padding:28px 24px;box-shadow:var(--shadow-card);text-align:center}
+  #gate .gate-icon{width:52px;height:52px;border-radius:50%;background:var(--spba-navy);display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px}
+  #gate .gate-icon .msi{font-size:26px;color:var(--spba-cream)}
+  #gate h2{margin:0 0 6px;font-size:17px}
+  #gate p{margin:0 0 18px;font-size:13px;color:var(--ink-3)}
+  #gate .gate-err{color:var(--spba-red);font-size:13px;font-weight:600;margin:0 0 12px;min-height:18px}
+  #gate input{width:100%;padding:12px 14px;font-size:15px;border:1.5px solid var(--border);border-radius:10px;font-family:inherit;margin-bottom:12px;text-align:center;letter-spacing:.04em}
+  #gate input:focus{outline:none;border-color:var(--action)}
+  #gate button{width:100%;padding:12px;font-size:15px;font-weight:700;color:#fff;background:var(--spba-navy);border:none;border-radius:10px;cursor:pointer;font-family:inherit;transition:background-color .15s}
+  #gate button:hover{background:#243757}
+
+  /* ── ステータスバー ── */
+  #status-bar{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-3);padding:2px 2px 14px}
+  #status-bar .msi{font-size:18px}
+  #status-bar.is-loading{color:var(--action)}
+  #status-bar .spin{animation:adminspin 1s linear infinite}
+  @keyframes adminspin{to{transform:rotate(360deg)}}
+
+  /* ── 空状態 ── */
+  #empty-state{text-align:center;padding:56px 20px;color:var(--ink-3)}
+  #empty-state .es-icon{font-size:46px;color:var(--green);margin-bottom:10px}
+  #empty-state .es-title{font-size:16px;font-weight:700;color:var(--ink-2);margin-bottom:4px}
+  #empty-state .es-sub{font-size:13px}
+
+  /* ── カード ── */
+  .park-card{background:var(--surface-1);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow-card);margin-bottom:14px;overflow:hidden}
+  .pc-head{display:flex;align-items:flex-start;gap:10px;padding:16px 16px 12px}
+  .pc-name{font-size:17px;font-weight:700;line-height:1.35;flex:1;word-break:break-word}
+  .pc-badge{flex-shrink:0;display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--caution);background:#fff4e6;border:1px solid #f5d4a8;border-radius:999px;padding:4px 10px;white-space:nowrap}
+  .pc-badge .msi{font-size:14px}
+
+  .pc-votes{display:flex;gap:8px;padding:0 16px 12px;flex-wrap:wrap}
+  .vote-chip{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:600;border-radius:8px;padding:6px 11px;border:1px solid var(--border)}
+  .vote-chip .msi{font-size:16px}
+  .vote-chip .vc-num{font-weight:800;font-size:14px}
+  .vote-yes{color:var(--green);background:#e6f6ee;border-color:#b6e3cb}
+  .vote-no{color:var(--spba-red);background:#fdecee;border-color:#f3c4c9}
+  .vote-unknown{color:var(--ink-3);background:var(--surface-2);border-color:var(--border)}
+
+  .pc-notes{padding:0 16px 12px}
+  .pc-note{display:flex;gap:7px;font-size:13px;color:var(--ink-2);background:var(--surface-2);border-radius:8px;padding:8px 11px;margin-bottom:6px;line-height:1.55}
+  .pc-note:last-child{margin-bottom:0}
+  .pc-note .msi{font-size:16px;color:var(--ink-3);flex-shrink:0;margin-top:1px}
+
+  .pc-photos{display:flex;gap:8px;padding:0 16px 14px;flex-wrap:wrap}
+  .pc-photo{width:84px;height:84px;border-radius:10px;object-fit:cover;border:1px solid var(--border);cursor:zoom-in;background:var(--surface-2);transition:transform .12s}
+  .pc-photo:hover{transform:scale(1.03)}
+
+  .pc-actions{display:flex;gap:10px;padding:0 16px 16px}
+  .pc-btn{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:14px;font-weight:700;border-radius:10px;padding:12px;cursor:pointer;font-family:inherit;border:1.5px solid transparent;transition:background-color .15s,opacity .15s}
+  .pc-btn .msi{font-size:18px}
+  .pc-btn:disabled{opacity:.55;cursor:default}
+  .btn-approve{color:#fff;background:var(--green);border-color:var(--green)}
+  .btn-approve:hover:not(:disabled){background:#008f47}
+  .btn-reject{color:var(--spba-red);background:var(--surface-1);border-color:#f3c4c9}
+  .btn-reject:hover:not(:disabled){background:#fdecee}
+
+  /* ── 画像ライトボックス ── */
+  #lightbox{position:fixed;inset:0;background:rgba(0,0,0,0.86);z-index:9999;display:none;align-items:center;justify-content:center;padding:20px;cursor:zoom-out}
+  #lightbox.open{display:flex}
+  #lightbox img{max-width:100%;max-height:100%;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,0.5)}
+
+  @media (max-width:560px){
+    #admin-header .ah-title{font-size:14px}
+    .pc-name{font-size:16px}
+    .pc-photo{width:72px;height:72px}
+  }
+</style>
+</head>
+<body>
+
+<!-- ヘッダー -->
+<header id="admin-header">
+  <span class="ah-logo"><span class="msi">verified_user</span></span>
+  <div>
+    <div class="ah-title">公園マップ 承認ページ <span class="ah-sub">事務局用</span></div>
+  </div>
+  <span class="ah-spacer"></span>
+  <button class="ah-refresh" id="refresh-btn" type="button" style="display:none">
+    <span class="msi">refresh</span>更新
+  </button>
+</header>
+
+<main id="admin-main">
+  <!-- 合言葉ゲート -->
+  <div id="gate" style="display:none">
+    <span class="gate-icon"><span class="msi">lock</span></span>
+    <h2>合言葉を入力</h2>
+    <p>事務局用の承認ページです。<br>合言葉を入力してください。</p>
+    <p class="gate-err" id="gate-err"></p>
+    <input type="password" id="gate-input" placeholder="合言葉" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="text">
+    <button type="button" id="gate-btn">開く</button>
+  </div>
+
+  <!-- ステータス -->
+  <div id="status-bar" style="display:none"></div>
+
+  <!-- 一覧 -->
+  <div id="list"></div>
+
+  <!-- 空状態 -->
+  <div id="empty-state" style="display:none">
+    <div class="es-icon msi">task_alt</div>
+    <div class="es-title">承認待ちの報告はありません</div>
+    <div class="es-sub">新しい報告が届くとここに表示されます。</div>
+  </div>
+</main>
+
+<!-- 画像ライトボックス -->
+<div id="lightbox"><img src="" alt="拡大写真"></div>
+
+<script src="js/shonin.js?v=20260619"></script>
+</body>
+</html>

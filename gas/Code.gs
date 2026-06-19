@@ -425,7 +425,7 @@ function notifyTeams_(name, cb, approveUrl, photo, rejectUrl, note) {
   (photo ? String(photo).split('|') : []).map(function (s) { return s.trim(); }).filter(function (u) { return /^https?:\/\//.test(u); }).slice(0, 4).forEach(function (u) {
     body.push({ type: 'Image', url: u, size: 'Large', altText: name + 'の写真' });
   });
-  body.push({ type: 'TextBlock', text: '👉 [承認ページを開く](https://map.saitamabaseball.com/admin.html)', wrap: true, weight: 'Bolder', color: 'Accent', spacing: 'Medium' });
+  body.push({ type: 'TextBlock', text: '👉 [承認ページを開く](https://map.saitamabaseball.com/shonin.html)', wrap: true, weight: 'Bolder', color: 'Accent', spacing: 'Medium' });
   const payload = {
     type: 'message',
     attachments: [{

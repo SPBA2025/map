@@ -1,7 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /admin.html
-Disallow: /team-admin.html
+Disallow: /shonin.html
 Disallow: /admin/
 Disallow: /og-src/
 

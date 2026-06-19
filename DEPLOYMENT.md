@@ -21,8 +21,7 @@
 ├── parks_catchball.csv   公園元データ
 ├── gas_aggregate.js      GAS集計（参考。本体はGAS側）
 ├── parks.config.example.js
-├── admin.html            事務局用 承認ページ（公園報告の承認/却下）
-├── team-admin.html       チームデータ管理ツール（ローカル用）
+├── admin.html            管理ページ
 ├── sitemap.xml           検索エンジン向けサイトマップ
 ├── robots.txt            クローラー制御
 ├── SETUP_PARKS.md        公園マップセットアップガイド
