@@ -258,7 +258,7 @@ function renderGasReportedParks(gasParks) {
   gasParks.forEach(g => {
     if (!g.lat || !g.lng) return;
     if (existingNames[g.name]) return;                 // 同名の既存ピンあり → モーダルでマージ表示
-    const key = 'gas-' + g.id;
+    const key = 'gas-' + (g.name || g.id);
     if (placesMarkers[key]) return;                    // 二重追加防止
     // 登録済みピンと近接(80m以内)なら重複とみなしスキップ
     const dup = Object.values(placesMarkers).some(m => {
