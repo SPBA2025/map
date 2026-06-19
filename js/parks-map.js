@@ -604,7 +604,9 @@ async function showParkModal(park) {
       park = Object.assign({}, park, {
         reports: g.reports, yes_count: g.yes_count, no_count: g.no_count,
         unknown_count: g.unknown_count, notes: park.notes || g.notes || '',
-        photo: g.photo || park.photo, updated: g.updated || park.updated
+        photo: g.photo || park.photo, updated: g.updated || park.updated,
+        // 可否は手動登録(park.catchball)があれば不変。未登録(null/undefined)のときだけGAS承認の可否を採用。
+        catchball: (park.catchball == null ? g.catchball : park.catchball)
       });
     }
   }
