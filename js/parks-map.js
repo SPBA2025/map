@@ -513,6 +513,7 @@ function renderModalContent(park, toilet, parking) {
     ${toiletHtml}
     ${parkingHtml}
     ${park.notes ? `<div class="park-row"><span class="park-row-label">備考</span><span class="park-row-value">${park.notes}</span></div>` : ''}
+    ${park.updated ? `<div class="park-row"><span class="park-row-label">最終更新</span><span class="park-row-value">${new Date(park.updated).toLocaleDateString('ja-JP')}</span></div>` : ''}
     ${park.photo ? `<div style="margin-top:12px;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px">${String(park.photo).split('|').map(s=>s.trim()).filter(u=>/^https?:\/\//.test(u)).map(u=>`<img src="${cloudinaryThumb(u,300)}" alt="${park.name}の写真" loading="lazy" onclick="openPhotoLightbox('${u}')" style="height:150px;flex:0 0 auto;border-radius:8px;cursor:zoom-in;display:block" title="タップで拡大">`).join('')}</div>` : ''}
     <div style="margin-top:16px;border:1px solid var(--border);border-radius:12px;overflow:hidden">
       <div style="padding:9px 14px;font-size:11px;line-height:1.55;color:var(--ink-2);background:rgba(0,168,84,0.07);border-bottom:1px solid var(--border)">

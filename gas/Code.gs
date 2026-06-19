@@ -162,6 +162,7 @@ function getLiveParks() {
   const approvedNames = {};
   approvedRes.parks.forEach(p => { approvedNames[String(p.name).trim()] = true; });
   const live = aggregateLive();   // 却下された投稿は既に除外済み
+  approvedRes.parks.forEach(function (pk) { const _lv = live[String(pk.name).trim()]; if (_lv && _lv.latestTs) pk.updated = _lv.latestTs; });
   const pending = [];
   for (const name in live) {
     if (approvedNames[name]) continue;        // 公開済はpendingに出さない
@@ -172,7 +173,8 @@ function getLiveParks() {
       name, status: 'pending',
       lat: p.lat || 0, lng: p.lng || 0,
       reports: total, yes_count: p.yes, no_count: p.no, unknown_count: p.unknown,
-      catchball: null      // 確認中は判定保留
+      catchball: null,      // 確認中は判定保留
+      updated: p.latestTs
       // notes は審査前のため返さない（不適切表示の防止）
     });
   }
@@ -199,7 +201,9 @@ function aggregateLive() {
     if (!name) continue;
     const cb = String(row[c.cb] || '').trim();
     const note = String(row[c.note] || '').trim();
-    if (!map[name]) map[name] = { name, yes: 0, no: 0, unknown: 0, notes: [], lat: 0, lng: 0, photo: '' };
+    if (!map[name]) map[name] = { name, yes: 0, no: 0, unknown: 0, notes: [], lat: 0, lng: 0, photo: '', latestTs: 0 };
+    const _ts = (row[0] instanceof Date) ? row[0].getTime() : (row[0] ? new Date(row[0]).getTime() : 0);
+    if (_ts > map[name].latestTs) map[name].latestTs = _ts;
     if (cb.indexOf(ANSWER_YES) >= 0 && cb.indexOf(ANSWER_NO) < 0) map[name].yes++;
     else if (cb.indexOf(ANSWER_NO) >= 0) map[name].no++;
     else map[name].unknown++;
