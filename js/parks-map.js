@@ -416,6 +416,30 @@ function renderOsmPins() {
 /* ── 写真（Cloudinary 無署名アップロード・無料） ── */
 let _modalPhotoUrls = [];   // モーダルで添付した写真URL配列（報告に連結）
 const MAX_PHOTOS = 4;       // 1報告あたりの上限枚数
+let _modalPark = null;      // 現在モーダルに表示中の公園（ワンタップ投票用）
+
+/* ── ワンタップ投票（👍できた / 👎できなかった）。GASへ送信→集計→しきい値で自動反映 ── */
+window.parkQuickVote = function (vote) {
+  const park = _modalPark;
+  if (!park || !park.name) return;
+  const key = 'pv_' + park.name;
+  const msg = document.getElementById('quick-vote-msg');
+  const row = document.getElementById('quick-vote-row');
+  let already = false;
+  try { already = !!localStorage.getItem(key); } catch (e) {}
+  if (already) { if (msg) { msg.style.display = 'block'; msg.textContent = '✓ この公園には投票済みです。ありがとうございます！'; } return; }
+  try { localStorage.setItem(key, vote); } catch (e) {}
+  try {
+    if (typeof GAS_URL !== 'undefined' && GAS_URL) {
+      fetch(GAS_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'vote', name: park.name, lat: park.lat, lng: park.lng, vote: vote }) }).catch(function () {});
+    }
+  } catch (e) {}
+  if (window.Analytics) window.Analytics.infoMissingReport('park_vote:' + vote, 'quick_vote');
+  if (row) row.querySelectorAll('button').forEach(function (b) { b.disabled = true; b.style.opacity = '0.5'; b.style.cursor = 'default'; });
+  if (msg) { msg.style.display = 'block'; msg.style.color = '#00a854'; msg.innerHTML = '✓ 投票ありがとうございます！数件集まると地図に反映されます。'; }
+  if (window.Toast) Toast.show('投票ありがとうございます！', { type: 'success' });
+};
 function uploadToCloudinary(file) {
   const cfg = window.APP_CONFIG || {};
   if (!cfg.CLOUDINARY_CLOUD || !cfg.CLOUDINARY_PRESET) return Promise.reject(new Error('Cloudinary未設定'));
@@ -486,6 +510,14 @@ function renderModalContent(park, toilet, parking) {
           <span style="display:inline-flex;align-items:center;gap:3px;padding:3px 10px;background:rgba(196,85,0,0.1);border-radius:14px;color:#c45500;font-size:11px;font-weight:600"><span class="msi" style="font-size:13px">help</span>不明 ${park.unknown_count || 0}票</span>
         </div>` : `<div style="font-size:12px;color:var(--ink-3)">まだ報告がありません。最初の報告者になりましょう！</div>`}
       </div>
+      <div id="quick-vote-row" style="padding:11px 14px;border-bottom:1px solid var(--border)">
+        <div style="font-size:11px;font-weight:700;color:var(--ink);margin-bottom:7px">この公園でキャッチボールできた？（タップで投票）</div>
+        <div style="display:flex;gap:8px">
+          <button type="button" onclick="window.parkQuickVote('yes')" style="flex:1;padding:10px;border:1px solid rgba(0,168,84,0.4);border-radius:10px;background:rgba(0,168,84,0.08);color:#00a854;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">👍 できた</button>
+          <button type="button" onclick="window.parkQuickVote('no')" style="flex:1;padding:10px;border:1px solid rgba(255,56,92,0.4);border-radius:10px;background:rgba(255,56,92,0.08);color:#ff385c;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">👎 できなかった</button>
+        </div>
+        <div id="quick-vote-msg" style="font-size:11px;color:var(--ink-3);margin-top:6px;display:none"></div>
+      </div>
       <div style="padding:10px 14px;border-bottom:1px solid var(--border);background:var(--surface)">
         <input type="file" accept="image/*" multiple id="modal-photo-input" style="display:none">
         <button type="button" id="modal-photo-btn" style="display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:9px;border:1px dashed var(--border);border-radius:8px;background:var(--surface-2);color:var(--ink-2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit"><span class="msi" style="font-size:16px">photo_camera</span>写真を追加（任意・最大4枚）</button>
@@ -515,6 +547,7 @@ async function showParkModal(park) {
       });
     }
   }
+  _modalPark = park;   // ワンタップ投票で参照
   document.getElementById('modal-park-name').textContent = park.name;
   // アナリティクス: 公園ピン/モーダル開封
   if (window.Analytics) {
@@ -526,6 +559,18 @@ async function showParkModal(park) {
   const initParking = park.parking !== undefined ? park.parking : null;
   renderModalContent(park, initToilet, initParking);
   setupModalLinks(park);
+
+  // 既にこの公園へ投票済みなら投票ボタンを無効化
+  try {
+    if (localStorage.getItem('pv_' + park.name)) {
+      const _vr = document.getElementById('quick-vote-row');
+      if (_vr) {
+        _vr.querySelectorAll('button').forEach(function (b) { b.disabled = true; b.style.opacity = '0.5'; b.style.cursor = 'default'; });
+        const _vm = document.getElementById('quick-vote-msg');
+        if (_vm) { _vm.style.display = 'block'; _vm.textContent = '✓ この公園には投票済みです。ありがとうございます！'; }
+      }
+    }
+  } catch (e) {}
 
   // 確認中（未承認）の報告があれば、票数だけ「確認中」として表示（事務局の承認後に正式反映）
   const _pend = (typeof pendingByName !== 'undefined') && pendingByName[park.name];
