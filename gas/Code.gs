@@ -76,7 +76,6 @@ function _publishVoteState(name) {
   if (total < 3 || decisive === 0) return;
   const maj = Math.max(p.yes, p.no) / decisive;
   if (maj < 0.7) return;
-  if (rejectedNames_()[name]) return;   // 却下済みは自動反映しない
   const catchball = p.yes >= p.no;
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let sh = ss.getSheetByName(APPROVED_SHEET_NAME);
@@ -114,9 +113,9 @@ function doGet(e) {
     return HtmlService.createHtmlOutput(html);
   }
   if (action === 'reject') {
-    const r = rejectByName(p.name, p.token);
+    const r = rejectSubmission(p.name, p.ts, p.token);
     const html = r.ok
-      ? `<div style="font-family:sans-serif;padding:40px;text-align:center"><h2>🚫 「${escapeHtml(r.name)}」を却下しました</h2><p style="color:#888">マップには公開されません。確認中の表示からも消えます。</p></div>`
+      ? `<div style="font-family:sans-serif;padding:40px;text-align:center"><h2>🚫 報告を却下しました</h2><p style="color:#888">「${escapeHtml(r.name)}」のこの報告1件を集計から除外しました。他に正しい報告があれば公園は残ります。</p></div>`
       : `<div style="font-family:sans-serif;padding:40px;text-align:center"><h2>⚠️ 却下できませんでした</h2><p>${escapeHtml(r.error || '')}</p></div>`;
     return HtmlService.createHtmlOutput(html);
   }
@@ -162,13 +161,13 @@ function getLiveParks() {
   const approvedRes = getApprovedParks();
   const approvedNames = {};
   approvedRes.parks.forEach(p => { approvedNames[String(p.name).trim()] = true; });
-  const rejected = rejectedNames_();
-  const live = aggregateLive();
+  const live = aggregateLive();   // 却下された投稿は既に除外済み
   const pending = [];
   for (const name in live) {
-    if (approvedNames[name] || rejected[name]) continue;        // 公開済はpendingに出さない
+    if (approvedNames[name]) continue;        // 公開済はpendingに出さない
     const p = live[name];
     const total = p.yes + p.no + p.unknown;
+    if (total <= 0) continue;                 // 全て却下された公園は出さない
     pending.push({
       name, status: 'pending',
       lat: p.lat || 0, lng: p.lng || 0,
@@ -188,9 +187,14 @@ function aggregateLive() {
   const data = sheet.getDataRange().getValues();
   if (data.length <= 1) return {};
   const c = detectCols_(data[0]);
+  const rejected = rejectedRowSet_();
   const map = {};
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
+    // 却下された投稿（送信時刻msで一意特定）はスキップ
+    const _tsv = row[0];
+    const _tms = (_tsv instanceof Date) ? _tsv.getTime() : (_tsv ? new Date(_tsv).getTime() : NaN);
+    if (!isNaN(_tms) && rejected[String(_tms)]) continue;
     const name = String(row[c.name] || '').trim();
     if (!name) continue;
     const cb = String(row[c.cb] || '').trim();
@@ -261,43 +265,32 @@ function approveByName(name, token) {
   const rowVals = [id, name, address, lat, lng, catchball, '', null, null, '', note, total, majority, p.yes, p.no, p.unknown, photoStr];
   if (rowIdx >= 0) sh.getRange(rowIdx + 1, 1, 1, HEADERS.length).setValues([rowVals]);
   else sh.appendRow(rowVals);
-  _removeFromRejected(name);   // 承認したら却下リストから外す（再承認を可能に）
 
   return { ok: true, name, catchball, reports: total };
 }
 
-// ═══ 却下: 確認中から消す＋公開済みなら取り下げ ═══
-function rejectByName(name, token) {
+// ═══ 却下: その投稿1件だけを集計から除外（行は消さず「却下ログ」へ退避＝非破壊）═══
+function rejectSubmission(name, ts, token) {
   if (token !== APPROVE_TOKEN) return { ok: false, error: '合言葉が違います' };
   name = String(name || '').trim();
-  if (!name) return { ok: false, error: '公園名がありません' };
+  ts = String(ts || '').trim();
+  if (!ts) return { ok: false, error: '投稿IDがありません（古い通知の可能性）' };
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let rj = ss.getSheetByName('却下');
-  if (!rj) { rj = ss.insertSheet('却下'); rj.getRange(1, 1, 1, 2).setValues([['name', 'rejectedAt']]); }
-  const rd = rj.getDataRange().getValues();
-  let exists = false;
-  for (let i = 1; i < rd.length; i++) { if (String(rd[i][0]).trim() === name) { exists = true; break; } }
-  if (!exists) rj.appendRow([name, new Date()]);
-  // 公開済みなら承認済みデータから削除（取り下げ）
-  const ap = ss.getSheetByName(APPROVED_SHEET_NAME);
-  if (ap) { const ad = ap.getDataRange().getValues(); for (let i = ad.length - 1; i >= 1; i--) { if (String(ad[i][1]).trim() === name) ap.deleteRow(i + 1); } }
+  let rj = ss.getSheetByName('却下ログ');
+  if (!rj) { rj = ss.insertSheet('却下ログ'); rj.getRange(1, 1, 1, 3).setValues([['submissionId', 'name', 'rejectedAt']]); }
+  const d = rj.getDataRange().getValues();
+  for (let i = 1; i < d.length; i++) { if (String(d[i][0]) === ts) return { ok: true, name }; }  // 重複は無視
+  rj.appendRow([ts, name, new Date()]);
   return { ok: true, name };
 }
 
-function rejectedNames_() {
+// 却下された投稿の送信時刻ms集合
+function rejectedRowSet_() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const rj = ss.getSheetByName('却下');
+  const rj = ss.getSheetByName('却下ログ');
   const set = {};
-  if (rj) { const d = rj.getDataRange().getValues(); for (let i = 1; i < d.length; i++) { if (d[i][0]) set[String(d[i][0]).trim()] = true; } }
+  if (rj) { const d = rj.getDataRange().getValues(); for (let i = 1; i < d.length; i++) { if (d[i][0] !== '' && d[i][0] != null) set[String(d[i][0])] = true; } }
   return set;
-}
-
-function _removeFromRejected(name) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const rj = ss.getSheetByName('却下');
-  if (!rj) return;
-  const d = rj.getDataRange().getValues();
-  for (let i = d.length - 1; i >= 1; i--) { if (String(d[i][0]).trim() === name) rj.deleteRow(i + 1); }
 }
 
 // ═══ フォーム送信時: Teamsへ通知（承認リンク付き）═══
@@ -313,9 +306,16 @@ function onFormSubmit(e) {
     const photo = (c.photo >= 0) ? String(vals[c.photo] || '').trim() : '';
     const note = (c.note >= 0) ? String(vals[c.note] || '').trim() : '';
     if (!name) return;
+    // この投稿を一意に特定するID（送信時刻ms）。却下を「投稿単位」にするために使う
+    let ts = '';
+    try {
+      const rowNum = (e && e.range) ? e.range.getRow() : sheet.getLastRow();
+      const tv = sheet.getRange(rowNum, 1).getValue();
+      if (tv instanceof Date) ts = String(tv.getTime());
+    } catch (e2) {}
     const base = WEBAPP_URL || ScriptApp.getService().getUrl();
     const approveUrl = base + '?action=approve&token=' + encodeURIComponent(APPROVE_TOKEN) + '&name=' + encodeURIComponent(name);
-    const rejectUrl = base + '?action=reject&token=' + encodeURIComponent(APPROVE_TOKEN) + '&name=' + encodeURIComponent(name);
+    const rejectUrl = ts ? (base + '?action=reject&token=' + encodeURIComponent(APPROVE_TOKEN) + '&name=' + encodeURIComponent(name) + '&ts=' + encodeURIComponent(ts)) : '';
     notifyTeams_(name, cb, approveUrl, photo, rejectUrl, note);
   } catch (err) { console.warn('onFormSubmit', err); }
 }
