@@ -46,6 +46,13 @@ function doGet(e) {
       : `<div style="font-family:sans-serif;padding:40px;text-align:center"><h2>⚠️ 承認できませんでした</h2><p>${escapeHtml(r.error || '')}</p></div>`;
     return HtmlService.createHtmlOutput(html);
   }
+  if (action === 'reject') {
+    const r = rejectByName(p.name, p.token);
+    const html = r.ok
+      ? `<div style="font-family:sans-serif;padding:40px;text-align:center"><h2>🚫 「${escapeHtml(r.name)}」を却下しました</h2><p style="color:#888">マップには公開されません。確認中の表示からも消えます。</p></div>`
+      : `<div style="font-family:sans-serif;padding:40px;text-align:center"><h2>⚠️ 却下できませんでした</h2><p>${escapeHtml(r.error || '')}</p></div>`;
+    return HtmlService.createHtmlOutput(html);
+  }
 
   let result;
   if (action === 'live' || action === 'aggregate') {
@@ -88,10 +95,11 @@ function getLiveParks() {
   const approvedRes = getApprovedParks();
   const approvedNames = {};
   approvedRes.parks.forEach(p => { approvedNames[String(p.name).trim()] = true; });
+  const rejected = rejectedNames_();
   const live = aggregateLive();
   const pending = [];
   for (const name in live) {
-    if (approvedNames[name]) continue;        // 公開済はpendingに出さない
+    if (approvedNames[name] || rejected[name]) continue;        // 公開済はpendingに出さない
     const p = live[name];
     const total = p.yes + p.no + p.unknown;
     pending.push({
@@ -186,8 +194,43 @@ function approveByName(name, token) {
   const rowVals = [id, name, address, lat, lng, catchball, '', null, null, '', note, total, majority, p.yes, p.no, p.unknown, photoStr];
   if (rowIdx >= 0) sh.getRange(rowIdx + 1, 1, 1, HEADERS.length).setValues([rowVals]);
   else sh.appendRow(rowVals);
+  _removeFromRejected(name);   // 承認したら却下リストから外す（再承認を可能に）
 
   return { ok: true, name, catchball, reports: total };
+}
+
+// ═══ 却下: 確認中から消す＋公開済みなら取り下げ ═══
+function rejectByName(name, token) {
+  if (token !== APPROVE_TOKEN) return { ok: false, error: '合言葉が違います' };
+  name = String(name || '').trim();
+  if (!name) return { ok: false, error: '公園名がありません' };
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let rj = ss.getSheetByName('却下');
+  if (!rj) { rj = ss.insertSheet('却下'); rj.getRange(1, 1, 1, 2).setValues([['name', 'rejectedAt']]); }
+  const rd = rj.getDataRange().getValues();
+  let exists = false;
+  for (let i = 1; i < rd.length; i++) { if (String(rd[i][0]).trim() === name) { exists = true; break; } }
+  if (!exists) rj.appendRow([name, new Date()]);
+  // 公開済みなら承認済みデータから削除（取り下げ）
+  const ap = ss.getSheetByName(APPROVED_SHEET_NAME);
+  if (ap) { const ad = ap.getDataRange().getValues(); for (let i = ad.length - 1; i >= 1; i--) { if (String(ad[i][1]).trim() === name) ap.deleteRow(i + 1); } }
+  return { ok: true, name };
+}
+
+function rejectedNames_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const rj = ss.getSheetByName('却下');
+  const set = {};
+  if (rj) { const d = rj.getDataRange().getValues(); for (let i = 1; i < d.length; i++) { if (d[i][0]) set[String(d[i][0]).trim()] = true; } }
+  return set;
+}
+
+function _removeFromRejected(name) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const rj = ss.getSheetByName('却下');
+  if (!rj) return;
+  const d = rj.getDataRange().getValues();
+  for (let i = d.length - 1; i >= 1; i--) { if (String(d[i][0]).trim() === name) rj.deleteRow(i + 1); }
 }
 
 // ═══ フォーム送信時: Teamsへ通知（承認リンク付き）═══
@@ -204,11 +247,12 @@ function onFormSubmit(e) {
     if (!name) return;
     const base = WEBAPP_URL || ScriptApp.getService().getUrl();
     const approveUrl = base + '?action=approve&token=' + encodeURIComponent(APPROVE_TOKEN) + '&name=' + encodeURIComponent(name);
-    notifyTeams_(name, cb, approveUrl, photo);
+    const rejectUrl = base + '?action=reject&token=' + encodeURIComponent(APPROVE_TOKEN) + '&name=' + encodeURIComponent(name);
+    notifyTeams_(name, cb, approveUrl, photo, rejectUrl);
   } catch (err) { console.warn('onFormSubmit', err); }
 }
 
-function notifyTeams_(name, cb, approveUrl, photo) {
+function notifyTeams_(name, cb, approveUrl, photo, rejectUrl) {
   // Teams「Workflows」(Power Automate)のWebhook向け Adaptiveカード形式
   const body = [
     { type: 'TextBlock', text: '🆕 公園マップに報告が届きました', weight: 'Bolder', size: 'Medium' },
@@ -220,12 +264,14 @@ function notifyTeams_(name, cb, approveUrl, photo) {
   (photo ? String(photo).split('|') : []).map(function (s) { return s.trim(); }).filter(function (u) { return /^https?:\/\//.test(u); }).slice(0, 4).forEach(function (u) {
     body.push({ type: 'Image', url: u, size: 'Large', altText: name + 'の写真' });
   });
-  body.push({ type: 'TextBlock', text: '👉 [✅ 承認して公開する](' + approveUrl + ')', wrap: true, weight: 'Bolder', color: 'Accent', spacing: 'Medium' });
+  body.push({ type: 'TextBlock', text: '👉 [✅ 承認して公開する](' + approveUrl + ')' + (rejectUrl ? '　｜　[🚫 却下する](' + rejectUrl + ')' : ''), wrap: true, weight: 'Bolder', color: 'Accent', spacing: 'Medium' });
+  const actions = [{ type: 'Action.OpenUrl', title: '✅ 承認して公開', url: approveUrl }];
+  if (rejectUrl) actions.push({ type: 'Action.OpenUrl', title: '🚫 却下', url: rejectUrl });
   const payload = {
     type: 'message',
     attachments: [{
       contentType: 'application/vnd.microsoft.card.adaptive',
-      content: { type: 'AdaptiveCard', $schema: 'http://adaptivecards.io/schemas/adaptive-card.json', version: '1.4', body: body, actions: [{ type: 'Action.OpenUrl', title: '✅ 承認して公開', url: approveUrl }] }
+      content: { type: 'AdaptiveCard', $schema: 'http://adaptivecards.io/schemas/adaptive-card.json', version: '1.4', body: body, actions: actions }
     }]
   };
   UrlFetchApp.fetch(TEAMS_WEBHOOK_URL, { method: 'post', contentType: 'application/json', payload: JSON.stringify(payload), muteHttpExceptions: true });
