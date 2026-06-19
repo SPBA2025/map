@@ -244,15 +244,16 @@ function onFormSubmit(e) {
     const name = String(vals[c.name] || '').trim();
     const cb = String(vals[c.cb] || '').trim();
     const photo = (c.photo >= 0) ? String(vals[c.photo] || '').trim() : '';
+    const note = (c.note >= 0) ? String(vals[c.note] || '').trim() : '';
     if (!name) return;
     const base = WEBAPP_URL || ScriptApp.getService().getUrl();
     const approveUrl = base + '?action=approve&token=' + encodeURIComponent(APPROVE_TOKEN) + '&name=' + encodeURIComponent(name);
     const rejectUrl = base + '?action=reject&token=' + encodeURIComponent(APPROVE_TOKEN) + '&name=' + encodeURIComponent(name);
-    notifyTeams_(name, cb, approveUrl, photo, rejectUrl);
+    notifyTeams_(name, cb, approveUrl, photo, rejectUrl, note);
   } catch (err) { console.warn('onFormSubmit', err); }
 }
 
-function notifyTeams_(name, cb, approveUrl, photo, rejectUrl) {
+function notifyTeams_(name, cb, approveUrl, photo, rejectUrl, note) {
   // Teams「Workflows」(Power Automate)のWebhook向け Adaptiveカード形式
   const body = [
     { type: 'TextBlock', text: '🆕 公園マップに報告が届きました', weight: 'Bolder', size: 'Medium' },
@@ -261,6 +262,7 @@ function notifyTeams_(name, cb, approveUrl, photo, rejectUrl) {
       { title: 'キャッチボール', value: cb || '(未回答)' }
     ] }
   ];
+  if (note) body.push({ type: 'TextBlock', text: '📝 備考: ' + note, wrap: true, isSubtle: true, spacing: 'Small' });
   (photo ? String(photo).split('|') : []).map(function (s) { return s.trim(); }).filter(function (u) { return /^https?:\/\//.test(u); }).slice(0, 4).forEach(function (u) {
     body.push({ type: 'Image', url: u, size: 'Large', altText: name + 'の写真' });
   });
