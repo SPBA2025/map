@@ -404,6 +404,42 @@ function applyFilters() {
 ═══════════════════════════════════════════════ */
 let osmMarkers = {};
 const OSM_MIN_ZOOM = 14;
+const OSM_DUP_DIST_M = 80;   // この距離(m)以内に登録/確認中/承認済みの公園があれば重複とみなしOSMグレーピンを出さない
+
+/* OSMグレーピン候補 p が、既存の公園（登録済み placesMarkers ＝GAS承認済み gas-* 含む／
+   確認中 pendingMarkers・pendingByName）と重複するか。
+   判定: 公園名の一致（_normJP で全半角・カナひら差を吸収）または OSM_DUP_DIST_M 以内の座標近接。
+   parks-osm.js の生成時除外は parks-data.js しか見ておらず、非同期取得の確認中/承認済みが
+   除外対象から漏れる。ズームインでグレーピンが琥珀ピンを覆う不具合の対策。 */
+function osmIsDuplicate(p) {
+  if (!p || p.lat == null || p.lng == null) return false;
+  const near = (lat, lng) =>
+    lat != null && lng != null &&
+    Math.hypot((lat - p.lat) * 111000, (lng - p.lng) * 91000) < OSM_DUP_DIST_M;
+  const sameName = (name) => name && p.name && _normJP(name) === _normJP(p.name);
+  // 登録済み＋GAS承認済み（どちらも placesMarkers に入っている）
+  for (const m of Object.values(placesMarkers)) {
+    const i = m && m._parkInfo;
+    if (!i) continue;
+    if (sameName(i.name) || near(i.lat, i.lng)) return true;
+  }
+  // 確認中（ピン化されたもの）
+  for (const m of Object.values(pendingMarkers)) {
+    const pos = m && m.position;
+    if (!pos) continue;
+    const plat = typeof pos.lat === 'function' ? pos.lat() : pos.lat;
+    const plng = typeof pos.lng === 'function' ? pos.lng() : pos.lng;
+    if (near(plat, plng)) return true;
+  }
+  // 確認中（同名の既存ピンがあってピン化されなかったもの含む）
+  for (const k in pendingByName) {
+    const pd = pendingByName[k];
+    if (!pd) continue;
+    if (sameName(pd.name) || near(pd.lat, pd.lng)) return true;
+  }
+  return false;
+}
+
 function renderOsmPins() {
   if (typeof parkOsmData === 'undefined' || !map) return;
   const clearAll = () => { for (const k in osmMarkers) { osmMarkers[k].map = null; delete osmMarkers[k]; } };
@@ -411,10 +447,12 @@ function renderOsmPins() {
   if (activeFilters.catchball || map.getZoom() < OSM_MIN_ZOOM) { clearAll(); return; }
   const b = map.getBounds();
   if (!b) return;
-  // 表示範囲外を撤去
+  // 表示範囲外、または（非同期取得後に判明した）重複は撤去
   for (const k in osmMarkers) {
     const p = parkOsmData[k];
-    if (!p || !b.contains(new google.maps.LatLng(p.lat, p.lng))) { osmMarkers[k].map = null; delete osmMarkers[k]; }
+    if (!p || !b.contains(new google.maps.LatLng(p.lat, p.lng)) || osmIsDuplicate(p)) {
+      osmMarkers[k].map = null; delete osmMarkers[k];
+    }
   }
   // 表示範囲内を追加（最大120件で頭打ち）
   let count = Object.keys(osmMarkers).length;
@@ -422,6 +460,8 @@ function renderOsmPins() {
     if (osmMarkers[i]) continue;
     const p = parkOsmData[i];
     if (!b.contains(new google.maps.LatLng(p.lat, p.lng))) continue;
+    // 登録済み/確認中/承認済みと重複するグレーピンは出さない（琥珀ピンのグレー化を防ぐ）
+    if (osmIsDuplicate(p)) continue;
     const m = createMarker(p.lat, p.lng, { name: p.name, lat: p.lat, lng: p.lng, unregistered: true });
     m.map = map;
     osmMarkers[i] = m;
