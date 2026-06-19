@@ -498,8 +498,11 @@ input:focus-visible{outline-offset:0}
   #sidebar.hidden{transform:translateY(100%)}
   #sidebar:not(.hidden){transform:translateY(0)}
 
-  /* ── 地図下端をボトムナビの上で止める（Googleのズーム(-)・著作権表記が隠れないように） ── */
-  #map-container{margin-bottom:calc(64px + env(safe-area-inset-bottom) + var(--safari-chrome-bottom, 0px))}
+  /* ── 地図下端をボトムナビの上で止める ──
+     #map-container の高さは js/team-map.js の applyMapPadding() が #bnav の実高さ
+     (64px + safe-area + --safari-chrome-bottom) を差し引いてインライン height で確定する。
+     インライン height が CSS margin-bottom を上書きするため、ここでは margin を指定しない
+     （指定しても無効＝矛盾になるため）。Googleのズーム(-)・©Google が #bnav に隠れないことを保証。 */
 
   /* ── ボトムナビ ── */
   #bnav{display:flex !important}

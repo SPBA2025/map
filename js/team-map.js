@@ -2315,7 +2315,22 @@ window.initMap = function() {
   }
   function applyMapPadding(open) {
     const isMob = isMobile();
-    const bnavH = isMob ? 56 : 0;
+    // ボトムナビ(#bnav)の実高さを実測で確保する。
+    // CSS では height:calc(64px + env(safe-area-inset-bottom)) かつ bottom:var(--safari-chrome-bottom,0)
+    // のため、実測 offsetHeight + そのオフセット分を引かないと地図下端がナビ下に潜り込み、
+    // Google のズーム(-)・©Google 表記が隠れてしまう。
+    let bnavH = 0;
+    if (isMob) {
+      const bnavEl = document.getElementById('bnav');
+      const measured = bnavEl ? bnavEl.offsetHeight : 0;
+      // Safari の下部クロム(URLバー/翻訳バー)分。#bnav は bottom:var(--safari-chrome-bottom) で持ち上がるため、
+      // 地図下端も同量さらに上げる必要がある。
+      const chrome = parseFloat(
+        getComputedStyle(document.documentElement).getPropertyValue('--safari-chrome-bottom')
+      ) || 0;
+      // 実測が取れない初期化タイミング向けのフォールバック（64px + 一般的な safe-area 約34px 相当）
+      bnavH = (measured || 64) + chrome;
+    }
     const panelH = open
       ? Math.round(window.innerHeight * (isMob ? 0.45 : 0.40))
       : 0;
