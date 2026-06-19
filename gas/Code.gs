@@ -281,10 +281,22 @@ function rejectSubmission(name, ts, token) {
   if (!ts) return { ok: false, error: '投稿IDがありません（古い通知の可能性）' };
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let rj = ss.getSheetByName('却下ログ');
-  if (!rj) { rj = ss.insertSheet('却下ログ'); rj.getRange(1, 1, 1, 3).setValues([['submissionId', 'name', 'rejectedAt']]); }
+  if (!rj) { rj = ss.insertSheet('却下ログ'); rj.getRange(1, 1, 1, 5).setValues([['submissionId', 'name', 'キャッチボール', '備考', 'rejectedAt']]); }
   const d = rj.getDataRange().getValues();
   for (let i = 1; i < d.length; i++) { if (String(d[i][0]) === ts) return { ok: true, name }; }  // 重複は無視
-  rj.appendRow([ts, name, new Date()]);
+  // 却下した投稿の中身（できた/できない・備考）も記録して、後から判断できるようにする
+  let cbVal = '', noteVal = '';
+  try {
+    const sheet = ss.getSheetByName(SHEET_NAME);
+    const sdata = sheet.getDataRange().getValues();
+    const c = detectCols_(sdata[0]);
+    for (let i = 1; i < sdata.length; i++) {
+      const r = sdata[i];
+      const t = (r[0] instanceof Date) ? r[0].getTime() : (r[0] ? new Date(r[0]).getTime() : NaN);
+      if (String(t) === ts) { cbVal = String(r[c.cb] || ''); noteVal = String(r[c.note] || ''); break; }
+    }
+  } catch (e) {}
+  rj.appendRow([ts, name, cbVal, noteVal, new Date()]);
   return { ok: true, name };
 }
 
@@ -295,6 +307,21 @@ function rejectedRowSet_() {
   const set = {};
   if (rj) { const d = rj.getDataRange().getValues(); for (let i = 1; i < d.length; i++) { if (d[i][0] !== '' && d[i][0] != null) set[String(d[i][0])] = true; } }
   return set;
+}
+
+// 「却下ログ」で選択した行の却下を取り消す（行を削除→次回読み込みで報告が集計に復活）
+function unrejectSelected() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sh = ss.getActiveSheet();
+  const ui = SpreadsheetApp.getUi();
+  if (sh.getName() !== '却下ログ') { ui.alert('「却下ログ」シートを開き、取り消したい行を選んでから実行してください。'); return; }
+  const row = sh.getActiveRange().getRow();
+  if (row <= 1) { ui.alert('見出し行ではなく、却下データの行（2行目以降）を選んでください。'); return; }
+  const name = sh.getRange(row, 2).getValue();
+  const res = ui.alert('却下を取り消しますか？', '「' + name + '」のこの却下を取り消します。報告は次回マップ読み込みで集計に復活します。', ui.ButtonSet.OK_CANCEL);
+  if (res !== ui.Button.OK) return;
+  sh.deleteRow(row);
+  ui.alert('「' + name + '」の却下を取り消しました。');
 }
 
 // ═══ フォーム送信時: Teamsへ通知（承認リンク付き）═══
@@ -442,5 +469,7 @@ function onOpen() {
     .addItem('② 承認済みデータを公開', 'publishApproved')
     .addSeparator()
     .addItem('③ Teams通知トリガーを設定', 'setupTriggers')
+    .addSeparator()
+    .addItem('却下を取り消す（却下ログで選択行）', 'unrejectSelected')
     .addToUi();
 }
