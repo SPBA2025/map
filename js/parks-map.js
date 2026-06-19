@@ -273,6 +273,10 @@ function renderGasReportedParks(gasParks) {
     added++;
   });
   if (added) { updateStats(); renderParkList(); console.log(`[GAS] 報告のある公園 ${added}件を地図に追加`); }
+  // GAS承認ピン（可否色）を追加した直後は、同地点に先に描かれたOSMグレーピンが
+  // 重なって残る（renderGasReportedParks 単体では renderOsmPins を呼ばないため）。
+  // ここで再描画し、osmIsDuplicate により該当グレーピンを必ず撤去して可否色ピンを見せる。
+  renderOsmPins();
 }
 
 /* ═══════════════════════════════════════════════
