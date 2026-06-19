@@ -55,6 +55,9 @@ function doPost(e) {
       _publishVoteState(name);   // しきい値を満たせば自動で承認済みデータへ反映
       return _json({ ok: true });
     }
+    if (d.action === 'approve') { return _json(approveByName(d.name, d.token)); }
+    if (d.action === 'reject') { return _json(rejectSubmission(d.name, d.ts, d.token)); }
+    if (d.action === 'rejectPark') { return _json(rejectAllPending_(d.name, d.token)); }
     return _json({ ok: false, error: 'unknown action' });
   } catch (err) {
     return _json({ ok: false, error: String(err) });
@@ -118,6 +121,10 @@ function doGet(e) {
       ? `<div style="font-family:sans-serif;padding:40px;text-align:center"><h2>🚫 報告を却下しました</h2><p style="color:#888">「${escapeHtml(r.name)}」のこの報告1件を集計から除外しました。他に正しい報告があれば公園は残ります。</p></div>`
       : `<div style="font-family:sans-serif;padding:40px;text-align:center"><h2>⚠️ 却下できませんでした</h2><p>${escapeHtml(r.error || '')}</p></div>`;
     return HtmlService.createHtmlOutput(html);
+  }
+  if (action === 'adminList') {
+    if (p.token !== APPROVE_TOKEN) return ContentService.createTextOutput(JSON.stringify({ ok: false, error: 'token' })).setMimeType(ContentService.MimeType.JSON);
+    return ContentService.createTextOutput(JSON.stringify({ ok: true, items: adminPendingList_() })).setMimeType(ContentService.MimeType.JSON);
   }
 
   let result;
@@ -300,6 +307,60 @@ function rejectSubmission(name, ts, token) {
   return { ok: true, name };
 }
 
+// 承認ページ用: 未承認（pending）の報告を、写真・備考・送信ID付きで公園ごとに返す（要token）
+function adminPendingList_() {
+  const approvedRes = getApprovedParks();
+  const approvedNames = {};
+  approvedRes.parks.forEach(function (p) { approvedNames[String(p.name).trim()] = true; });
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(SHEET_NAME);
+  if (!sheet) return [];
+  const data = sheet.getDataRange().getValues();
+  if (data.length <= 1) return [];
+  const c = detectCols_(data[0]);
+  const rejected = rejectedRowSet_();
+  const map = {};
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    const tms = (row[0] instanceof Date) ? row[0].getTime() : (row[0] ? new Date(row[0]).getTime() : NaN);
+    if (!isNaN(tms) && rejected[String(tms)]) continue;
+    const name = String(row[c.name] || '').trim();
+    if (!name || approvedNames[name]) continue;
+    if (!map[name]) map[name] = { name: name, yes: 0, no: 0, unknown: 0, notes: [], photos: [], tsList: [], lat: 0, lng: 0 };
+    const cb = String(row[c.cb] || '').trim();
+    if (cb.indexOf(ANSWER_YES) >= 0 && cb.indexOf(ANSWER_NO) < 0) map[name].yes++;
+    else if (cb.indexOf(ANSWER_NO) >= 0) map[name].no++;
+    else map[name].unknown++;
+    const note = (c.note >= 0) ? String(row[c.note] || '').trim() : '';
+    if (note && note !== 'undefined' && map[name].notes.indexOf(note) < 0) map[name].notes.push(note);
+    if (c.photo >= 0) { String(row[c.photo] || '').split('|').forEach(function (u) { u = u.trim(); if (/^https?:\/\//.test(u) && map[name].photos.indexOf(u) < 0) map[name].photos.push(u); }); }
+    if (!isNaN(tms)) map[name].tsList.push(String(tms));
+    if (c.lat >= 0 && c.lng >= 0) { const la = parseFloat(row[c.lat]), ln = parseFloat(row[c.lng]); if (la >= 35 && la <= 37 && ln >= 138 && ln <= 141) { map[name].lat = la; map[name].lng = ln; } }
+  }
+  return Object.keys(map).map(function (k) { return map[k]; });
+}
+
+// 承認ページ用: 指定公園の未承認の報告をすべて却下
+function rejectAllPending_(name, token) {
+  if (token !== APPROVE_TOKEN) return { ok: false, error: '合言葉が違います' };
+  name = String(name || '').trim();
+  if (!name) return { ok: false, error: '公園名がありません' };
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(SHEET_NAME);
+  const data = sheet.getDataRange().getValues();
+  const c = detectCols_(data[0]);
+  let n = 0;
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    if (String(row[c.name] || '').trim() !== name) continue;
+    const tms = (row[0] instanceof Date) ? row[0].getTime() : (row[0] ? new Date(row[0]).getTime() : NaN);
+    if (isNaN(tms)) continue;
+    const r = rejectSubmission(name, String(tms), token);
+    if (r && r.ok) n++;
+  }
+  return { ok: true, name: name, count: n };
+}
+
 // 却下された投稿の送信時刻ms集合
 function rejectedRowSet_() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -364,14 +425,12 @@ function notifyTeams_(name, cb, approveUrl, photo, rejectUrl, note) {
   (photo ? String(photo).split('|') : []).map(function (s) { return s.trim(); }).filter(function (u) { return /^https?:\/\//.test(u); }).slice(0, 4).forEach(function (u) {
     body.push({ type: 'Image', url: u, size: 'Large', altText: name + 'の写真' });
   });
-  body.push({ type: 'TextBlock', text: '👉 [✅ 承認して公開する](' + approveUrl + ')' + (rejectUrl ? '　｜　[🚫 却下する](' + rejectUrl + ')' : ''), wrap: true, weight: 'Bolder', color: 'Accent', spacing: 'Medium' });
-  const actions = [{ type: 'Action.OpenUrl', title: '✅ 承認して公開', url: approveUrl }];
-  if (rejectUrl) actions.push({ type: 'Action.OpenUrl', title: '🚫 却下', url: rejectUrl });
+  body.push({ type: 'TextBlock', text: '👉 [承認ページを開く](https://map.saitamabaseball.com/admin.html)', wrap: true, weight: 'Bolder', color: 'Accent', spacing: 'Medium' });
   const payload = {
     type: 'message',
     attachments: [{
       contentType: 'application/vnd.microsoft.card.adaptive',
-      content: { type: 'AdaptiveCard', $schema: 'http://adaptivecards.io/schemas/adaptive-card.json', version: '1.4', body: body, actions: actions }
+      content: { type: 'AdaptiveCard', $schema: 'http://adaptivecards.io/schemas/adaptive-card.json', version: '1.4', body: body }
     }]
   };
   UrlFetchApp.fetch(TEAMS_WEBHOOK_URL, { method: 'post', contentType: 'application/json', payload: JSON.stringify(payload), muteHttpExceptions: true });

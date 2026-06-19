@@ -1,6 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /admin.html
+Disallow: /team-admin.html
 Disallow: /admin/
 Disallow: /og-src/
 

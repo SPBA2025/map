@@ -163,7 +163,8 @@ map/
 ├── parks_catchball.csv    # PARKFUL元データ（編集不要）
 ├── gas_aggregate.js       # Google Apps Script（参考用、本体は GAS 側）
 ├── parks.config.example.js # ローカル開発時のテンプレート（現状未使用）
-├── admin.html             # 管理ページ（未使用）
+├── admin.html             # 事務局用 承認ページ（公園報告の承認/却下）
+├── team-admin.html        # チームデータ管理ツール（ローカル用）
 ├── index.html             # 埼玉県野球チームマップ（別マップ）
 └── SETUP_PARKS.md         # 本ドキュメント
 ```
