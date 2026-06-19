@@ -498,6 +498,9 @@ input:focus-visible{outline-offset:0}
   #sidebar.hidden{transform:translateY(100%)}
   #sidebar:not(.hidden){transform:translateY(0)}
 
+  /* ── 地図下端をボトムナビの上で止める（Googleのズーム(-)・著作権表記が隠れないように） ── */
+  #map-container{margin-bottom:calc(64px + env(safe-area-inset-bottom) + var(--safari-chrome-bottom, 0px))}
+
   /* ── ボトムナビ ── */
   #bnav{display:flex !important}
   .bnav-btn{font-size:10px;padding:5px 0;touch-action:manipulation}

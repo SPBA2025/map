@@ -368,6 +368,8 @@ input:focus-visible{outline-offset:0}
   #hdr-search-wrap{display:none}
   #city-select{display:none}
   .park-item{padding:12px 16px;touch-action:manipulation}
+  /* 地図下端をボトムナビの上で止める（Googleのズーム(-)・著作権表記が隠れないように） */
+  #map{margin-bottom:calc(64px + env(safe-area-inset-bottom))}
   #parks-bnav{display:flex}
   .bnav-btn{font-size:10px;padding:5px 0;touch-action:manipulation}
   .bnav-icon{font-size:22px;line-height:1.1}
