@@ -13,8 +13,11 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&display=block">
 <link rel="stylesheet" href="css/tokens.css?v=20260612">
 <script>
-  // GAS_URL は parks.html と同じ値
+  // GAS_URL は parks.html と同じ値（公園の承認API）
   const GAS_URL = 'https://script.google.com/macros/s/AKfycbyBqycA_v8614sI_4vWtqniSlValz6q-3BtfF-5iXyCKTeB3oScXR4RcRNR7ZYbQjFi/exec';
+  // TEAM_GAS_URL は TeamCode.gs をデプロイしたウェブアプリの /exec URL（チームの承認API）。
+  // 未設定（空）ならチームタブは「未設定」表示になる。config.js の TEAM_GAS_URL と同じ値を入れる。
+  window.TEAM_GAS_URL = 'https://script.google.com/macros/s/AKfycbyW4Cz8wMpQEadxDxgvcE1c4ynFIEVmqiywFA2bddR-IcvwlT3IZDL8nAbqY5IntvgsZw/exec';
 </script>
 <style>
   *{box-sizing:border-box}
@@ -99,6 +102,34 @@
   #lightbox.open{display:flex}
   #lightbox img{max-width:100%;max-height:100%;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,0.5)}
 
+  /* ── タブ（公園/チーム） ── */
+  #tabbar{display:none;gap:8px;margin:0 0 14px}
+  #tabbar .tab{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:14px;font-weight:700;padding:10px 8px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface-1);color:var(--ink-3);cursor:pointer;font-family:inherit;transition:background-color .15s,color .15s}
+  #tabbar .tab .msi{font-size:18px}
+  #tabbar .tab.on{background:var(--spba-navy);color:var(--spba-cream);border-color:var(--spba-navy)}
+
+  /* ── チームカード ── */
+  .pc-badge.tc-type-new{color:#04703b;background:#e7f7ef;border-color:#9bdcbd}
+  .pc-badge.tc-type-edit{color:#1a5fb4;background:#e8f1fd;border-color:#aacdf2}
+  .pc-badge.tc-type-unknown{color:var(--ink-3);background:var(--surface-2);border-color:var(--border)}
+  .tc-city{font-size:13px;font-weight:600;color:var(--ink-3)}
+  .tc-fields{padding:0 16px 10px;display:flex;flex-direction:column;gap:5px}
+  .tc-row{display:flex;gap:10px;font-size:13px;line-height:1.5}
+  .tc-row .tc-k{flex-shrink:0;width:64px;color:var(--ink-3);font-weight:600}
+  .tc-row .tc-v{color:var(--ink-2);word-break:break-word}
+  .tc-sns-row{display:flex;flex-wrap:wrap;gap:8px;padding:0 16px 12px}
+  .tc-sns{font-size:13px;font-weight:700;text-decoration:none;border:1px solid var(--border);border-radius:8px;padding:5px 10px;background:var(--surface-1)}
+  .tc-coord{display:flex;align-items:center;gap:8px;padding:0 16px 10px}
+  .tc-coord .tc-k{width:44px;color:var(--ink-3);font-weight:600;font-size:13px}
+  .tc-coord input{flex:1;min-width:0;padding:8px 10px;font-size:13px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit}
+  .tc-coord input:focus{outline:none;border-color:var(--action)}
+  .tc-warn{display:flex;gap:6px;align-items:flex-start;font-size:12px;color:var(--caution);background:#fff4e6;border:1px solid #f5d4a8;border-radius:8px;padding:8px 11px;margin:0 16px 12px;line-height:1.5}
+  .tc-warn .msi{font-size:15px;flex-shrink:0;margin-top:1px}
+  .tc-submitter{display:flex;gap:6px;align-items:flex-start;font-size:12px;color:var(--ink-3);background:var(--surface-2);border:1px dashed var(--border);border-radius:8px;padding:8px 11px;margin:0 16px 12px;line-height:1.5}
+  .tc-submitter .msi{font-size:15px;flex-shrink:0;margin-top:1px;color:var(--ink-3)}
+  .tc-submitter a{color:var(--action);font-weight:600}
+  .tc-logo{width:40px;height:40px;border-radius:8px;object-fit:cover;border:1px solid var(--border);flex-shrink:0;background:var(--surface-2)}
+
   @media (max-width:560px){
     #admin-header .ah-title{font-size:14px}
     .pc-name{font-size:16px}
@@ -131,6 +162,12 @@
     <button type="button" id="gate-btn">開く</button>
   </div>
 
+  <!-- タブ（公園 / チーム） -->
+  <div id="tabbar">
+    <button type="button" class="tab on" data-tab="park"><span class="msi">park</span>公園</button>
+    <button type="button" class="tab" data-tab="team"><span class="msi">groups</span>チーム</button>
+  </div>
+
   <!-- ステータス -->
   <div id="status-bar" style="display:none"></div>
 
@@ -148,6 +185,6 @@
 <!-- 画像ライトボックス -->
 <div id="lightbox"><img src="" alt="拡大写真"></div>
 
-<script src="js/shonin.js?v=20260619"></script>
+<script src="js/shonin.js?v=20260619v"></script>
 </body>
 </html>

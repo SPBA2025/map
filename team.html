@@ -517,7 +517,7 @@
 <!-- 境界 GeoJSON（市町村 / さいたま市の区） -->
 <script src="data/geo-cities.js?v=20260612"></script>
 <script src="data/geo-wards.js?v=20260612"></script>
-<script src="js/team-map.js?v=20260619b"></script>
+<script src="js/team-map.js?v=20260619d"></script>
 
 <!-- SITE FOOTER -->
 <footer id="site-footer" role="contentinfo">
@@ -543,6 +543,9 @@
       <button type="button" onclick="window.reportTeamInfo && window.reportTeamInfo('')" title="チーム情報の追加・修正">
         <span class="msi" aria-hidden="true">edit_note</span>情報修正
       </button>
+      <button type="button" onclick="window.addNewTeam && window.addNewTeam()" title="このマップにないチームを地図上で追加">
+        <span class="msi" aria-hidden="true">add_location_alt</span>チーム追加
+      </button>
       <button type="button" onclick="window.openCookieSettings && window.openCookieSettings()" title="Cookie 設定">
         <span class="msi" aria-hidden="true">cookie</span>Cookie
       </button>
@@ -565,7 +568,7 @@
 </footer>
 
 <!-- 設定ファイルとアナリティクス基盤の読み込み -->
-<script src="config.js?v=20260618"></script>
+<script src="config.js?v=20260619c"></script>
 <script src="analytics.js?v=20260612"></script>
 <script src="cookie-consent.js?v=20260612"></script>
 <script src="toast.js?v=20260612"></script>

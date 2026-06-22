@@ -33,6 +33,19 @@ window.APP_CONFIG = {
   // チーム情報修正・追加用Googleフォーム（チームマップ 情報提供フォーム）
   // チーム名欄の entry ID は 1520807350（マップポップアップから自動入力される）
   TEAM_INFO_FORM_URL: 'https://docs.google.com/forms/d/e/1FAIpQLSd92jK-e9g52C5ux9Q1a_LMUePVJljIua9HBpP1NwePEOr3Iw/viewform',
+  // チームマップ承認システム（クラウドソーシング）
+  //   - TEAM_GAS_URL: TeamCode.gs をデプロイしたウェブアプリの /exec URL（空なら差分オーバーレイ無効＝従来どおり）
+  //   - 下記 entry ID は、フォームにプリフィルする5項目。フォーム作成後に実IDを設定する
+  //       種別=修正/新規 ／ チーム名 ／ 市区町村 ／ 緯度 ／ 経度
+  TEAM_GAS_URL: 'https://script.google.com/macros/s/AKfycbyW4Cz8wMpQEadxDxgvcE1c4ynFIEVmqiywFA2bddR-IcvwlT3IZDL8nAbqY5IntvgsZw/exec', // TeamCode.gs ウェブアプリ
+  TEAM_FORM_ENTRY_TYPE: 'entry.1594720036', // 種別（修正/新規）
+  TEAM_FORM_ENTRY_NAME: 'entry.1520807350', // チーム名
+  TEAM_FORM_ENTRY_CITY: 'entry.1217165201', // 市区町村
+  TEAM_FORM_ENTRY_LAT:  'entry.2030857014', // 緯度
+  TEAM_FORM_ENTRY_LNG:  'entry.1048070123', // 経度
+  TEAM_FORM_ENTRY_LOGO: 'entry.1655982944', // チームロゴURL（自動入力・Cloudinary）
+  TEAM_FORM_TYPE_EDIT:  '修正',       // 種別フィールドの選択肢ラベル（修正側）
+  TEAM_FORM_TYPE_NEW:   '新規',       // 種別フィールドの選択肢ラベル（新規側）
 
   // 公園情報の提供用Googleフォーム（埼玉県公園マップ 情報提供フォーム・全報告導線で共用）
   //   ① 登録済み公園モーダル / ② グレー未登録ピン → 公園名＋座標を自動入力

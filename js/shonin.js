@@ -1,32 +1,36 @@
 /**
- * 公園マップ 承認ページ（事務局用） — shonin.js
+ * 公園・チームマップ 承認ページ（事務局用） — shonin.js
  *
  * 目的:
  *  - Teams から開く事務局用の承認ページ。プロファイル非依存・Safe Links 回避・
  *    スキャナーの自動発火回避のため、承認/却下は「このページからの明示的な操作」で行う。
- *  - 一覧取得は GET(action=adminList)。承認/却下は POST(text/plain) の fire-and-forget。
- *    CORS でレスポンスは読めない前提のため、成否は一覧の再取得で判断する。
+ *  - 一覧取得は GET(action=adminList / adminTeamList)。承認/却下は POST(text/plain) の
+ *    fire-and-forget。CORS でレスポンスは読めない前提のため、成否は一覧の再取得で判断する。
+ *  - タブで「公園」「チーム」を切替。合言葉(token)は両方共通（GAS側に同じ値を設定）。
  *
  * 合言葉(token):
- *  - localStorage 'spba_admin_token' に保存。
- *  - URL ハッシュ #t=... があればそれを採用し localStorage に保存（ハッシュは消す）。
- *  - 無ければ合言葉入力欄を表示。token 不一致なら再入力。
+ *  - localStorage 'spba_admin_token' に保存。URL ハッシュ #t=... があればそれを採用。
  */
 (function () {
   'use strict';
 
   var TOKEN_KEY = 'spba_admin_token';
   var token = '';
+  var currentTab = 'park'; // 'park' | 'team'
 
   var $ = function (id) { return document.getElementById(id); };
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (m) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m];
+    });
+  }
 
   // ── 合言葉の取得 ──────────────────────────────
   function readTokenFromHash() {
     var h = location.hash || '';
     var m = h.match(/[#&]t=([^&]+)/);
-    if (m) {
-      try { return decodeURIComponent(m[1]); } catch (e) { return m[1]; }
-    }
+    if (m) { try { return decodeURIComponent(m[1]); } catch (e) { return m[1]; } }
     return '';
   }
 
@@ -35,21 +39,34 @@
     if (hashToken) {
       token = hashToken;
       try { localStorage.setItem(TOKEN_KEY, token); } catch (e) {}
-      // ハッシュをURLから消す（合言葉が履歴・画面に残らないように）
       try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
     } else {
       try { token = localStorage.getItem(TOKEN_KEY) || ''; } catch (e) { token = ''; }
     }
 
     bindGate();
+    bindTabs();
     $('refresh-btn').addEventListener('click', loadList);
     bindLightbox();
 
-    if (token) {
-      loadList();
-    } else {
-      showGate();
-    }
+    if (token) { showTabs(); loadList(); } else { showGate(); }
+  }
+
+  // ── タブ ──────────────────────────────────────
+  function showTabs() { var tb = $('tabbar'); if (tb) tb.style.display = 'flex'; }
+  function hideTabs() { var tb = $('tabbar'); if (tb) tb.style.display = 'none'; }
+  function bindTabs() {
+    var tabs = document.querySelectorAll('#tabbar .tab');
+    tabs.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var tab = btn.dataset.tab;
+        if (tab === currentTab) return;
+        currentTab = tab;
+        tabs.forEach(function (b) { b.classList.toggle('on', b.dataset.tab === tab); });
+        $('list').innerHTML = '';
+        loadList();
+      });
+    });
   }
 
   // ── 合言葉ゲート ──────────────────────────────
@@ -59,6 +76,7 @@
     $('list').innerHTML = '';
     $('empty-state').style.display = 'none';
     $('refresh-btn').style.display = 'none';
+    hideTabs();
     $('gate-err').textContent = errMsg || '';
     var input = $('gate-input');
     input.value = '';
@@ -72,6 +90,7 @@
       token = v;
       try { localStorage.setItem(TOKEN_KEY, token); } catch (e) {}
       $('gate').style.display = 'none';
+      showTabs();
       loadList();
     };
     $('gate-btn').addEventListener('click', submit);
@@ -80,7 +99,7 @@
     });
   }
 
-  // ── 一覧取得（GET） ───────────────────────────
+  // ── ステータス ────────────────────────────────
   function setStatus(text, loading) {
     var bar = $('status-bar');
     bar.style.display = '';
@@ -90,28 +109,36 @@
     bar.innerHTML = icon + '<span>' + text + '</span>';
   }
 
+  function onTokenError() {
+    try { localStorage.removeItem(TOKEN_KEY); } catch (e) {}
+    token = '';
+    showGate('合言葉が違います。もう一度入力してください。');
+  }
+
+  // ── 一覧取得（タブで振り分け） ─────────────────
   function loadList() {
     if (!token) { showGate(); return; }
     $('gate').style.display = 'none';
+    showTabs();
     $('refresh-btn').style.display = '';
     $('empty-state').style.display = 'none';
     setStatus('読み込み中…', true);
+    if (currentTab === 'team') loadTeamList(); else loadParkList();
+  }
 
+  // ════════════════════════════════════════════
+  // 公園（従来）
+  // ════════════════════════════════════════════
+  function loadParkList() {
     fetch(GAS_URL + '?action=adminList&token=' + encodeURIComponent(token))
       .then(function (r) { return r.json(); })
       .then(function (res) {
         if (!res || res.ok === false) {
-          // token 不一致など
-          if (res && res.error === 'token') {
-            try { localStorage.removeItem(TOKEN_KEY); } catch (e) {}
-            token = '';
-            showGate('合言葉が違います。もう一度入力してください。');
-          } else {
-            setStatus('取得に失敗しました（' + ((res && res.error) || '不明') + '）', false);
-          }
+          if (res && res.error === 'token') onTokenError();
+          else setStatus('取得に失敗しました（' + ((res && res.error) || '不明') + '）', false);
           return;
         }
-        renderList(res.items || []);
+        renderParkList(res.items || []);
       })
       .catch(function (err) {
         setStatus('通信に失敗しました。更新ボタンで再試行してください。', false);
@@ -119,37 +146,26 @@
       });
   }
 
-  // ── 一覧描画 ──────────────────────────────────
-  function renderList(items) {
+  function renderParkList(items) {
     var list = $('list');
-    // 報告が多い順（合計票数）に並べる
     items.sort(function (a, b) {
       var ta = (a.yes || 0) + (a.no || 0) + (a.unknown || 0);
       var tb = (b.yes || 0) + (b.no || 0) + (b.unknown || 0);
       return tb - ta;
     });
-
     if (!items.length) {
       list.innerHTML = '';
       $('status-bar').style.display = 'none';
       $('empty-state').style.display = '';
       return;
     }
-
     $('empty-state').style.display = 'none';
-    setStatus('承認待ち ' + items.length + ' 件', false);
-    list.innerHTML = items.map(renderCard).join('');
+    setStatus('公園 承認待ち ' + items.length + ' 件', false);
+    list.innerHTML = items.map(renderParkCard).join('');
   }
 
-  function esc(s) {
-    return String(s == null ? '' : s).replace(/[&<>"']/g, function (m) {
-      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m];
-    });
-  }
-
-  function renderCard(p) {
+  function renderParkCard(p) {
     var name = p.name || '';
-    var total = (p.yes || 0) + (p.no || 0) + (p.unknown || 0);
     var nameEsc = esc(name);
     var nameAttr = esc(name).replace(/'/g, '&#39;');
 
@@ -181,9 +197,7 @@
           '<div class="pc-name">' + nameEsc + '</div>' +
           '<span class="pc-badge"><span class="msi">hourglass_top</span>承認待ち</span>' +
         '</div>' +
-        votes +
-        notes +
-        photos +
+        votes + notes + photos +
         '<div class="pc-actions">' +
           '<button class="pc-btn btn-approve" type="button" onclick="window.__adminApprove(\'' + nameAttr + '\',this)">' +
             '<span class="msi">check</span>承認して公開</button>' +
@@ -193,11 +207,182 @@
       '</div>';
   }
 
+  window.__adminApprove = function (name, btn) {
+    if (!token) { showGate(); return; }
+    lockCard(btn, '公開中…');
+    postAction(GAS_URL, { action: 'approve', name: name, token: token });
+    setStatus('「' + name + '」を承認しました。反映を確認しています…', true);
+    setTimeout(loadList, 1200);
+  };
+
+  window.__adminReject = function (name, btn) {
+    if (!token) { showGate(); return; }
+    if (!confirm('「' + name + '」の未承認の報告をすべて却下します。よろしいですか？')) return;
+    lockCard(btn, '却下中…');
+    postAction(GAS_URL, { action: 'rejectPark', name: name, token: token });
+    setStatus('「' + name + '」を却下しました。反映を確認しています…', true);
+    setTimeout(loadList, 1200);
+  };
+
+  // ════════════════════════════════════════════
+  // チーム
+  // ════════════════════════════════════════════
+  var CAT_JP = { elem: '小学生', jhs: '中学生', hs: '高校生', univ: '大学生', club: '企業・クラブ', independent: '独立' };
+  var GEN_JP = { male: '男子', female: '女子', mixed: '混合' };
+
+  function teamUrl() { return window.TEAM_GAS_URL || ''; }
+
+  function loadTeamList() {
+    var base = teamUrl();
+    if (!base) {
+      $('list').innerHTML = '';
+      $('status-bar').style.display = 'none';
+      $('empty-state').style.display = '';
+      $('empty-state').querySelector('.es-title').textContent = 'チーム承認APIが未設定です';
+      $('empty-state').querySelector('.es-sub').textContent = 'shonin.html の TEAM_GAS_URL に、デプロイした TeamCode.gs の /exec URL を設定してください。';
+      return;
+    }
+    var sep = base.indexOf('?') >= 0 ? '&' : '?';
+    fetch(base + sep + 'action=adminTeamList&token=' + encodeURIComponent(token))
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        if (!res || res.ok === false) {
+          if (res && res.error === 'token') onTokenError();
+          else setStatus('取得に失敗しました（' + ((res && res.error) || '不明') + '）', false);
+          return;
+        }
+        renderTeamList(res.items || []);
+      })
+      .catch(function (err) {
+        setStatus('通信に失敗しました。更新ボタンで再試行してください。', false);
+        console.warn('adminTeamList error', err);
+      });
+  }
+
+  function renderTeamList(items) {
+    var list = $('list');
+    if (!items.length) {
+      list.innerHTML = '';
+      $('status-bar').style.display = 'none';
+      var es = $('empty-state');
+      es.style.display = '';
+      es.querySelector('.es-title').textContent = '承認待ちのチーム情報はありません';
+      es.querySelector('.es-sub').textContent = '新しい情報提供が届くとここに表示されます。';
+      return;
+    }
+    $('empty-state').style.display = 'none';
+    setStatus('チーム 承認待ち ' + items.length + ' 件', false);
+    list.innerHTML = items.map(renderTeamCard).join('');
+  }
+
+  function teamRow(label, val) {
+    if (val == null || val === '') return '';
+    return '<div class="tc-row"><span class="tc-k">' + esc(label) + '</span><span class="tc-v">' + esc(val) + '</span></div>';
+  }
+  function teamLink(label, url, color) {
+    if (!url) return '';
+    return '<a class="tc-sns" href="' + esc(url) + '" target="_blank" rel="noopener" style="color:' + (color || '#1a6ab0') + '">' + esc(label) + '</a>';
+  }
+
+  function renderTeamCard(p) {
+    var ts = esc(p.ts);
+    var isNew = (p.type === 'new');
+    var typeLabel = isNew ? '新規チーム' : (p.type === 'edit' ? '情報修正' : '種別不明');
+    var typeCls = isNew ? 'tc-type-new' : (p.type === 'edit' ? 'tc-type-edit' : 'tc-type-unknown');
+    var hasCoord = (p.lat !== '' && p.lat != null && p.lng !== '' && p.lng != null);
+    var needCoord = isNew && !hasCoord;
+
+    var ninzu = (p.male || p.female) ? ((p.male || 0) + '男 / ' + (p.female || 0) + '女') : '';
+    var fields = '' +
+      teamRow('カテゴリ', CAT_JP[p.cat] || p.cat || '') +
+      teamRow('性別', GEN_JP[p.gender] || p.gender || '') +
+      teamRow('人数', ninzu) +
+      teamRow('ボール', p.ball) +
+      teamRow('所属', p.league) +
+      teamRow('活動場所', p.place) +
+      teamRow('活動日', p.days) +
+      teamRow('連絡先', p.contact) +
+      teamRow('補足', p.note);
+
+    var sns = [
+      teamLink('HP', p.hp, '#1a6ab0'),
+      teamLink('X', p.x_url, '#000'),
+      teamLink('Instagram', p.ig, '#e1306c'),
+      teamLink('その他', p.other_url, '#555')
+    ].filter(Boolean).join('');
+    var snsRow = sns ? '<div class="tc-sns-row">' + sns + '</div>' : '';
+
+    var coordBlock = '';
+    if (isNew) {
+      coordBlock =
+        '<div class="tc-coord">' +
+          '<span class="tc-k">座標</span>' +
+          '<input class="tc-lat" type="text" inputmode="decimal" placeholder="緯度" value="' + (hasCoord ? esc(p.lat) : '') + '">' +
+          '<input class="tc-lng" type="text" inputmode="decimal" placeholder="経度" value="' + (hasCoord ? esc(p.lng) : '') + '">' +
+        '</div>' +
+        (needCoord ? '<div class="tc-warn"><span class="msi">warning</span>地図に置くため緯度・経度が必要です（Googleマップで地点を右クリック→数値をコピー）</div>' : '');
+    }
+
+    var submitterBlock = '';
+    if (p.submitter) {
+      var sub = esc(p.submitter);
+      var mail = (String(p.submitter).match(/[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+/) || [])[0];
+      if (mail) sub = sub.replace(esc(mail), '<a href="mailto:' + esc(mail) + '">' + esc(mail) + '</a>');
+      submitterBlock = '<div class="tc-submitter"><span class="msi">lock_person</span><span><b>提供者（非公開）</b>：' + sub + '</span></div>';
+    }
+
+    return '' +
+      '<div class="park-card" data-ts="' + ts + '" data-needcoord="' + (needCoord ? '1' : '0') + '">' +
+        '<div class="pc-head">' +
+          (p.logo ? '<img class="tc-logo" src="' + esc(p.logo) + '" alt="logo" loading="lazy">' : '') +
+          '<div class="pc-name">' + esc(p.name) + ' <span class="tc-city">' + esc(p.city || '') + '</span></div>' +
+          '<span class="pc-badge ' + typeCls + '">' + esc(typeLabel) + '</span>' +
+        '</div>' +
+        (fields ? '<div class="tc-fields">' + fields + '</div>' : '') +
+        snsRow +
+        coordBlock +
+        submitterBlock +
+        '<div class="pc-actions">' +
+          '<button class="pc-btn btn-approve" type="button" onclick="window.__teamApprove(\'' + ts + '\',this)">' +
+            '<span class="msi">check</span>承認して反映</button>' +
+          '<button class="pc-btn btn-reject" type="button" onclick="window.__teamReject(\'' + ts + '\',this)">' +
+            '<span class="msi">block</span>却下</button>' +
+        '</div>' +
+      '</div>';
+  }
+
+  window.__teamApprove = function (ts, btn) {
+    if (!token) { showGate(); return; }
+    var card = btn.closest('.park-card');
+    var lat = '', lng = '';
+    if (card) {
+      var li = card.querySelector('.tc-lat'), ni = card.querySelector('.tc-lng');
+      if (li) lat = (li.value || '').trim();
+      if (ni) lng = (ni.value || '').trim();
+      if (card.dataset.needcoord === '1' && (!lat || !lng)) {
+        alert('新規チームは緯度・経度が必要です。Googleマップで位置を確認して入力してください。');
+        return;
+      }
+    }
+    lockCard(btn, '反映中…');
+    postAction(teamUrl(), { action: 'approveTeam', ts: ts, token: token, lat: lat, lng: lng });
+    setStatus('承認しました。反映を確認しています…', true);
+    setTimeout(loadList, 1200);
+  };
+
+  window.__teamReject = function (ts, btn) {
+    if (!token) { showGate(); return; }
+    if (!confirm('この情報提供を却下します。よろしいですか？')) return;
+    lockCard(btn, '却下中…');
+    postAction(teamUrl(), { action: 'rejectTeam', ts: ts, token: token });
+    setStatus('却下しました。反映を確認しています…', true);
+    setTimeout(loadList, 1200);
+  };
+
   // ── 承認/却下（POST: fire-and-forget） ─────────
-  // text/plain でプリフライトを回避。CORS でレスポンスは読めないため、
-  // 1.2 秒後に一覧を再取得して反映を確認する。
-  function postAction(payload) {
-    fetch(GAS_URL, {
+  function postAction(url, payload) {
+    if (!url) return;
+    fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(payload)
@@ -210,23 +395,6 @@
     card.querySelectorAll('.pc-btn').forEach(function (b) { b.disabled = true; });
     btn.innerHTML = '<span class="msi spin">progress_activity</span>' + label;
   }
-
-  window.__adminApprove = function (name, btn) {
-    if (!token) { showGate(); return; }
-    lockCard(btn, '公開中…');
-    postAction({ action: 'approve', name: name, token: token });
-    setStatus('「' + name + '」を承認しました。反映を確認しています…', true);
-    setTimeout(loadList, 1200);
-  };
-
-  window.__adminReject = function (name, btn) {
-    if (!token) { showGate(); return; }
-    if (!confirm('「' + name + '」の未承認の報告をすべて却下します。よろしいですか？')) return;
-    lockCard(btn, '却下中…');
-    postAction({ action: 'rejectPark', name: name, token: token });
-    setStatus('「' + name + '」を却下しました。反映を確認しています…', true);
-    setTimeout(loadList, 1200);
-  };
 
   // ── 画像ライトボックス ────────────────────────
   function bindLightbox() {

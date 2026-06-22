@@ -774,8 +774,78 @@ window.initMap = function() {
     if (window.Toast) Toast.show('表示範囲の絞込を解除しました', { type: 'success' });
   };
 
+  // ── チームロゴ アップロード（Cloudinary 無署名・無料。カード未登録のため課金なし） ──
+  function _teamUploadCloudinary(file){
+    const cfg = window.APP_CONFIG || {};
+    if (!cfg.CLOUDINARY_CLOUD || !cfg.CLOUDINARY_PRESET) return Promise.reject(new Error('Cloudinary未設定'));
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('upload_preset', cfg.CLOUDINARY_PRESET);
+    fd.append('folder', 'team-logos');
+    return fetch('https://api.cloudinary.com/v1_1/' + cfg.CLOUDINARY_CLOUD + '/image/upload', { method:'POST', body:fd })
+      .then(r => r.json())
+      .then(j => { if (j.secure_url) return j.secure_url; throw new Error(j.error ? j.error.message : 'upload failed'); });
+  }
+  function _cldThumb(url, w){ if(!url || String(url).indexOf('/upload/')<0) return url||''; return String(url).replace('/upload/', '/upload/w_'+(w||200)+',h_'+(w||200)+',c_fill,q_auto,f_auto/'); }
+
+  // ロゴ任意添付ダイアログ → フォームを開く。TEAM_FORM_ENTRY_LOGO 未設定なら従来どおり直接開く（安全）
+  function openTeamForm(baseUrl){
+    const cfg = window.APP_CONFIG || {};
+    const logoEntry = cfg.TEAM_FORM_ENTRY_LOGO || '';
+    if (!logoEntry) { window.open(baseUrl, '_blank', 'noopener'); return; }
+    let logoUrl = '';
+    const ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;z-index:6000;background:rgba(10,22,40,.55);display:flex;align-items:center;justify-content:center;padding:18px';
+    ov.innerHTML =
+      '<div style="background:#fff;border-radius:16px;max-width:360px;width:100%;padding:20px;box-shadow:0 12px 40px rgba(0,0,0,.3);font-family:inherit">'
+      + '<div style="font-size:16px;font-weight:700;color:#1b2842;margin-bottom:4px">チームロゴを追加（任意）</div>'
+      + '<div style="font-size:12px;color:#5b6678;line-height:1.55;margin-bottom:14px">承認後、地図のポップアップに表示されます。なくても送信できます。</div>'
+      + '<div class="tld-prev" style="display:none;justify-content:center;margin-bottom:12px"></div>'
+      + '<button class="tld-pick" type="button" style="width:100%;padding:11px;border:1.5px dashed #c4ccd8;border-radius:10px;background:#f4f6f9;color:#1b2842;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px"><span class="msi" style="font-size:18px">add_photo_alternate</span>ロゴ画像を選ぶ</button>'
+      + '<input class="tld-file" type="file" accept="image/*" style="display:none">'
+      + '<div style="display:flex;gap:10px;margin-top:14px">'
+      +   '<button class="tld-skip" type="button" style="flex:1;padding:11px;border:1.5px solid #d4dae3;border-radius:10px;background:#fff;color:#5b6678;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit">ロゴなしで進む</button>'
+      +   '<button class="tld-go" type="button" style="flex:1;padding:11px;border:none;border-radius:10px;background:#1b2842;color:#fff;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;display:none">ロゴ付きで進む</button>'
+      + '</div></div>';
+    document.body.appendChild(ov);
+    const q = s => ov.querySelector(s);
+    const close = () => { try{ ov.remove(); }catch(e){} };
+    const go = (withLogo) => {
+      let u = baseUrl;
+      if (withLogo && logoUrl) u += (u.indexOf('?')>=0?'&':'?') + logoEntry + '=' + encodeURIComponent(logoUrl);
+      window.open(u, '_blank', 'noopener');
+      close();
+    };
+    q('.tld-pick').onclick = () => q('.tld-file').click();
+    q('.tld-skip').onclick = () => go(false);
+    q('.tld-go').onclick   = () => go(true);
+    ov.addEventListener('click', e => { if (e.target === ov) close(); });
+    q('.tld-file').onchange = async () => {
+      const f = (q('.tld-file').files||[])[0];
+      q('.tld-file').value = '';
+      if (!f) return;
+      if (f.size > 10*1024*1024) { if(window.Toast) Toast.show('10MBを超える画像は使えません', {type:'error'}); return; }
+      const pick = q('.tld-pick');
+      pick.disabled = true;
+      pick.innerHTML = '<span class="msi" style="font-size:18px">hourglass_top</span>アップロード中…';
+      try {
+        logoUrl = await _teamUploadCloudinary(f);
+        const prev = q('.tld-prev');
+        prev.style.display = 'flex';
+        prev.innerHTML = '<img src="'+_cldThumb(logoUrl,120)+'" style="width:84px;height:84px;object-fit:cover;border-radius:12px;border:1px solid #e3e8ef">';
+        pick.innerHTML = '<span class="msi" style="font-size:18px">check_circle</span>ロゴを選び直す';
+        pick.disabled = false;
+        q('.tld-go').style.display = '';
+      } catch(e) {
+        if (window.Toast) Toast.show('ロゴのアップロードに失敗しました', {type:'error'});
+        pick.innerHTML = '<span class="msi" style="font-size:18px">add_photo_alternate</span>ロゴ画像を選ぶ';
+        pick.disabled = false;
+      }
+    };
+  }
+
   // チーム情報修正の提案フォームを開く（GoogleフォームURLが設定されていればプリフィルで開く）
-  window.reportTeamInfo = function(teamName) {
+  window.reportTeamInfo = function(teamName, city, lat, lng) {
     try {
       if (window.Analytics) window.Analytics.infoMissingReport('team:' + (teamName || 'unknown'), 'team_report_form');
       const cfg = window.APP_CONFIG || {};
@@ -783,9 +853,18 @@ window.initMap = function() {
       if (formUrl) {
         // Google フォームの場合は ?usp=pp_url 形式
         const sep = formUrl.includes('?') ? '&' : '?';
-        // entry.1520807350 = チーム名フィールド (埼玉県競技者人口マップ 情報提供フォーム)
-        const url = formUrl + sep + 'usp=pp_url&entry.1520807350=' + encodeURIComponent(teamName || '');
-        window.open(url, '_blank', 'noopener');
+        const add = (entry, val) => { if (entry && val !== undefined && val !== null && val !== '') url += '&' + entry + '=' + encodeURIComponent(val); };
+        // entry.1520807350 = チーム名フィールド（既定）。種別=修正・市区町村・座標もプリフィル
+        const eName = cfg.TEAM_FORM_ENTRY_NAME || 'entry.1520807350';
+        let url = formUrl + sep + 'usp=pp_url';
+        add(eName, teamName || '');
+        // チーム名がある＝既存チームからの修正提案。種別=修正をプリフィル（汎用ボタンからは種別を固定しない）
+        if (teamName) add(cfg.TEAM_FORM_ENTRY_TYPE, cfg.TEAM_FORM_TYPE_EDIT || '修正');
+        add(cfg.TEAM_FORM_ENTRY_CITY, city || '');
+        add(cfg.TEAM_FORM_ENTRY_LAT, (lat && parseFloat(lat)) ? lat : '');
+        add(cfg.TEAM_FORM_ENTRY_LNG, (lng && parseFloat(lng)) ? lng : '');
+        // 特定チームからの修正提案はロゴ添付ダイアログを挟む。汎用（チーム名なし）は直接開く
+        if (teamName) openTeamForm(url); else window.open(url, '_blank', 'noopener');
       } else {
         // フォーム未設定時はお問い合わせページにフォールバック
         const fallback = cfg.CONTACT_URL || 'https://www.saitamabaseball.com/contact-8';
@@ -793,6 +872,38 @@ window.initMap = function() {
         if (window.Toast) Toast.show('お問い合わせページへ移動します（' + (teamName || '') + '）', { duration: 3000 });
       }
     } catch(e) { console.warn('reportTeamInfo', e); }
+  };
+
+  // 「このマップにないチームを追加」: 地図をタップして活動場所の位置を選び、種別=新規でフォームを開く
+  window.addNewTeam = function() {
+    try {
+      const cfg = window.APP_CONFIG || {};
+      const formUrl = cfg.TEAM_INFO_FORM_URL || '';
+      const openForm = (lat, lng) => {
+        if (!formUrl) { window.open(cfg.CONTACT_URL || 'https://www.saitamabaseball.com/contact-8', '_blank', 'noopener'); return; }
+        const sep = formUrl.includes('?') ? '&' : '?';
+        let url = formUrl + sep + 'usp=pp_url';
+        const add = (e, v) => { if (e && v !== undefined && v !== null && v !== '') url += '&' + e + '=' + encodeURIComponent(v); };
+        add(cfg.TEAM_FORM_ENTRY_TYPE, cfg.TEAM_FORM_TYPE_NEW || '新規');
+        add(cfg.TEAM_FORM_ENTRY_LAT, lat || '');
+        add(cfg.TEAM_FORM_ENTRY_LNG, lng || '');
+        openTeamForm(url);
+      };
+      if (window.Analytics) { try { window.Analytics.infoMissingReport('team:new', 'team_add_form'); } catch(e){} }
+      let done = false;
+      const cleanup = () => {
+        try { google.maps.event.removeListener(lis); } catch(e){}
+        try { document.removeEventListener('keydown', onEsc); } catch(e){}
+        try { map.setOptions({ draggableCursor: null }); } catch(e){}
+      };
+      const finish = (lat, lng) => { if (done) return; done = true; cleanup(); openForm(lat, lng); };
+      const cancel = () => { if (done) return; done = true; cleanup(); if (window.Toast) Toast.show('チーム追加をキャンセルしました', { duration: 2000 }); };
+      const onEsc = (e) => { if (e.key === 'Escape') cancel(); };
+      try { map.setOptions({ draggableCursor: 'crosshair' }); } catch(e){}
+      const lis = map.addListener('click', (e) => { finish(e.latLng.lat().toFixed(6), e.latLng.lng().toFixed(6)); });
+      document.addEventListener('keydown', onEsc);
+      if (window.Toast) Toast.show('地図で活動場所をタップして位置を選んでください（Escでキャンセル）', { duration: 5000 });
+    } catch (e) { console.warn('addNewTeam', e); }
   };
 
   // 現在の表示状態をクリップボードにコピー（共有用）
@@ -1472,6 +1583,7 @@ window.initMap = function() {
     const hasIg     = has(t.ig);
     const hasOther  = has(t.other_url);
     const hasOldUrl = !hasHp && has(t.url);
+    const hasLogo   = has(t.logo);
     // SNSリンク群（アイコンは他セクションと統一: Material Symbols + ブランドSVG）
     const X_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="display:inline-block;vertical-align:middle"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>';
     const IG_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="display:inline-block;vertical-align:middle"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>';
@@ -1484,7 +1596,7 @@ window.initMap = function() {
     ].filter(Boolean).join('');
     return `<div class="team-popup-wrap">
       <div class="pu-header">
-        <div class="pu-header-icon"><span class="msi" style="font-size:18px">sports_baseball</span></div>
+        <div class="pu-header-icon">${hasLogo ? `<img src="${_cldThumb(t.logo,96)}" alt="${String(t.name||'').replace(/"/g,'&quot;')}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block">` : `<span class="msi" style="font-size:18px">sports_baseball</span>`}</div>
         <div>
           <div class="pu-team-name">${t.name}</div>
           <div class="pu-team-loc" style="display:inline-flex;align-items:center;gap:3px"><span class="msi" style="font-size:13px">place</span>${t.city}</div>
@@ -1506,7 +1618,7 @@ window.initMap = function() {
       ${snsLinks ? `<div class="pu-sns-row">${snsLinks}</div>` : ''}
       ${hasNote  ? `<div class="team-popup-note">${t.note}</div>` : ''}
       <div class="pu-foot">
-        <a href="javascript:void(0)" class="pu-report" data-team-name="${t.name.replace(/"/g,'&quot;')}" onclick="window.reportTeamInfo && window.reportTeamInfo(this.dataset.teamName)">
+        <a href="javascript:void(0)" class="pu-report" data-team-name="${t.name.replace(/"/g,'&quot;')}" data-city="${String(t.city||'').replace(/"/g,'&quot;')}" data-lat="${t.lat||''}" data-lng="${t.lng||''}" onclick="window.reportTeamInfo && window.reportTeamInfo(this.dataset.teamName, this.dataset.city, this.dataset.lat, this.dataset.lng)">
           <span class="msi" style="font-size:12px;vertical-align:-2px">edit_note</span>情報の修正を提案
         </a>
       </div>
@@ -3419,6 +3531,72 @@ window.initMap = function() {
     var nApplied = _applyGeoCache();
     if (nApplied > 0 && window.renderTeamPins) window.renderTeamPins();
     setTimeout(function() { runGeocodingAll(); }, 2500);
+  })();
+
+  // ══════════════════════════════════════════
+  // クラウドソーシング差分オーバーレイ
+  //   承認済みのチーム情報（修正/新規）を GAS から取得し、土台(teams-data.js)に重ねる。
+  //   - 修正(edit): 既存チームの非空フィールドを上書き（有効座標があれば移動も可）
+  //   - 新規(new) : 新しいチームを追加（有効座標が必須）
+  //   反映後 renderTeamPins()+update() でリスト・ピン・集計を再描画（git push 不要・即反映）
+  //   TEAM_GAS_URL 未設定なら何もしない（従来どおり）
+  // ══════════════════════════════════════════
+  (function initTeamOverlay() {
+    var cfg = window.APP_CONFIG || {};
+    var url = cfg.TEAM_GAS_URL || '';
+    if (!url) return;
+    var EDIT_FIELDS = ['cat','gender','male','female','ball','league','hp','x_url','ig','other_url','place','days','contact','note','logo'];
+    function norm(s){ s = String(s==null?'':s); try{ s = s.normalize('NFKC'); }catch(e){} return s.replace(/[\s　]+/g,'').toLowerCase(); }
+    function keyOf(name, city){ return norm(name)+'|'+norm(city); }
+    function num(v){ var n=parseFloat(v); return isNaN(n)?null:n; }
+    function validLatLng(la, ln){ return la!=null && ln!=null && la>=35 && la<=37 && ln>=138 && ln<=141; }
+    function apply(overrides){
+      if (!overrides || !overrides.length) return 0;
+      var index = {};
+      teamData.forEach(function(t){ index[keyOf(t.name, t.city)] = t; });
+      var changed = 0;
+      overrides.forEach(function(o){
+        if (!o || !o.name) return;
+        var k = o.key || keyOf(o.name, o.city);
+        var base = index[k];
+        var la = num(o.lat), ln = num(o.lng);
+        if (base) {
+          EDIT_FIELDS.forEach(function(f){ if (o[f] !== undefined && o[f] !== '' && o[f] != null) base[f] = o[f]; });
+          if (validLatLng(la, ln)) { base.lat = la; base.lng = ln; }
+          changed++;
+        } else {
+          if (!validLatLng(la, ln)) return; // 座標が無い新規は地図に置けないのでスキップ
+          var nt = {
+            name: o.name, city: o.city || '',
+            cat: o.cat || 'club', gender: o.gender || 'male',
+            male: num(o.male)||0, female: num(o.female)||0, total: (num(o.male)||0)+(num(o.female)||0),
+            lat: la, lng: ln,
+            ball: o.ball || '', league: o.league || '',
+            hp: o.hp || '-', x_url: o.x_url || '-', ig: o.ig || '-', other_url: o.other_url || '-',
+            place: o.place || '-', days: o.days || '-', contact: o.contact || '-', note: o.note || '',
+            logo: o.logo || '',
+            _crowd: true
+          };
+          teamData.push(nt);
+          if (Array.isArray(window.TEAM_DATA_RAW)) window.TEAM_DATA_RAW.push(nt);
+          index[k] = nt;
+          changed++;
+        }
+      });
+      return changed;
+    }
+    var sep = url.indexOf('?')>=0 ? '&' : '?';
+    fetch(url + sep + 'action=teamOverrides')
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        if (!res || res.ok === false) return;
+        var n = apply(res.overrides || []);
+        if (n > 0) {
+          if (typeof update === 'function') { try { update(); } catch(e){} }
+          if (window.renderTeamPins) window.renderTeamPins();
+        }
+      })
+      .catch(function(e){ console.warn('teamOverrides', e); });
   })();
 
   // ── アナリティクス: 外部SNSリンク・チームリスト項目クリックを捕捉 ──
