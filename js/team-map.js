@@ -693,7 +693,8 @@ window.initMap = function() {
     // ranking
     updateRanking(data);
     // layers
-    if(currentView==='bubble'){removeChoro();updateBubble(data);showPopupLayer();}
+    if (_teamPickActive) { /* 位置選択中は色分け/バブルを描かない（クリーンな地図でタップしやすく） */ }
+    else if(currentView==='bubble'){removeChoro();updateBubble(data);showPopupLayer();}
     else{removeBubble();hidePopupLayer();updateChoro();} // 'plain'（既定）と 'choro' は同じ描画経路（塗りスタイルのみ切替）
     // 凡例の動的最大値更新（choroが計算した後に呼ぶ）
     updateLegend();
@@ -897,19 +898,26 @@ window.initMap = function() {
       const banner = document.createElement('div');
       banner.id = 'team-pick-banner';
       banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:6000;background:#1b2842;color:#fff;padding:calc(env(safe-area-inset-top,0px) + 10px) 14px 10px;display:flex;align-items:center;gap:10px;font-family:inherit;font-size:14px;box-shadow:0 2px 10px rgba(0,0,0,.25)';
-      banner.innerHTML = '<span class="msi" style="font-size:18px;flex-shrink:0">add_location_alt</span><span style="flex:1;line-height:1.4">新しいチームの<b>活動場所を地図でタップ</b>してください</span><button type="button" class="tpb-cancel" style="flex-shrink:0;background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:8px;padding:7px 13px;font-weight:700;cursor:pointer;font-family:inherit;font-size:13px">キャンセル</button>';
+      banner.innerHTML = '<span class="msi" style="font-size:20px;flex-shrink:0">add_location_alt</span><span style="flex:1;line-height:1.35"><b>活動場所を地図でタップ</b><br><span style="font-size:12px;opacity:.85">新しいチームを追加します（グラウンド等の場所を選んでください）</span></span><button type="button" class="tpb-cancel" style="flex-shrink:0;align-self:center;background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:8px;padding:7px 13px;font-weight:700;cursor:pointer;font-family:inherit;font-size:13px">キャンセル</button>';
       const cleanup = () => {
         _teamPickActive = null;
         try { google.maps.event.removeListener(lis); } catch(e){}
         try { document.removeEventListener('keydown', onEsc); } catch(e){}
         try { map.setOptions({ draggableCursor: null }); } catch(e){}
         try { banner.remove(); } catch(e){}
+        try { update(); } catch(e){}
+        try { if (window.renderTeamPins) window.renderTeamPins(); } catch(e){}
       };
       const finish = (lat, lng) => { if (done) return; done = true; cleanup(); openForm(lat, lng); };
       const cancel = () => { if (done) return; done = true; cleanup(); if (window.Toast) Toast.show('チーム追加をキャンセルしました', { duration: 2000 }); };
       const onEsc = (e) => { if (e.key === 'Escape') cancel(); };
       // 選択中は市区町村・ピンのポップアップを抑止し、タップを座標確定に振り替える
       _teamPickActive = (latLng) => finish(latLng.lat().toFixed(6), latLng.lng().toFixed(6));
+      // 選択中は地図をクリーンに（色分け・バブル・透明レイヤー・ピンを隠す）
+      try { if (choroLayer) choroLayer.setMap(null); } catch(e){}
+      try { if (popupLayer) popupLayer.setMap(null); } catch(e){}
+      try { removeBubble(); } catch(e){}
+      try { _clusterMarkers.forEach(m => { m.map = null; }); _clusterMarkers = []; } catch(e){}
       try { map.setOptions({ draggableCursor: 'crosshair' }); } catch(e){}
       const lis = map.addListener('click', (e) => { finish(e.latLng.lat().toFixed(6), e.latLng.lng().toFixed(6)); });
       document.addEventListener('keydown', onEsc);
@@ -2040,6 +2048,7 @@ window.initMap = function() {
   function _drawPinsByZoom(zoom) {
     _clusterMarkers.forEach(m => { m.map = null; });
     _clusterMarkers = [];
+    if (_teamPickActive) return; // 位置選択中はピンを描かない（クリーンな地図でタップしやすく）
     if (!showPins || _pinDataCache.length === 0) return;
     // モバイルではピンが指で押しづらくなるため、 ひとつ深いズームレベルまで
     // クラスタ表示を維持する（11 → 12）
