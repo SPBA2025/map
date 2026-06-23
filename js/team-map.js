@@ -103,6 +103,7 @@ let teamPinLayers   = [];
 let _pinDataCache = [];   // {lat,lng,t} per filtered pin
 let _clusterMarkers = []; // currently rendered markers (individual or cluster)
 let _pinInfoWindow  = null;
+let _teamPickActive = null; // 新規チーム位置選択中のコールバック。非nullの間は市区町村/ピンのポップアップを抑止しタップを座標確定に振り替える
 let _cityInfoWindow = null; // choroLayer/popupLayer 共通IW（ピンクリック時に閉じる）
 // 市町村ポップアップ用 InfoWindow を初期化（domready で max-height を強制適用）
 function _ensureCityInfoWindow() {
@@ -473,6 +474,7 @@ window.initMap = function() {
     popupLayer.addGeoJson(geo);
     popupLayer.setStyle({ fillOpacity: 0, strokeOpacity: 0, strokeWeight: 0 });
     popupLayer.addListener('click', function(event) {
+      if (_teamPickActive) { _teamPickActive(event.latLng); return; }
       if (_markerClicked) return;
       const name = event.feature.getProperty('name') || '';
       const d = cityMap[name];
@@ -535,6 +537,7 @@ window.initMap = function() {
       choroLayer.revertStyle(event.feature);
     });
     choroLayer.addListener('click', function(event){
+      if (_teamPickActive) { _teamPickActive(event.latLng); return; }
       if (_markerClicked) return;
       const name = event.feature.getProperty('name') || '';
       const d = cityMap[name];
@@ -891,18 +894,27 @@ window.initMap = function() {
       };
       if (window.Analytics) { try { window.Analytics.infoMissingReport('team:new', 'team_add_form'); } catch(e){} }
       let done = false;
+      const banner = document.createElement('div');
+      banner.id = 'team-pick-banner';
+      banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:6000;background:#1b2842;color:#fff;padding:calc(env(safe-area-inset-top,0px) + 10px) 14px 10px;display:flex;align-items:center;gap:10px;font-family:inherit;font-size:14px;box-shadow:0 2px 10px rgba(0,0,0,.25)';
+      banner.innerHTML = '<span class="msi" style="font-size:18px;flex-shrink:0">add_location_alt</span><span style="flex:1;line-height:1.4">新しいチームの<b>活動場所を地図でタップ</b>してください</span><button type="button" class="tpb-cancel" style="flex-shrink:0;background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:8px;padding:7px 13px;font-weight:700;cursor:pointer;font-family:inherit;font-size:13px">キャンセル</button>';
       const cleanup = () => {
+        _teamPickActive = null;
         try { google.maps.event.removeListener(lis); } catch(e){}
         try { document.removeEventListener('keydown', onEsc); } catch(e){}
         try { map.setOptions({ draggableCursor: null }); } catch(e){}
+        try { banner.remove(); } catch(e){}
       };
       const finish = (lat, lng) => { if (done) return; done = true; cleanup(); openForm(lat, lng); };
       const cancel = () => { if (done) return; done = true; cleanup(); if (window.Toast) Toast.show('チーム追加をキャンセルしました', { duration: 2000 }); };
       const onEsc = (e) => { if (e.key === 'Escape') cancel(); };
+      // 選択中は市区町村・ピンのポップアップを抑止し、タップを座標確定に振り替える
+      _teamPickActive = (latLng) => finish(latLng.lat().toFixed(6), latLng.lng().toFixed(6));
       try { map.setOptions({ draggableCursor: 'crosshair' }); } catch(e){}
       const lis = map.addListener('click', (e) => { finish(e.latLng.lat().toFixed(6), e.latLng.lng().toFixed(6)); });
       document.addEventListener('keydown', onEsc);
-      if (window.Toast) Toast.show('地図で活動場所をタップして位置を選んでください（Escでキャンセル）', { duration: 5000 });
+      document.body.appendChild(banner);
+      banner.querySelector('.tpb-cancel').addEventListener('click', cancel);
     } catch (e) { console.warn('addNewTeam', e); }
   };
 
@@ -2047,6 +2059,7 @@ window.initMap = function() {
         // DOM click でポップアップを開く（gmp-click より確実）
         content.addEventListener('click', (e) => {
           e.stopPropagation();
+          if (_teamPickActive) { _teamPickActive(new google.maps.LatLng(lat, lng)); return; }
           if (!_pinInfoWindow) return;
           if (_cityInfoWindow) _cityInfoWindow.close();
           _pinInfoWindow.setContent(teamPopupHTML(t));
