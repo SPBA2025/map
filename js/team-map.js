@@ -3443,6 +3443,8 @@ window.initMap = function() {
 
   async function _geocodeOne(placeName) {
     if (_geoCache[placeName]) return _geoCache[placeName];
+    return null; // Geocoding API課金停止: ブラウザ側ジオコーディングを無効化（座標は静的PLACE_COORDS＋localStorageキャッシュのみ）
+    // eslint-disable-next-line no-unreachable
     const geocoder = new google.maps.Geocoder();
     const _tryGeocode = (address) => new Promise(resolve => {
       geocoder.geocode({ address, region: 'JP' }, (results, status) => {
@@ -3552,7 +3554,7 @@ window.initMap = function() {
     _loadGeoCache();
     var nApplied = _applyGeoCache();
     if (nApplied > 0 && window.renderTeamPins) window.renderTeamPins();
-    setTimeout(function() { runGeocodingAll(); }, 2500);
+    // Geocoding API課金停止: 自動ジオコーディングは実行しない（座標は静的PLACE_COORDS＋キャッシュのみ）
   })();
 
   // ══════════════════════════════════════════
