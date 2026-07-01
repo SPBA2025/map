@@ -185,7 +185,7 @@ async function initMap() {
   loadGasData();
   } catch(err) {
     console.error('initMap エラー:', err);
-    document.getElementById('map').innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:#6a6a6a;font-size:13px"><span class="msi" style="font-size:36px;color:#c45500">warning</span><div>地図の読み込みに失敗しました</div><div style="font-size:11px;color:#aaa">${err.message}</div></div>`;
+    document.getElementById('map').innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:#6a6a6a;font-size:13px"><span class="msi" style="font-size:36px;color:#c45500">warning</span><div>地図の読み込みに失敗しました</div><div style="font-size:11px;color:#aaa">${escHtml(err.message)}</div></div>`;
   }
 }
 
@@ -202,7 +202,6 @@ async function loadGasData() {
     const json = await res.json();
     if (json.parks && json.parks.length > 0) {
       json.parks.forEach(p => { curated[p.name] = p; });
-      console.log(`✓ GASから${json.parks.length}件の承認済みデータを取得`);
       renderGasReportedParks(json.parks);
     }
     // 確認中（未承認）の報告を即時表示
@@ -272,7 +271,7 @@ function renderGasReportedParks(gasParks) {
     if (!activeFilters.catchball || g.catchball === true) clusterer.addMarker(mk);
     added++;
   });
-  if (added) { updateStats(); renderParkList(); console.log(`[GAS] 報告のある公園 ${added}件を地図に追加`); }
+  if (added) { updateStats(); renderParkList(); }
   // GAS承認ピン（可否色）を追加した直後は、同地点に先に描かれたOSMグレーピンが
   // 重なって残る（renderGasReportedParks 単体では renderOsmPins を呼ばないため）。
   // ここで再描画し、osmIsDuplicate により該当グレーピンを必ず撤去して可否色ピンを見せる。
@@ -304,7 +303,6 @@ function placeStaticParksFromData() {
   if (loadingEl) loadingEl.textContent = `${targets.length}件`;
   updateStats();
   renderParkList();
-  console.log(`[静的配置] ${targets.length}件の公園を配置（Places API 不使用）`);
 }
 
 /* 登録済み公園専用マーカー配置（名前不一致でも parkData の情報を使用）*/
@@ -337,7 +335,6 @@ function addRegisteredParkToMap(place, parkEntry) {
   if (!activeFilters.catchball || parkEntry.catchball === true) {
     clusterer.addMarker(marker);
   }
-  console.log(`[登録配置] ${parkEntry.name}（${parkEntry.city}）→ API名: ${place.name}`);
 }
 
 /* ═══════════════════════════════════════════════
@@ -528,6 +525,11 @@ function openPhotoLightbox(url) {
 }
 window.openPhotoLightbox = openPhotoLightbox;
 
+// ユーザー報告・GAS由来の文字列をHTMLへ差し込む前のエスケープ
+function escHtml(v) {
+  return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
 function renderModalContent(park, toilet, parking) {
   const toiletHtml  = toilet  !== null ? `<div class="park-row"><span class="park-row-label">トイレ</span><span class="park-row-value">${toilet  ? 'あり' : 'なし'}</span></div>` : '';
   const parkingHtml = parking !== null ? `<div class="park-row"><span class="park-row-label">駐車場</span><span class="park-row-value">${parking ? 'あり' : 'なし'}</span></div>` : '';
@@ -551,14 +553,14 @@ function renderModalContent(park, toilet, parking) {
     </div>
     <div class="park-row">
       <span class="park-row-label">住所</span>
-      <span class="park-row-value" id="modal-addr"><a href="${gmapUrl}" target="_blank" style="color:var(--action);text-decoration:none">${park.address || park.city || '地図で見る'} ↗</a></span>
+      <span class="park-row-value" id="modal-addr"><a href="${escHtml(gmapUrl)}" target="_blank" style="color:var(--action);text-decoration:none">${escHtml(park.address || park.city || '地図で見る')} ↗</a></span>
     </div>
-    ${park.area ? `<div class="park-row"><span class="park-row-label">広さ</span><span class="park-row-value">${park.area}</span></div>` : ''}
+    ${park.area ? `<div class="park-row"><span class="park-row-label">広さ</span><span class="park-row-value">${escHtml(park.area)}</span></div>` : ''}
     ${toiletHtml}
     ${parkingHtml}
-    ${park.notes ? `<div class="park-row"><span class="park-row-label">備考</span><span class="park-row-value">${park.notes}</span></div>` : ''}
+    ${park.notes ? `<div class="park-row"><span class="park-row-label">備考</span><span class="park-row-value">${escHtml(park.notes)}</span></div>` : ''}
     ${park.updated ? `<div class="park-row"><span class="park-row-label">最終更新</span><span class="park-row-value">${new Date(park.updated).toLocaleDateString('ja-JP')}</span></div>` : ''}
-    ${park.photo ? `<div style="margin-top:12px;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px">${String(park.photo).split('|').map(s=>s.trim()).filter(u=>/^https?:\/\//.test(u)).map(u=>`<img src="${cloudinaryThumb(u,300)}" alt="${park.name}の写真" loading="lazy" onclick="openPhotoLightbox('${u}')" style="height:150px;flex:0 0 auto;border-radius:8px;cursor:zoom-in;display:block" title="タップで拡大">`).join('')}</div>` : ''}
+    ${park.photo ? `<div style="margin-top:12px;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px">${String(park.photo).split('|').map(s=>s.trim()).filter(u=>/^https?:\/\//.test(u)).map(u=>`<img src="${escHtml(cloudinaryThumb(u,300))}" alt="${escHtml(park.name)}の写真" loading="lazy" data-photo-url="${escHtml(u)}" onclick="openPhotoLightbox(this.dataset.photoUrl)" style="height:150px;flex:0 0 auto;border-radius:8px;cursor:zoom-in;display:block" title="タップで拡大">`).join('')}</div>` : ''}
     <div style="margin-top:16px;border:1px solid var(--border);border-radius:12px;overflow:hidden">
       <div style="padding:9px 14px;font-size:11px;line-height:1.55;color:var(--ink-2);background:rgba(0,168,84,0.07);border-bottom:1px solid var(--border)">
         <span class="msi" style="font-size:14px;vertical-align:-2px">campaign</span> <b>みんなでつくる、キャッチボールマップ。</b><br>公園のルールや状況は変わります。実際に訪れた方の情報で、もっと正確に。気づいたことを教えてください。

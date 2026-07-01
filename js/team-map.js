@@ -96,7 +96,6 @@ let choroLayer      = null;
 let popupLayer      = null; // ヒートマップ/バブル時のポップアップ用透明オーバーレイ
 let bubbleLayer     = null;
 let bubbleMarkers   = [];
-let _gmDataLayer = null; let _gmBubbleItems = [];
 let markerGroup     = null;
 let showPins        = true;
 let teamPinLayers   = [];
@@ -137,7 +136,6 @@ function _ensureCityInfoWindow() {
 }
 let _markerClicked  = false; // mousedownで先行セット → Dataレイヤーclick抑制
 let teamActiveCats  = new Set(['elem']);
-let teamGender      = 'all';
 let teamListOpen    = false;
 let currentRankCat  = 'all';
 let currentRankGender = 'all';
@@ -1026,8 +1024,8 @@ window.initMap = function() {
       html = _hdrMatches.map((t,i) =>
         `<div class="hdr-sd-item" onclick="window.hdrSearchJump(${i})">
           <div class="hdr-sd-dot" style="background:${CAT_COLOR_MAP[t.cat]||'#888'};"></div>
-          <div class="hdr-sd-name">${t.name}</div>
-          <div class="hdr-sd-city">${t.city}</div>
+          <div class="hdr-sd-name">${_escHtml(t.name)}</div>
+          <div class="hdr-sd-city">${_escHtml(t.city)}</div>
         </div>`
       ).join('');
     }
@@ -1036,7 +1034,7 @@ window.initMap = function() {
       html += `<div class="hdr-sd-addr" id="hdr-addr-btn" onclick="window.searchByAddress()">
         <span class="addr-icon msi" style="font-size:16px">place</span>
         <span class="addr-text">
-          「<strong>${q}</strong>」の住所で近くのチームを検索
+          「<strong>${_escHtml(q)}</strong>」の住所で近くのチームを検索
           <span class="addr-sub">Enterキーでも検索できます</span>
         </span>
       </div>`;
@@ -1585,11 +1583,16 @@ window.initMap = function() {
     <div style="position:absolute;top:-8px;left:-8px;width:44px;height:44px;border-radius:50%;background:transparent;"></div>
     </div>`;
   }
+  // ユーザー投稿（承認済み差分）由来の値をHTMLへ差し込む前のエスケープ
+  function _escHtml(v){
+    return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
   function teamPopupHTML(t){
     // 空欄判定: '-', '', null, undefined はすべて非表示
     // 空欄・システム内部メモは非表示
     const NOTE_EXCLUDE = new Set(['両方に登録','構成員未登録','学童(連盟)のみ','スポ少のみ']);
     const has = v => v && v !== '-' && String(v).trim() !== '';
+    const e = _escHtml;
     const hasNote2 = has(t.note) && !NOTE_EXCLUDE.has(String(t.note).trim());
     const hasPlace  = has(t.place);
     const hasDays   = has(t.days);
@@ -1608,37 +1611,37 @@ window.initMap = function() {
     const X_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="display:inline-block;vertical-align:middle"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>';
     const IG_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="display:inline-block;vertical-align:middle"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>';
     const snsLinks = [
-      hasHp     ? `<a href="${t.hp}"        target="_blank" rel="noopener" class="pu-sns-link pu-sns-hp" style="display:inline-flex;align-items:center;gap:4px"><span class="msi" style="font-size:14px">public</span>HP</a>` : '',
-      hasX      ? `<a href="${t.x_url}"     target="_blank" rel="noopener" class="pu-sns-link pu-sns-x"  style="display:inline-flex;align-items:center;gap:4px;color:#000">${X_SVG}X</a>` : '',
-      hasIg     ? `<a href="${t.ig}"        target="_blank" rel="noopener" class="pu-sns-link pu-sns-ig" style="display:inline-flex;align-items:center;gap:4px;color:#e1306c">${IG_SVG}Instagram</a>` : '',
-      hasOther  ? `<a href="${t.other_url}" target="_blank" rel="noopener" class="pu-sns-link pu-sns-other" style="display:inline-flex;align-items:center;gap:4px"><span class="msi" style="font-size:14px">link</span>Link</a>` : '',
-      hasOldUrl ? `<a href="${t.url}"       target="_blank" rel="noopener" class="pu-sns-link pu-sns-hp" style="display:inline-flex;align-items:center;gap:4px"><span class="msi" style="font-size:14px">public</span>HP</a>` : '',
+      hasHp     ? `<a href="${e(t.hp)}"        target="_blank" rel="noopener" class="pu-sns-link pu-sns-hp" style="display:inline-flex;align-items:center;gap:4px"><span class="msi" style="font-size:14px">public</span>HP</a>` : '',
+      hasX      ? `<a href="${e(t.x_url)}"     target="_blank" rel="noopener" class="pu-sns-link pu-sns-x"  style="display:inline-flex;align-items:center;gap:4px;color:#000">${X_SVG}X</a>` : '',
+      hasIg     ? `<a href="${e(t.ig)}"        target="_blank" rel="noopener" class="pu-sns-link pu-sns-ig" style="display:inline-flex;align-items:center;gap:4px;color:#e1306c">${IG_SVG}Instagram</a>` : '',
+      hasOther  ? `<a href="${e(t.other_url)}" target="_blank" rel="noopener" class="pu-sns-link pu-sns-other" style="display:inline-flex;align-items:center;gap:4px"><span class="msi" style="font-size:14px">link</span>Link</a>` : '',
+      hasOldUrl ? `<a href="${e(t.url)}"       target="_blank" rel="noopener" class="pu-sns-link pu-sns-hp" style="display:inline-flex;align-items:center;gap:4px"><span class="msi" style="font-size:14px">public</span>HP</a>` : '',
     ].filter(Boolean).join('');
     return `<div class="team-popup-wrap">
       <div class="pu-header">
-        <div class="pu-header-icon">${hasLogo ? `<img src="${_cldThumb(t.logo,96)}" alt="${String(t.name||'').replace(/"/g,'&quot;')}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block">` : `<span class="msi" style="font-size:18px">sports_baseball</span>`}</div>
+        <div class="pu-header-icon">${hasLogo ? `<img src="${e(_cldThumb(t.logo,96))}" alt="${e(t.name)}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block">` : `<span class="msi" style="font-size:18px">sports_baseball</span>`}</div>
         <div>
-          <div class="pu-team-name">${t.name}</div>
-          <div class="pu-team-loc" style="display:inline-flex;align-items:center;gap:3px"><span class="msi" style="font-size:13px">place</span>${t.city}</div>
+          <div class="pu-team-name">${e(t.name)}</div>
+          <div class="pu-team-loc" style="display:inline-flex;align-items:center;gap:3px"><span class="msi" style="font-size:13px">place</span>${e(t.city)}</div>
         </div>
       </div>
       <div class="team-popup-tags">
         <span class="pu-tag tag-${t.cat}">${CAT_JP2[t.cat]}</span>
         ${t.gender==='female'?`<span class="pu-tag tag-f">女子</span>`:''}
         ${t.gender==='mixed'?`<span class="pu-tag" style="background:#8844cc">混合</span>`:''}
-        ${hasBall?`<span class="pu-tag" style="background:var(--ink-3)">${t.ball}</span>`:''}
+        ${hasBall?`<span class="pu-tag" style="background:var(--ink-3)">${e(t.ball)}</span>`:''}
       </div>
       ${(hasLeague||hasPlace||hasAddr||hasDays||hasContact)?`<div class="team-popup-rows">
-        ${hasLeague  ? `<div class="team-popup-row"><span>所属</span><span>${t.league}</span></div>` : ''}
-        ${hasPlace   ? `<div class="team-popup-row"><span>活動場所</span><span>${t.place}</span></div>` : ''}
-        ${hasAddr    ? `<div class="team-popup-row"><span>住所</span><span>${t.address}</span></div>` : ''}
-        ${hasDays    ? `<div class="team-popup-row"><span>活動日</span><span>${t.days}</span></div>` : ''}
-        ${hasContact ? `<div class="team-popup-row"><span>連絡先</span><span>${t.contact}</span></div>` : ''}
+        ${hasLeague  ? `<div class="team-popup-row"><span>所属</span><span>${e(t.league)}</span></div>` : ''}
+        ${hasPlace   ? `<div class="team-popup-row"><span>活動場所</span><span>${e(t.place)}</span></div>` : ''}
+        ${hasAddr    ? `<div class="team-popup-row"><span>住所</span><span>${e(t.address)}</span></div>` : ''}
+        ${hasDays    ? `<div class="team-popup-row"><span>活動日</span><span>${e(t.days)}</span></div>` : ''}
+        ${hasContact ? `<div class="team-popup-row"><span>連絡先</span><span>${e(t.contact)}</span></div>` : ''}
       </div>`:''}
       ${snsLinks ? `<div class="pu-sns-row">${snsLinks}</div>` : ''}
-      ${hasNote  ? `<div class="team-popup-note">${t.note}</div>` : ''}
+      ${hasNote  ? `<div class="team-popup-note">${e(t.note)}</div>` : ''}
       <div class="pu-foot">
-        <a href="javascript:void(0)" class="pu-report" data-team-name="${t.name.replace(/"/g,'&quot;')}" data-city="${String(t.city||'').replace(/"/g,'&quot;')}" data-lat="${t.lat||''}" data-lng="${t.lng||''}" onclick="window.reportTeamInfo && window.reportTeamInfo(this.dataset.teamName, this.dataset.city, this.dataset.lat, this.dataset.lng)">
+        <a href="javascript:void(0)" class="pu-report" data-team-name="${e(t.name)}" data-city="${e(t.city)}" data-lat="${t.lat||''}" data-lng="${t.lng||''}" onclick="window.reportTeamInfo && window.reportTeamInfo(this.dataset.teamName, this.dataset.city, this.dataset.lat, this.dataset.lng)">
           <span class="msi" style="font-size:12px;vertical-align:-2px">edit_note</span>情報の修正を提案
         </a>
       </div>
@@ -2020,31 +2023,6 @@ window.initMap = function() {
     '黒浜小学校':[36.001028,139.651845],
     '／明治神宮野球場':[36.135522,139.598555]
   });
-  const PLACE_TRUSTED={
-    'さいたま市立上落合小学校':1,
-    'さいたま市立下落合小学校':1,
-    'さいたま市立土合小学校':1,
-    'さいたま市立島小学校':1,
-    'さいたま市立沼影小学校':1,
-    'さいたま市立高砂小学校':1,
-    '久喜市立久喜小学校':1,
-    '和光市立第三小学校':1,
-    '寄居小グラウンド':1,
-    '川口市立幸町小学校':1,
-    '春日部市立立野小学校':1,
-    '春日部市立粕壁小学校':1,
-    '本庄市立北泉小学校':1,
-    '杉戸町立杉戸小学校':1,
-    '東松山市立唐子小学校':1,
-    '総合運動公園多目的公園内・野球場':1,
-    '草加市立新田小学校':1,
-    '草加市立栄小学校':1,
-    '行田市立南小学校':1,
-    '行田市立東小学校':1,
-    '越谷市立大沢小学校':1,
-    '越谷市立大袋小学校':1,
-    '越谷市立蒲生小学校':1
-  };
   function _drawPinsByZoom(zoom) {
     _clusterMarkers.forEach(m => { m.map = null; });
     _clusterMarkers = [];
@@ -2390,8 +2368,8 @@ window.initMap = function() {
         : '';
       item.innerHTML = `
         <div class="tlp-dot" style="background:${t.gender==='female'?'#e0448a':t.gender==='mixed'?'#8844cc':col};"></div>
-        <div class="tlp-name">${t.name}</div>
-        <div class="tlp-city">${t.city}</div>
+        <div class="tlp-name">${_escHtml(t.name)}</div>
+        <div class="tlp-city">${_escHtml(t.city)}</div>
         <div class="tlp-tags">
           <span class="tlp-tag" style="background:${col};">${CAT_JP2[t.cat]}</span>
           ${ballBadge}
@@ -2399,12 +2377,12 @@ window.initMap = function() {
             :t.gender==='mixed'?`<span class="tlp-tag" style="background:#8844cc;">混合</span>`
             :''}
         </div>
-        ${t.league?`<div style="font-size:9px;color:#999;margin-top:3px;line-height:1.3;padding-left:14px;">${t.league}</div>`:''}
+        ${t.league?`<div style="font-size:9px;color:#999;margin-top:3px;line-height:1.3;padding-left:14px;">${_escHtml(t.league)}</div>`:''}
         ${(()=>{const lks=[
-          t.hp&&t.hp!=='-'?`<a href="${t.hp}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#3b82f6;text-decoration:none;display:inline-flex;align-items:center" title="HP"><span class="msi" style="font-size:14px">public</span></a>`:'',
-          t.x_url&&t.x_url!=='-'?`<a href="${t.x_url}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#000;text-decoration:none;display:inline-flex;align-items:center" title="X (Twitter)"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="display:inline-block;vertical-align:middle"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>`:'',
-          t.ig&&t.ig!=='-'?`<a href="${t.ig}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#e1306c;text-decoration:none;display:inline-flex;align-items:center" title="Instagram"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="display:inline-block;vertical-align:middle"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>`:'',
-          t.other_url&&t.other_url!=='-'?`<a href="${t.other_url}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#555;text-decoration:none;display:inline-flex;align-items:center" title="Link"><span class="msi" style="font-size:14px">link</span></a>`:'',
+          t.hp&&t.hp!=='-'?`<a href="${_escHtml(t.hp)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#3b82f6;text-decoration:none;display:inline-flex;align-items:center" title="HP"><span class="msi" style="font-size:14px">public</span></a>`:'',
+          t.x_url&&t.x_url!=='-'?`<a href="${_escHtml(t.x_url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#000;text-decoration:none;display:inline-flex;align-items:center" title="X (Twitter)"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="display:inline-block;vertical-align:middle"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>`:'',
+          t.ig&&t.ig!=='-'?`<a href="${_escHtml(t.ig)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#e1306c;text-decoration:none;display:inline-flex;align-items:center" title="Instagram"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="display:inline-block;vertical-align:middle"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>`:'',
+          t.other_url&&t.other_url!=='-'?`<a href="${_escHtml(t.other_url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#555;text-decoration:none;display:inline-flex;align-items:center" title="Link"><span class="msi" style="font-size:14px">link</span></a>`:'',
         ].filter(Boolean);return lks.length?`<div style="display:flex;gap:6px;align-items:center;margin-top:4px;padding-left:14px;">${lks.join('')}</div>`:''})()}`;
       // タップで地図ジャンプ＋ポップアップ
       item.addEventListener('click', () => {
@@ -2528,7 +2506,6 @@ window.initMap = function() {
     teamActiveCats.has(cat)?teamActiveCats.delete(cat):teamActiveCats.add(cat);
     btn.classList.toggle('on');renderTeamPins();
   };
-  window.setTeamGender=function(g){ /* 性別フィルター廃止 */ };
   window.filterTeamPins=function(){renderTeamPins();};
   // ── HAMBURGER ──
   const sidebar=document.getElementById('sidebar');
@@ -2894,17 +2871,17 @@ window.initMap = function() {
           ? `<span style="display:inline-block;padding:0 4px;border-radius:6px;font-size:8px;font-weight:700;background:#e8f3ff;color:#1a6ab0;border:1px solid #a8ccee;margin-left:3px;">軟式</span>`
           : '';
         const nbpLinks = [
-          t.hp      && t.hp!=='-'      ? `<a href="${t.hp}"        target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#3b82f6;text-decoration:none;display:inline-flex;align-items:center" title="HP"><span class="msi" style="font-size:13px">public</span></a>` : '',
-          t.x_url   && t.x_url!=='-'   ? `<a href="${t.x_url}"     target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#000;text-decoration:none;display:inline-flex;align-items:center" title="X (Twitter)"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="display:inline-block;vertical-align:middle"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>` : '',
-          t.ig      && t.ig!=='-'      ? `<a href="${t.ig}"        target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#e1306c;text-decoration:none;display:inline-flex;align-items:center" title="Instagram"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="display:inline-block;vertical-align:middle"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>` : '',
-          t.other_url && t.other_url!=='-' ? `<a href="${t.other_url}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#555;text-decoration:none;display:inline-flex;align-items:center" title="Link"><span class="msi" style="font-size:13px">link</span></a>` : '',
+          t.hp      && t.hp!=='-'      ? `<a href="${_escHtml(t.hp)}"        target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#3b82f6;text-decoration:none;display:inline-flex;align-items:center" title="HP"><span class="msi" style="font-size:13px">public</span></a>` : '',
+          t.x_url   && t.x_url!=='-'   ? `<a href="${_escHtml(t.x_url)}"     target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#000;text-decoration:none;display:inline-flex;align-items:center" title="X (Twitter)"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="display:inline-block;vertical-align:middle"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>` : '',
+          t.ig      && t.ig!=='-'      ? `<a href="${_escHtml(t.ig)}"        target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#e1306c;text-decoration:none;display:inline-flex;align-items:center" title="Instagram"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="display:inline-block;vertical-align:middle"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>` : '',
+          t.other_url && t.other_url!=='-' ? `<a href="${_escHtml(t.other_url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#555;text-decoration:none;display:inline-flex;align-items:center" title="Link"><span class="msi" style="font-size:13px">link</span></a>` : '',
         ].filter(Boolean).join(' ');
         item.innerHTML = `
           <div class="nbp-rank">${i+1}</div>
           <div class="nbp-dot" style="background:${col};"></div>
           <div class="nbp-info">
-            <div class="nbp-name">${t.name}${nbpBall}</div>
-            <div class="nbp-meta">${t.city}・${CAT_JP2[t.cat]}${t.gender==='female'?' (女子)':''}${nbpLinks ? ' '+nbpLinks : ''}</div>
+            <div class="nbp-name">${_escHtml(t.name)}${nbpBall}</div>
+            <div class="nbp-meta">${_escHtml(t.city)}・${CAT_JP2[t.cat]}${t.gender==='female'?' (女子)':''}${nbpLinks ? ' '+nbpLinks : ''}</div>
           </div>
           <div class="nbp-km">${km}</div>`;
         item.addEventListener('click', () => {
@@ -3429,49 +3406,14 @@ window.initMap = function() {
 }; // end initMap
 
   // ══════════════════════════════════════════════
-  // 活動場所ジオコーディング（国土地理院API）
+  // 活動場所座標キャッシュ
+  //   座標は静的 PLACE_COORDS が正。過去のジオコーディングで localStorage に
+  //   保存された座標があれば、起動時に一度だけ上書き適用する。
+  //   ※ブラウザからの再ジオコーディング（google.maps.Geocoder / Places 等の
+  //     課金SKU呼び出し）は禁止。復活させないこと（COST_GUIDE.md 参照）。
   // ══════════════════════════════════════════════
-  const GSI_API = 'https://msearch.gsi.go.jp/address-search/AddressSearch?q=';
-  const GEO_CACHE_KEY = 'saitama_place_coords_v3'; // v3: Google Geocoder に切替
-  const GEO_SAITAMA_BOUNDS = {latMin:35.6, latMax:36.4, lngMin:138.8, lngMax:140.1};
+  const GEO_CACHE_KEY = 'saitama_place_coords_v3';
   let _geoCache = {};
-
-  function _inSaitama(lat, lng) {
-    return lat >= GEO_SAITAMA_BOUNDS.latMin && lat <= GEO_SAITAMA_BOUNDS.latMax &&
-           lng >= GEO_SAITAMA_BOUNDS.lngMin && lng <= GEO_SAITAMA_BOUNDS.lngMax;
-  }
-
-  async function _geocodeOne(placeName) {
-    if (_geoCache[placeName]) return _geoCache[placeName];
-    return null; // Geocoding API課金停止: ブラウザ側ジオコーディングを無効化（座標は静的PLACE_COORDS＋localStorageキャッシュのみ）
-    // eslint-disable-next-line no-unreachable
-    const geocoder = new google.maps.Geocoder();
-    const _tryGeocode = (address) => new Promise(resolve => {
-      geocoder.geocode({ address, region: 'JP' }, (results, status) => {
-        if (status === 'OK' && results.length > 0) {
-          const loc = results[0].geometry.location;
-          resolve([loc.lat(), loc.lng()]);
-        } else {
-          resolve(null);
-        }
-      });
-    });
-    try {
-      // 「埼玉県」付きで検索
-      let coords = await _tryGeocode(placeName + ' 埼玉県');
-      if (coords && _inSaitama(coords[0], coords[1])) return coords;
-      // 埼玉県なしで再試行
-      coords = await _tryGeocode(placeName);
-      if (coords && _inSaitama(coords[0], coords[1])) return coords;
-      return null;
-    } catch(e) { return null; }
-  }
-
-  function _saveGeoCache() {
-    try {
-      localStorage.setItem(GEO_CACHE_KEY, JSON.stringify(_geoCache));
-    } catch(e) {}
-  }
 
   function _loadGeoCache() {
     try {
@@ -3494,67 +3436,11 @@ window.initMap = function() {
     return updated;
   }
 
-  // 未取得placeを全てジオコーディングする（バックグラウンド）
-  const _GEO_PLACES = ['in加須きずなスタジアム', 'さいたま市立三橋小学校', 'さいたま市立上落合小学校', 'さいたま市立下落合小学校', 'さいたま市立与野本町小学校', 'さいたま市立与野西北小学校', 'さいたま市立仲町小学校', 'さいたま市立北浦和小学校', 'さいたま市立向小学校', 'さいたま市立和土小学校', 'さいたま市立善前小学校', 'さいたま市立土合小学校', 'さいたま市立大宮東小学校', 'さいたま市立大東小学校', 'さいたま市立大砂土小学校', 'さいたま市立大砂土東小学校', 'さいたま市立大谷口小学校', 'さいたま市立大門小学校', 'さいたま市立宮前小学校', 'さいたま市立尾間木小学校', 'さいたま市立岩槻小学校', 'さいたま市立島小学校', 'さいたま市立常盤小学校', 'さいたま市立指扇小学校', 'さいたま市立新和小学校', 'さいたま市立春岡小学校', 'さいたま市立木崎小学校', 'さいたま市立本太小学校', 'さいたま市立東大成小学校', 'さいたま市立柏崎小学校', 'さいたま市立栄和小学校', 'さいたま市立桜木小学校', 'さいたま市立植水小学校', 'さいたま市立植竹小学校', 'さいたま市立沼影小学校', 'さいたま市立泰平小学校', 'さいたま市立浦和大里小学校', 'さいたま市立片柳小学校', 'さいたま市立神田小学校', 'さいたま市立芝原小学校', 'さいたま市立芝川小学校', 'さいたま市立西原小学校', 'さいたま市立西浦和小学校', 'さいたま市立谷田小学校', 'さいたま市立辻小学校', 'さいたま市立道祖土小学校', 'さいたま市立野田小学校', 'さいたま市立針ヶ谷小学校', 'さいたま市立鈴谷小学校', 'さいたま市立高砂小学校', 'さいたま市芝原小学校', 'ときがわ町立明覚小学校', 'ふじみ野市立上野台小学校', 'ふるさと広場', 'みずほグラウンド', 'グラウンド', 'メインに氷川小学校', '三橋小学校', '三芳町立藤久保小学校', '三角広場', '三郷市立前川小学校', '三郷市立彦成小学校', '三郷市立新和小学校', '三郷市立瑞木小学校', '三郷市立高州小学校', '上尾市民球場', '上尾市立今泉小学校', '上尾市立原市南小学校', '上尾市立原市小学校', '上尾市立大石南小学校', '上尾市立大石小学校', '上尾市立富士見小学校', '上尾市立平方小学校', '上尾市立東小学校', '上尾市立東町小学校', '上尾市立瓦葺小学校', '上里町立七本木小学校', '上里町立神保原小学校', '下鎌田小学校', '主に常盤小学校', '久喜市立久喜小学校', '久喜市立太田小学校', '久喜市立栢間小学校', '久喜市立鷲宮小学校', '井泉グラウンド', '伊奈町立小室小学校', '伊奈町立小針北小学校', '会場:影森グラウンド', '入間市立宮寺小学校', '入間市立新久小学校', '入間市立東町小学校', '入間市立東金子小学校', '入間市立藤沢北小学校', '入間市立藤沢南小学校', '入間市立藤沢東小学校', '入間市立豊岡小学校', '入間市立金子小学校', '入間市立高倉小学校', '入間市立黒須小学校第二グラウンド', '入間市藤沢地区体育館グラウンド', '八幡北小学校', '八潮市立八條小学校', '八潮市立大原小学校', '八潮市立大曽根小学校', '八潮市立大瀬小学校', '八潮市立松之木小学校', '加須きずなスタジアム', '加須市立三俣小学校', '加須市立元和小学校', '加須市立北川辺西小学校', '加須市立礼羽小学校', '北本市立石戸小学校', '北桜ファイターズ＝埼玉県行田市総合公園野球場', '半田公園・番匠免グラウンド', '南越谷小学校', '又グラウンド', '吉川市立北谷小学校', '吉川市立旭小学校', '吉川市立栄小学校', '吉見町立南小学校', '和光市立北原小学校', '和光市立広沢小学校', '和光市立新倉小学校', '和光市立白子小学校', '和光市立第三小学校', '和光市立第五小学校', '唐子中央公園', '坂戸市内グラウンド', '埼玉上尾ボーイズ専用グラウンド（岩槻）', '埼玉県越谷市越ヶ谷小学校', '場所】旭公園球場', '多目的グラウンド', '大利根運動公園野球場', '大沼公園', '大泉緑地公園', '大田スタジアム', '大石北小学校', '大野小学校', '大阪シティ信用金庫スタジアム', '宝珠花河川敷グラウンド', '宮代町立笠原小学校', '宮代町立須賀小学校', '宮原公園', '寄居小グラウンド', '寄居町立折原小学校', '富士見市運動公園', '小室小学校グラウンド', '小川町立八和田小学校', '岩槻城址公園野球場', '岩槻川通公園野球場', '嵐山町立菅谷小学校', '川口市営球場', '川口市立上青木小学校', '川口市立元郷小学校', '川口市立差間小学校', '川口市立幸町小学校', '川口市立新郷南小学校', '川口市立新郷小学校', '川口市立朝日東小学校', '川口市立朝日西小学校', '川口市立柳崎小学校', '川口市立芝中央小学校', '川口市立芝西小学校', '川口市立辻小学校', '川口市立里小学校', '川口市立青木中央小学校', '川口市立青木北小学校', '川口市立飯塚小学校', '川口市立鳩ヶ谷小学校', '川越市立仙波小学校', '川越市立武蔵野小学校', '川越市立泉小学校', '川越市立高階南小学校', '川通球場', '市民球場', '平方野球場', '幸手市立上高野小学校', '幸手市立八代小学校', '幸手市立幸手小学校', '影森グラウンド', '志木市立宗岡第三小学校', '志木市立志木小学校', '志木市立志木第三小学校', '志木市立志木第二小学校', '志木市立志木第四小学校', '成田小学校グラウンド', '戸塚第二公園', '戸田市立喜沢小学校', '戸田市立戸田東小学校', '戸田市立戸田第一小学校', '戸田市立戸田第二小学校', '戸田市立新曽小学校', '戸田市立笹目東小学校', '戸田市立美女木小学校', '戸田市立美谷本小学校', '所沢市立北中小学校', '所沢市立北小学校', '所沢市立安松小学校', '所沢市立小手指小学校', '所沢市立山口小学校', '所沢市立泉小学校', '所沢市立美原小学校', '所沢市立若狭小学校', '手子林公民館グラウンド', '折之口ふれあい公園', '新座市営馬場運動場', '新座市立八石小学校', '新座市立大和田小学校', '新座市立新座小学校', '新座市立新開小学校', '新座市立東北小学校', '新座市立東野小学校', '新座市立栄小学校', '新座市立栗原小学校', '新座市立西堀小学校', '新座市立野寺小学校', '新座市立野火止小学校', '於：総合公園野球場', '春日小学校', '春日部市立上沖小学校', '春日部市立小渕小学校', '春日部市立武里南小学校', '春日部市立武里小学校', '春日部市立牛島小学校', '春日部市立立野小学校', '春日部市立粕壁小学校', '春日部市立豊春小学校', '春日部市立豊野小学校', '朝霞市営球場', '朝霞市立朝霞第三小学校', '朝霞市立朝霞第二小学校', '朝霞市立朝霞第八小学校', '朝霞市立朝霞第六小学校', '朝霞市立朝霞第十小学校', '朝霞第4小学校', '朝霞第7小学校', '本庄市立北泉小学校', '杉戸町立杉戸小学校', '杉戸町立西小学校', '村君小学校', '東松山市立唐子小学校', '東松山市立大岡小学校', '東松山市立青鳥小学校', '松伏町立松伏小学校', '松伏町立金杉小学校', '栗橋西小学校', '桜ヶ丘小学校', '桶川市立加納小学校', '桶川市立日出谷小学校', '桶川市立朝日小学校', '武里地区公民館グラウンド、正善小学校、備後小学校', '毛呂山町立毛呂山小学校', '江南グラウンド', '江面小学校', '江面第2小学校', '浦和総合運動場', '深谷市浄化センターとなりグラウンド', '深谷市立常盤小学校', '深谷市立深谷小学校', '深谷市立深谷西小学校', '滑川町立福田小学校', '潮止小や大瀬小学校', '熊谷市立別府小学校', '熊谷市立吉見小学校', '熊谷市立大麻生小学校', '狭山市児童公園野球場', '狭山市立入間川小学校', '狭山市立入間川東小学校', '狭山市立入間野小学校', '狭山市立南小学校', '狭山市立堀兼小学校', '狭山市立奥富小学校', '狭山市立富士見小学校', '狭山市立山王小学校', '狭山市立広瀬小学校', '狭山市立狭山台小学校', '狭山市立笹井小学校', '町民グラウンド', '白岡市立南小学校', '白岡市立白岡東小学校', '白岡市立西小学校', '皆野スポーツ公園多目的グラウンド', '目白台グラウンド', '県営大宮球場', '石井前原グラウンド', '砂中央公園', '秩父市立南小学校', '立野球場', '第3球場', '第二小学校グラウンド', '総合運動公園多目的公園内・野球場', '総合運動場', '美南小学校', '羽生中央公園野球場', '羽生市立羽生北小学校', '舟戸グラウンド', '若泉Cグラウンド', '若泉運動公園第一グラウンド', '草加市立八幡小学校', '草加市立新田小学校', '草加市立松原小学校', '草加市立栄小学校', '草加市立清門小学校', '草加市立瀬崎小学校', '草加市立花栗南小学校', '草加市立草加小学校', '草加市立西町小学校', '草加市立谷塚小学校', '草加市立高砂小学校', '荒川河川敷第6グラウンド', '蓮田南小学校', '蓮田市立蓮田中央小学校', '蕨市立北小学校', '蕨市立南小学校', '蕨市立西小学校', '蕨高校のグラウンド', '行田市立下忍小学校', '行田市立北小学校', '行田市立南小学校', '行田市立埼玉小学校', '行田市立東小学校', '行田市立泉小学校', '西富小学校', '豊野台公園・大利根西部公園', '越生町立越生小学校', '越谷市立出羽小学校', '越谷市立北越谷小学校', '越谷市立千間台小学校', '越谷市立南越谷小学校', '越谷市立城ノ上小学校', '越谷市立大沢小学校', '越谷市立大相模小学校', '越谷市立大袋北小学校', '越谷市立大袋小学校', '越谷市立大間野小学校', '越谷市立宮本小学校', '越谷市立川柳小学校', '越谷市立平方小学校', '越谷市立桜井小学校', '越谷市立花田小学校', '越谷市立荻島小学校', '越谷市立蒲生小学校', '越谷市立西方小学校', '越谷市立鷺後小学校', '運動公園野球場', '道満グリーンパーク野球場', '野球場', '長瀞第一／近隣の小学校', '開進第二小学校', '青葉グラウンド', '青葉台球場', '飯能市立南高麗小学校', '飯能市立双柳小学校', '飯能市立富士見小学校', '飯能市立精明小学校', '飯能市立飯能第一小学校', '高槻小学校', '鳩山町の小学校', '鴻巣市立下忍小学校', '鴻巣市立広田小学校', '鴻巣市立松原小学校', '鴻巣市立田間宮小学校', '鴻巣市立箕田小学校', '鴻巣市立赤見台第一小学校', '鴻巣市立馬室小学校', '鷲宮運動広場', '黒浜小学校', '／明治神宮野球場'];
-
-  async function runGeocodingAll() {
-    _loadGeoCache();
-    const todo = _GEO_PLACES.filter(p => !_geoCache[p]);
-    if (todo.length === 0) {
-      // キャッシュから適用してピン再描画
-      const n = _applyGeoCache();
-      if (n > 0 && window.renderTeamPins) window.renderTeamPins();
-      return;
-    }
-    // ジオコーディング進捗バー表示
-    const bar = document.createElement('div');
-    bar.id = 'geo-progress-bar';
-    bar.style.cssText = 'position:fixed;bottom:0;left:0;right:0;height:4px;background:#0a1628;z-index:9999;';
-    const fill = document.createElement('div');
-    fill.style.cssText = 'height:100%;background:#3b82f6;width:0%;transition:width .3s;';
-    bar.appendChild(fill);
-    document.body.appendChild(bar);
-    const _geoStatusEl = document.getElementById('geo-status');
-    const _geoFillEl   = document.getElementById('geo-status-fill');
-    const _geoTextEl   = document.getElementById('geo-status-text');
-    if (_geoStatusEl) _geoStatusEl.style.display = 'block';
-
-    let done = 0;
-    for (const place of todo) {
-      const coords = await _geocodeOne(place);
-      if (coords) _geoCache[place] = coords;
-      done++;
-      const _pct = (done / todo.length * 100).toFixed(0);
-      fill.style.width = _pct + '%';
-      if (_geoFillEl) _geoFillEl.style.width = _pct + '%';
-      if (_geoTextEl) _geoTextEl.innerHTML = '<span class="msi" style="font-size:13px;vertical-align:-2px">my_location</span> 活動場所を更新中... ' + done + '/' + todo.length;
-      if (done % 20 === 0) {
-        _saveGeoCache();
-        _applyGeoCache();
-        if (window.renderTeamPins) window.renderTeamPins(); // 20件ごとに部分更新
-      }
-      await new Promise(r => setTimeout(r, 200)); // 200ms間隔（Google Geocoder レート対策）
-    }
-    _saveGeoCache();
-    _applyGeoCache();
-    if (window.renderTeamPins) window.renderTeamPins();
-    // バー・ステータス除去
-    setTimeout(() => {
-      bar.remove();
-      if (_geoStatusEl) {
-        if (_geoTextEl) _geoTextEl.innerHTML = '<span class="msi" style="font-size:13px;vertical-align:-2px;color:#00a854">check_circle</span> 活動場所座標を更新しました';
-        setTimeout(() => { _geoStatusEl.style.display = 'none'; }, 3000);
-      }
-    }, 1000);
-  }
-
-
-  // ── ジオコーディング起動（全関数定義後） ──
-  (function initGeocoding() {
+  // ── 起動時にキャッシュを一度だけ適用 ──
+  (function initGeoCache() {
     _loadGeoCache();
     var nApplied = _applyGeoCache();
     if (nApplied > 0 && window.renderTeamPins) window.renderTeamPins();
-    // Geocoding API課金停止: 自動ジオコーディングは実行しない（座標は静的PLACE_COORDS＋キャッシュのみ）
   })();
 
   // ══════════════════════════════════════════
