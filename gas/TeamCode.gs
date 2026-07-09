@@ -51,6 +51,10 @@ function doGet(e) {
     if (p.token !== APPROVE_TOKEN) return _tjson({ ok: false, error: 'token' });
     return _tjson({ ok: true, items: adminTeamList_() });
   }
+  if (action === 'adminTeamHistory') {
+    if (p.token !== APPROVE_TOKEN) return _tjson({ ok: false, error: 'token' });
+    return _tjson(adminTeamHistory_());
+  }
   // 既定: 承認済みの差分（上書き/新規）を配信 → team-map.js が土台に重ねる
   return _tjson(getTeamOverrides());
 }
@@ -250,6 +254,54 @@ function adminTeamList_() {
   // 新しい順
   items.sort((a, b) => (parseInt(b.ts) || 0) - (parseInt(a.ts) || 0));
   return items;
+}
+
+// ═══ 承認・却下の履歴を返す（要token・承認ページ用） ═══
+// 承認済み＝「承認済みチーム差分」の各行（1行=1承認。マージしない）
+// 却下＝「却下ログ」（submissionId=投稿日時ms / rejectedAt=却下日時）
+function adminTeamHistory_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const approved = [];
+  const sh = ss.getSheetByName(TEAM_OVERRIDE_SHEET);
+  if (sh) {
+    const data = sh.getDataRange().getValues();
+    if (data.length > 1) {
+      const H = {}; data[0].forEach((h, i) => H[String(h)] = i);
+      const gi = k => (H[k] == null ? -1 : H[k]);
+      const idx = {
+        when: gi('承認日時'), type: gi('種別'), name: gi('チーム名'), city: gi('市区町村'),
+        cat: gi('カテゴリ'), place: gi('活動場所'),
+        hp: gi('公式HP'), x: gi('X'), ig: gi('Instagram'), other: gi('その他URL'), logo: gi('ロゴ')
+      };
+      const at = (r, i2) => (i2 >= 0 ? r[i2] : '');
+      for (let i = 1; i < data.length; i++) {
+        const r = data[i];
+        const name = _str(at(r, idx.name));
+        if (!name) continue;
+        approved.push({
+          when: (idx.when >= 0) ? (isNaN(_tms(r[idx.when])) ? '' : _tms(r[idx.when])) : '',
+          type: _str(at(r, idx.type)), name: name, city: _str(at(r, idx.city)),
+          cat: _str(at(r, idx.cat)), place: _str(at(r, idx.place)),
+          hp: _str(at(r, idx.hp)), x_url: _str(at(r, idx.x)), ig: _str(at(r, idx.ig)), other_url: _str(at(r, idx.other)),
+          logo: _str(at(r, idx.logo))
+        });
+      }
+      approved.sort((a, b) => (b.when || 0) - (a.when || 0));
+    }
+  }
+  const rejected = [];
+  const rj = ss.getSheetByName(TEAM_REJECT_SHEET);
+  if (rj) {
+    const d = rj.getDataRange().getValues();
+    for (let i = 1; i < d.length; i++) {
+      const r = d[i];
+      if (r[0] === '' || r[0] == null) continue;
+      const ra = _tms(r[4]);
+      rejected.push({ ts: String(r[0]), name: _str(r[1]), shubetsu: _str(r[2]), note: _str(r[3]), rejectedAt: isNaN(ra) ? '' : ra });
+    }
+    rejected.sort((a, b) => (b.rejectedAt || 0) - (a.rejectedAt || 0));
+  }
+  return { ok: true, approved: approved, rejected: rejected };
 }
 
 // 承認済みシートの sourceTs 集合
