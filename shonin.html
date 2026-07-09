@@ -103,10 +103,26 @@
   #lightbox img{max-width:100%;max-height:100%;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,0.5)}
 
   /* ── タブ（公園/チーム） ── */
-  #tabbar{display:none;gap:8px;margin:0 0 14px}
+  #tabbar{display:none;gap:8px;margin:0 0 10px}
   #tabbar .tab{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:14px;font-weight:700;padding:10px 8px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface-1);color:var(--ink-3);cursor:pointer;font-family:inherit;transition:background-color .15s,color .15s}
   #tabbar .tab .msi{font-size:18px}
   #tabbar .tab.on{background:var(--spba-navy);color:var(--spba-cream);border-color:var(--spba-navy)}
+
+  /* ── 表示切替（承認待ち/履歴） ── */
+  #viewbar{display:none;gap:6px;margin:0 0 14px;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:4px}
+  #viewbar .view{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:5px;font-size:13px;font-weight:700;padding:8px 6px;border-radius:8px;border:none;background:transparent;color:var(--ink-3);cursor:pointer;font-family:inherit;transition:background-color .15s,color .15s}
+  #viewbar .view .msi{font-size:16px}
+  #viewbar .view.on{background:var(--surface-1);color:var(--spba-navy);box-shadow:0 1px 3px rgba(27,40,66,0.12)}
+
+  /* ── 履歴 ── */
+  .hist-sec{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:800;color:var(--ink-2);margin:18px 2px 10px}
+  .hist-sec:first-child{margin-top:2px}
+  .hist-sec .msi{font-size:17px}
+  .hist-sec .hist-count{font-weight:600;color:var(--ink-3)}
+  .hist-meta{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-3);padding:0 16px 14px}
+  .hist-meta .msi{font-size:15px}
+  .pc-badge.hist-ok{color:var(--green);background:#e6f6ee;border-color:#b6e3cb}
+  .pc-badge.hist-ng{color:var(--spba-red);background:#fdecee;border-color:#f3c4c9}
 
   /* ── チームカード ── */
   .pc-badge.tc-type-new{color:#04703b;background:#e7f7ef;border-color:#9bdcbd}
@@ -168,6 +184,12 @@
     <button type="button" class="tab" data-tab="team"><span class="msi">groups</span>チーム</button>
   </div>
 
+  <!-- 表示切替（承認待ち / 履歴） -->
+  <div id="viewbar">
+    <button type="button" class="view on" data-view="pending"><span class="msi">hourglass_top</span>承認待ち</button>
+    <button type="button" class="view" data-view="history"><span class="msi">history</span>履歴</button>
+  </div>
+
   <!-- ステータス -->
   <div id="status-bar" style="display:none"></div>
 
@@ -185,6 +207,6 @@
 <!-- 画像ライトボックス -->
 <div id="lightbox"><img src="" alt="拡大写真"></div>
 
-<script src="js/shonin.js?v=20260619v"></script>
+<script src="js/shonin.js?v=20260709"></script>
 </body>
 </html>

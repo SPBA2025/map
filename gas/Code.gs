@@ -82,8 +82,9 @@ function _publishVoteState(name) {
   const catchball = p.yes >= p.no;
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let sh = ss.getSheetByName(APPROVED_SHEET_NAME);
-  const HEADERS = ['id', 'name', 'address', 'lat', 'lng', 'catchball', 'area', 'toilet', 'parking', 'parkful_url', 'notes', 'reports', 'majority', 'yes_count', 'no_count', 'unknown_count', 'photo'];
+  const HEADERS = ['id', 'name', 'address', 'lat', 'lng', 'catchball', 'area', 'toilet', 'parking', 'parkful_url', 'notes', 'reports', 'majority', 'yes_count', 'no_count', 'unknown_count', 'photo', 'approvedAt'];
   if (!sh) { sh = ss.insertSheet(APPROVED_SHEET_NAME); sh.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]); }
+  ensureApprovedAtHeader_(sh, HEADERS);
   const data = sh.getDataRange().getValues();
   let rowIdx = -1;
   for (let i = 1; i < data.length; i++) { if (String(data[i][1]).trim() === name) { rowIdx = i; break; } }
@@ -98,8 +99,14 @@ function _publishVoteState(name) {
     if (lat >= 35 && lat <= 37 && lng >= 138 && lng <= 141) { address = reverseGeocode_(lat, lng); }
     else { const g = geocodeParkName(name); lat = g.lat; lng = g.lng; address = g.address; }
     const id = 1000 + (data.length - 1);
-    sh.appendRow([id, name, address, lat, lng, catchball, '', null, null, '', '', total, majPct, p.yes, p.no, p.unknown, '']);
+    sh.appendRow([id, name, address, lat, lng, catchball, '', null, null, '', '', total, majPct, p.yes, p.no, p.unknown, '', new Date()]);
   }
+}
+
+// 「承認済みデータ」に approvedAt 列（18列目）が無い既存シートへ見出しを補う
+function ensureApprovedAtHeader_(sh, HEADERS) {
+  const last = HEADERS.length;
+  if (String(sh.getRange(1, last).getValue()) !== HEADERS[last - 1]) sh.getRange(1, last).setValue(HEADERS[last - 1]);
 }
 
 // ═══ WebアプリGET ═══
@@ -125,6 +132,10 @@ function doGet(e) {
   if (action === 'adminList') {
     if (p.token !== APPROVE_TOKEN) return ContentService.createTextOutput(JSON.stringify({ ok: false, error: 'token' })).setMimeType(ContentService.MimeType.JSON);
     return ContentService.createTextOutput(JSON.stringify({ ok: true, items: adminPendingList_() })).setMimeType(ContentService.MimeType.JSON);
+  }
+  if (action === 'adminHistory') {
+    if (p.token !== APPROVE_TOKEN) return _json({ ok: false, error: 'token' });
+    return _json(adminHistory_());
   }
 
   let result;
@@ -251,8 +262,9 @@ function approveByName(name, token) {
 
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let sh = ss.getSheetByName(APPROVED_SHEET_NAME);
-  const HEADERS = ['id', 'name', 'address', 'lat', 'lng', 'catchball', 'area', 'toilet', 'parking', 'parkful_url', 'notes', 'reports', 'majority', 'yes_count', 'no_count', 'unknown_count', 'photo'];
+  const HEADERS = ['id', 'name', 'address', 'lat', 'lng', 'catchball', 'area', 'toilet', 'parking', 'parkful_url', 'notes', 'reports', 'majority', 'yes_count', 'no_count', 'unknown_count', 'photo', 'approvedAt'];
   if (!sh) { sh = ss.insertSheet(APPROVED_SHEET_NAME); sh.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]); }
+  ensureApprovedAtHeader_(sh, HEADERS);
 
   const total = p.yes + p.no + p.unknown;
   const majority = total > 0 ? Math.round(Math.max(p.yes, p.no) / total * 100) : 0;
@@ -273,7 +285,8 @@ function approveByName(name, token) {
   const photoSet = [];
   (existingPhoto + '|' + (p.photo || '')).split('|').forEach(function (s) { const u = s.trim(); if (/^https?:\/\//.test(u) && photoSet.indexOf(u) < 0) photoSet.push(u); });
   const photoStr = photoSet.slice(-12).join('|');
-  const rowVals = [id, name, address, lat, lng, catchball, '', null, null, '', note, total, majority, p.yes, p.no, p.unknown, photoStr];
+  // approvedAt は最終承認日時（再承認で更新される）
+  const rowVals = [id, name, address, lat, lng, catchball, '', null, null, '', note, total, majority, p.yes, p.no, p.unknown, photoStr, new Date()];
   if (rowIdx >= 0) sh.getRange(rowIdx + 1, 1, 1, HEADERS.length).setValues([rowVals]);
   else sh.appendRow(rowVals);
 
@@ -359,6 +372,51 @@ function rejectAllPending_(name, token) {
     if (r && r.ok) n++;
   }
   return { ok: true, name: name, count: n };
+}
+
+// 承認ページ用: 承認・却下の履歴を返す（要token）
+// 承認済み＝「承認済みデータ」シート（approvedAt列があれば日時付き）
+// 却下＝「却下ログ」シート（submissionId=投稿日時ms / rejectedAt=却下日時）
+function adminHistory_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const approved = [];
+  const ap = ss.getSheetByName(APPROVED_SHEET_NAME);
+  if (ap) {
+    const d = ap.getDataRange().getValues();
+    let atCol = -1;
+    (d[0] || []).forEach(function (h, i) { if (String(h) === 'approvedAt') atCol = i; });
+    for (let i = 1; i < d.length; i++) {
+      const r = d[i];
+      if (!r[1]) continue;
+      const photos = String(r[16] || '').split('|').map(function (s) { return s.trim(); }).filter(function (u) { return /^https?:\/\//.test(u); });
+      approved.push({
+        name: String(r[1]), address: String(r[2] || ''),
+        catchball: (r[5] === '' || r[5] == null) ? null : (r[5] === true || r[5] === 'TRUE' || r[5] === '可'),
+        reports: parseInt(r[11]) || 0, yes: parseInt(r[13]) || 0, no: parseInt(r[14]) || 0, unknown: parseInt(r[15]) || 0,
+        photos: photos,
+        approvedAt: (atCol >= 0) ? _tsMs_(r[atCol]) : ''
+      });
+    }
+    // 日時があるものは新しい順、無いもの（列追加前の承認）は後ろへ
+    approved.sort(function (a, b) { return (b.approvedAt || 0) - (a.approvedAt || 0); });
+  }
+  const rejected = [];
+  const rj = ss.getSheetByName('却下ログ');
+  if (rj) {
+    const d = rj.getDataRange().getValues();
+    for (let i = 1; i < d.length; i++) {
+      const r = d[i];
+      if (r[0] === '' || r[0] == null) continue;
+      rejected.push({ ts: String(r[0]), name: String(r[1] || ''), cb: String(r[2] || ''), note: String(r[3] || ''), rejectedAt: _tsMs_(r[4]) });
+    }
+    rejected.sort(function (a, b) { return (b.rejectedAt || 0) - (a.rejectedAt || 0); });
+  }
+  return { ok: true, approved: approved, rejected: rejected };
+}
+
+function _tsMs_(v) {
+  const t = (v instanceof Date) ? v.getTime() : (v ? new Date(v).getTime() : NaN);
+  return isNaN(t) ? '' : t;
 }
 
 // 却下された投稿の送信時刻ms集合

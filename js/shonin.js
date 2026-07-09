@@ -16,7 +16,8 @@
 
   var TOKEN_KEY = 'spba_admin_token';
   var token = '';
-  var currentTab = 'park'; // 'park' | 'team'
+  var currentTab = 'park';       // 'park' | 'team'
+  var currentView = 'pending';   // 'pending'（承認待ち） | 'history'（履歴）
 
   var $ = function (id) { return document.getElementById(id); };
 
@@ -46,6 +47,7 @@
 
     bindGate();
     bindTabs();
+    bindViews();
     $('refresh-btn').addEventListener('click', loadList);
     bindLightbox();
 
@@ -53,8 +55,14 @@
   }
 
   // ── タブ ──────────────────────────────────────
-  function showTabs() { var tb = $('tabbar'); if (tb) tb.style.display = 'flex'; }
-  function hideTabs() { var tb = $('tabbar'); if (tb) tb.style.display = 'none'; }
+  function showTabs() {
+    var tb = $('tabbar'); if (tb) tb.style.display = 'flex';
+    var vb = $('viewbar'); if (vb) vb.style.display = 'flex';
+  }
+  function hideTabs() {
+    var tb = $('tabbar'); if (tb) tb.style.display = 'none';
+    var vb = $('viewbar'); if (vb) vb.style.display = 'none';
+  }
   function bindTabs() {
     var tabs = document.querySelectorAll('#tabbar .tab');
     tabs.forEach(function (btn) {
@@ -63,6 +71,21 @@
         if (tab === currentTab) return;
         currentTab = tab;
         tabs.forEach(function (b) { b.classList.toggle('on', b.dataset.tab === tab); });
+        $('list').innerHTML = '';
+        loadList();
+      });
+    });
+  }
+
+  // ── 表示切替（承認待ち / 履歴） ────────────────
+  function bindViews() {
+    var views = document.querySelectorAll('#viewbar .view');
+    views.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var view = btn.dataset.view;
+        if (view === currentView) return;
+        currentView = view;
+        views.forEach(function (b) { b.classList.toggle('on', b.dataset.view === view); });
         $('list').innerHTML = '';
         loadList();
       });
@@ -123,7 +146,35 @@
     $('refresh-btn').style.display = '';
     $('empty-state').style.display = 'none';
     setStatus('読み込み中…', true);
-    if (currentTab === 'team') loadTeamList(); else loadParkList();
+    if (currentView === 'history') {
+      if (currentTab === 'team') loadTeamHistory(); else loadParkHistory();
+    } else {
+      if (currentTab === 'team') loadTeamList(); else loadParkList();
+    }
+  }
+
+  // ── 履歴共通 ──────────────────────────────────
+  function fmtDate(ms) {
+    var n = parseInt(ms, 10);
+    if (!n) return '';
+    var d = new Date(n);
+    if (isNaN(d.getTime())) return '';
+    var z = function (x) { return (x < 10 ? '0' : '') + x; };
+    return d.getFullYear() + '/' + z(d.getMonth() + 1) + '/' + z(d.getDate()) + ' ' + z(d.getHours()) + ':' + z(d.getMinutes());
+  }
+
+  function histSection(title, icon, count) {
+    return '<div class="hist-sec"><span class="msi">' + icon + '</span>' + esc(title) + ' <span class="hist-count">' + count + '件</span></div>';
+  }
+
+  // GAS が旧版（履歴API未実装）の場合の案内
+  function showHistoryNeedsUpdate(which) {
+    $('list').innerHTML = '';
+    $('status-bar').style.display = 'none';
+    var es = $('empty-state');
+    es.style.display = '';
+    es.querySelector('.es-title').textContent = '履歴APIがまだ有効になっていません';
+    es.querySelector('.es-sub').textContent = which + ' を最新版に貼り替えて、ウェブアプリを「新バージョン」でデプロイし直すと表示されます。';
   }
 
   // ════════════════════════════════════════════
@@ -223,6 +274,100 @@
     setStatus('「' + name + '」を却下しました。反映を確認しています…', true);
     setTimeout(loadList, 1200);
   };
+
+  // ── 公園: 履歴 ────────────────────────────────
+  function loadParkHistory() {
+    fetch(GAS_URL + '?action=adminHistory&token=' + encodeURIComponent(token))
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        if (!res || res.ok === false) {
+          if (res && res.error === 'token') onTokenError();
+          else setStatus('取得に失敗しました（' + ((res && res.error) || '不明') + '）', false);
+          return;
+        }
+        // 旧GAS（履歴API未実装）は action を無視して parks JSON を返すため、ここで検知する
+        if (!res.approved && !res.rejected) { showHistoryNeedsUpdate('Code.gs（公園）'); return; }
+        renderParkHistory(res.approved || [], res.rejected || []);
+      })
+      .catch(function (err) {
+        setStatus('通信に失敗しました。更新ボタンで再試行してください。', false);
+        console.warn('adminHistory error', err);
+      });
+  }
+
+  function renderParkHistory(approved, rejected) {
+    var list = $('list');
+    if (!approved.length && !rejected.length) {
+      list.innerHTML = '';
+      $('status-bar').style.display = 'none';
+      var es = $('empty-state');
+      es.style.display = '';
+      es.querySelector('.es-title').textContent = '履歴はまだありません';
+      es.querySelector('.es-sub').textContent = '承認・却下を行うとここに記録されます。';
+      return;
+    }
+    $('empty-state').style.display = 'none';
+    setStatus('公園 履歴: 承認済み ' + approved.length + ' 件 ／ 却下 ' + rejected.length + ' 件', false);
+    var html = '';
+    if (approved.length) {
+      html += histSection('承認済み', 'check_circle', approved.length);
+      html += approved.map(renderParkApprovedCard).join('');
+    }
+    if (rejected.length) {
+      html += histSection('却下', 'block', rejected.length);
+      html += rejected.map(renderParkRejectedCard).join('');
+    }
+    list.innerHTML = html;
+  }
+
+  function renderParkApprovedCard(p) {
+    var nameEsc = esc(p.name);
+    var cbChip = (p.catchball === null || p.catchball === undefined)
+      ? '<span class="vote-chip vote-unknown"><span class="msi">help</span>判定不明</span>'
+      : (p.catchball
+        ? '<span class="vote-chip vote-yes"><span class="msi">check_circle</span>キャッチボール可</span>'
+        : '<span class="vote-chip vote-no"><span class="msi">cancel</span>キャッチボール不可</span>');
+    var votes =
+      '<div class="pc-votes">' + cbChip +
+        '<span class="vote-chip vote-unknown">報告 <span class="vc-num">' + (p.reports || 0) + '</span></span>' +
+      '</div>';
+    var photos = '';
+    if (p.photos && p.photos.length) {
+      photos = '<div class="pc-photos">' + p.photos.map(function (u) {
+        var ue = esc(u);
+        return '<img class="pc-photo" src="' + ue + '" alt="' + nameEsc + 'の写真" loading="lazy" data-full="' + ue + '">';
+      }).join('') + '</div>';
+    }
+    var when = fmtDate(p.approvedAt);
+    var meta = '<div class="hist-meta"><span class="msi">event</span>' + (when ? '承認: ' + when : '承認日時の記録なし（履歴機能の追加前）') + '</div>';
+    return '' +
+      '<div class="park-card">' +
+        '<div class="pc-head">' +
+          '<div class="pc-name">' + nameEsc + (p.address ? ' <span class="tc-city">' + esc(p.address) + '</span>' : '') + '</div>' +
+          '<span class="pc-badge hist-ok"><span class="msi">check_circle</span>承認済み</span>' +
+        '</div>' +
+        votes + photos + meta +
+      '</div>';
+  }
+
+  function renderParkRejectedCard(r) {
+    var when = fmtDate(r.rejectedAt);
+    var posted = fmtDate(r.ts);
+    var rows = '';
+    if (r.cb) rows += '<div class="tc-row"><span class="tc-k">回答</span><span class="tc-v">' + esc(r.cb) + '</span></div>';
+    if (r.note) rows += '<div class="tc-row"><span class="tc-k">備考</span><span class="tc-v">' + esc(r.note) + '</span></div>';
+    return '' +
+      '<div class="park-card">' +
+        '<div class="pc-head">' +
+          '<div class="pc-name">' + esc(r.name) + '</div>' +
+          '<span class="pc-badge hist-ng"><span class="msi">block</span>却下</span>' +
+        '</div>' +
+        (rows ? '<div class="tc-fields">' + rows + '</div>' : '') +
+        '<div class="hist-meta"><span class="msi">event</span>' +
+          (posted ? '投稿: ' + posted + '　' : '') + (when ? '却下: ' + when : '') +
+        '</div>' +
+      '</div>';
+  }
 
   // ════════════════════════════════════════════
   // チーム
@@ -378,6 +523,108 @@
     setStatus('却下しました。反映を確認しています…', true);
     setTimeout(loadList, 1200);
   };
+
+  // ── チーム: 履歴 ──────────────────────────────
+  function loadTeamHistory() {
+    var base = teamUrl();
+    if (!base) {
+      $('list').innerHTML = '';
+      $('status-bar').style.display = 'none';
+      $('empty-state').style.display = '';
+      $('empty-state').querySelector('.es-title').textContent = 'チーム承認APIが未設定です';
+      $('empty-state').querySelector('.es-sub').textContent = 'shonin.html の TEAM_GAS_URL に、デプロイした TeamCode.gs の /exec URL を設定してください。';
+      return;
+    }
+    var sep = base.indexOf('?') >= 0 ? '&' : '?';
+    fetch(base + sep + 'action=adminTeamHistory&token=' + encodeURIComponent(token))
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        if (!res || res.ok === false) {
+          if (res && res.error === 'token') onTokenError();
+          else setStatus('取得に失敗しました（' + ((res && res.error) || '不明') + '）', false);
+          return;
+        }
+        // 旧GAS（履歴API未実装）は overrides 配信を返すため、ここで検知する
+        if (!res.approved && !res.rejected) { showHistoryNeedsUpdate('TeamCode.gs（チーム）'); return; }
+        renderTeamHistory(res.approved || [], res.rejected || []);
+      })
+      .catch(function (err) {
+        setStatus('通信に失敗しました。更新ボタンで再試行してください。', false);
+        console.warn('adminTeamHistory error', err);
+      });
+  }
+
+  function renderTeamHistory(approved, rejected) {
+    var list = $('list');
+    if (!approved.length && !rejected.length) {
+      list.innerHTML = '';
+      $('status-bar').style.display = 'none';
+      var es = $('empty-state');
+      es.style.display = '';
+      es.querySelector('.es-title').textContent = '履歴はまだありません';
+      es.querySelector('.es-sub').textContent = '承認・却下を行うとここに記録されます。';
+      return;
+    }
+    $('empty-state').style.display = 'none';
+    setStatus('チーム 履歴: 承認済み ' + approved.length + ' 件 ／ 却下 ' + rejected.length + ' 件', false);
+    var html = '';
+    if (approved.length) {
+      html += histSection('承認済み', 'check_circle', approved.length);
+      html += approved.map(renderTeamApprovedCard).join('');
+    }
+    if (rejected.length) {
+      html += histSection('却下', 'block', rejected.length);
+      html += rejected.map(renderTeamRejectedCard).join('');
+    }
+    list.innerHTML = html;
+  }
+
+  function renderTeamApprovedCard(p) {
+    var isNew = (p.type === 'new');
+    var typeLabel = isNew ? '新規チーム' : (p.type === 'edit' ? '情報修正' : '種別不明');
+    var typeCls = isNew ? 'tc-type-new' : (p.type === 'edit' ? 'tc-type-edit' : 'tc-type-unknown');
+    var fields = '' +
+      teamRow('カテゴリ', CAT_JP[p.cat] || p.cat || '') +
+      teamRow('活動場所', p.place);
+    var sns = [
+      teamLink('HP', p.hp, '#1a6ab0'),
+      teamLink('X', p.x_url, '#000'),
+      teamLink('Instagram', p.ig, '#e1306c'),
+      teamLink('その他', p.other_url, '#555')
+    ].filter(Boolean).join('');
+    var snsRow = sns ? '<div class="tc-sns-row">' + sns + '</div>' : '';
+    var when = fmtDate(p.when);
+    return '' +
+      '<div class="park-card">' +
+        '<div class="pc-head">' +
+          (p.logo ? '<img class="tc-logo" src="' + esc(p.logo) + '" alt="logo" loading="lazy">' : '') +
+          '<div class="pc-name">' + esc(p.name) + ' <span class="tc-city">' + esc(p.city || '') + '</span></div>' +
+          '<span class="pc-badge ' + typeCls + '">' + esc(typeLabel) + '</span>' +
+        '</div>' +
+        (fields ? '<div class="tc-fields">' + fields + '</div>' : '') +
+        snsRow +
+        '<div class="hist-meta"><span class="msi">event</span>' + (when ? '承認: ' + when : '承認日時なし') + '</div>' +
+      '</div>';
+  }
+
+  function renderTeamRejectedCard(r) {
+    var when = fmtDate(r.rejectedAt);
+    var posted = fmtDate(r.ts);
+    var rows = '';
+    if (r.shubetsu) rows += '<div class="tc-row"><span class="tc-k">種別</span><span class="tc-v">' + esc(r.shubetsu) + '</span></div>';
+    if (r.note) rows += '<div class="tc-row"><span class="tc-k">補足</span><span class="tc-v">' + esc(r.note) + '</span></div>';
+    return '' +
+      '<div class="park-card">' +
+        '<div class="pc-head">' +
+          '<div class="pc-name">' + esc(r.name) + '</div>' +
+          '<span class="pc-badge hist-ng"><span class="msi">block</span>却下</span>' +
+        '</div>' +
+        (rows ? '<div class="tc-fields">' + rows + '</div>' : '') +
+        '<div class="hist-meta"><span class="msi">event</span>' +
+          (posted ? '投稿: ' + posted + '　' : '') + (when ? '却下: ' + when : '') +
+        '</div>' +
+      '</div>';
+  }
 
   // ── 承認/却下（POST: fire-and-forget） ─────────
   function postAction(url, payload) {
