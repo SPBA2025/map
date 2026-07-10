@@ -375,6 +375,13 @@
     var rows = '';
     if (r.cb) rows += '<div class="tc-row"><span class="tc-k">回答</span><span class="tc-v">' + esc(r.cb) + '</span></div>';
     if (r.note) rows += '<div class="tc-row"><span class="tc-k">備考</span><span class="tc-v">' + esc(r.note) + '</span></div>';
+    var photos = '';
+    if (r.photos && r.photos.length) {
+      photos = '<div class="pc-photos">' + r.photos.map(function (u) {
+        var ue = esc(u);
+        return '<img class="pc-photo" src="' + ue + '" alt="' + esc(r.name) + 'の写真（却下済み）" loading="lazy" data-full="' + ue + '">';
+      }).join('') + '</div>';
+    }
     return '' +
       '<div class="park-card">' +
         '<div class="pc-head">' +
@@ -382,6 +389,7 @@
           '<span class="pc-badge hist-ng"><span class="msi">block</span>却下</span>' +
         '</div>' +
         (rows ? '<div class="tc-fields">' + rows + '</div>' : '') +
+        photos +
         '<div class="hist-meta"><span class="msi">event</span>' +
           (posted ? '投稿: ' + posted + '　' : '') + (when ? '却下: ' + when : '') +
         '</div>' +
