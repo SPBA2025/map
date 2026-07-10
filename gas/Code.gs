@@ -58,6 +58,7 @@ function doPost(e) {
     if (d.action === 'approve') { return _json(approveByName(d.name, d.token)); }
     if (d.action === 'reject') { return _json(rejectSubmission(d.name, d.ts, d.token)); }
     if (d.action === 'rejectPark') { return _json(rejectAllPending_(d.name, d.token)); }
+    if (d.action === 'rejectNewer') { return _json(rejectNewer_(d.name, d.after, d.token)); }
     return _json({ ok: false, error: 'unknown action' });
   } catch (err) {
     return _json({ ok: false, error: String(err) });
@@ -93,6 +94,8 @@ function _publishVoteState(name) {
     // 既存行: 判定と票数だけ更新（住所/座標/写真/備考は維持）
     sh.getRange(rowIdx + 1, 6).setValue(catchball);
     sh.getRange(rowIdx + 1, 12, 1, 5).setValues([[total, majPct, p.yes, p.no, p.unknown]]);
+    // 自動反映も「反映済み」として記録（承認ページの更新報告に残さない）
+    sh.getRange(rowIdx + 1, HEADERS.length).setValue(new Date());
   } else {
     // 新規: 座標を確定して追加（写真なし＝審査前）
     let lat = p.lat, lng = p.lng, address = '';
@@ -180,7 +183,11 @@ function getLiveParks() {
   const approvedNames = {};
   approvedRes.parks.forEach(p => { approvedNames[String(p.name).trim()] = true; });
   const live = aggregateLive();   // 却下された投稿は既に除外済み
-  approvedRes.parks.forEach(function (pk) { const _lv = live[String(pk.name).trim()]; if (_lv && _lv.latestTs) pk.updated = _lv.latestTs; });
+  approvedRes.parks.forEach(function (pk) {
+    const _lv = live[String(pk.name).trim()];
+    if (_lv && _lv.latestTs) pk.updated = _lv.latestTs;
+    if (_lv && _lv.ev) pk.events = recentEvents_(_lv.ev);
+  });
   const pending = [];
   for (const name in live) {
     if (approvedNames[name]) continue;        // 公開済はpendingに出さない
@@ -192,11 +199,18 @@ function getLiveParks() {
       lat: p.lat || 0, lng: p.lng || 0,
       reports: total, yes_count: p.yes, no_count: p.no, unknown_count: p.unknown,
       catchball: null,      // 確認中は判定保留
-      updated: p.latestTs
+      updated: p.latestTs,
+      events: recentEvents_(p.ev)
       // notes は審査前のため返さない（不適切表示の防止）
     });
   }
   return { parks: approvedRes.parks, pending, updated: new Date().toISOString() };
+}
+
+// 更新履歴イベント: 新しい順に最大3件（内容は含めず「種別と有無」だけ＝審査前情報の非公開を維持）
+function recentEvents_(ev) {
+  if (!ev || !ev.length) return [];
+  return ev.slice().sort(function (a, b) { return (b.t || 0) - (a.t || 0); }).slice(0, 3);
 }
 
 // ═══ フォーム回答をその場で集計（書き込みなし）═══
@@ -219,18 +233,22 @@ function aggregateLive() {
     if (!name) continue;
     const cb = String(row[c.cb] || '').trim();
     const note = String(row[c.note] || '').trim();
-    if (!map[name]) map[name] = { name, yes: 0, no: 0, unknown: 0, notes: [], lat: 0, lng: 0, photo: '', latestTs: 0 };
+    if (!map[name]) map[name] = { name, yes: 0, no: 0, unknown: 0, notes: [], lat: 0, lng: 0, photo: '', latestTs: 0, ev: [] };
     const _ts = (row[0] instanceof Date) ? row[0].getTime() : (row[0] ? new Date(row[0]).getTime() : 0);
     if (_ts > map[name].latestTs) map[name].latestTs = _ts;
-    if (cb.indexOf(ANSWER_YES) >= 0 && cb.indexOf(ANSWER_NO) < 0) map[name].yes++;
-    else if (cb.indexOf(ANSWER_NO) >= 0) map[name].no++;
+    let kind = '';
+    if (cb.indexOf(ANSWER_YES) >= 0 && cb.indexOf(ANSWER_NO) < 0) { map[name].yes++; kind = 'yes'; }
+    else if (cb.indexOf(ANSWER_NO) >= 0) { map[name].no++; kind = 'no'; }
     else map[name].unknown++;
     if (note && note !== 'undefined') map[name].notes.push(note);
     if (c.lat >= 0 && c.lng >= 0) {
       const la = parseFloat(row[c.lat]), ln = parseFloat(row[c.lng]);
       if (la >= 35 && la <= 37 && ln >= 138 && ln <= 141) { map[name].lat = la; map[name].lng = ln; }
     }
-    if (c.photo >= 0) { const ph = String(row[c.photo] || '').trim(); if (/^https?:\/\//.test(ph)) map[name].photo = ph; }
+    let hasPhoto = false;
+    if (c.photo >= 0) { const ph = String(row[c.photo] || '').trim(); if (/^https?:\/\//.test(ph)) { map[name].photo = ph; hasPhoto = true; } }
+    // 更新履歴イベント（t=投稿日時ms / cb=回答 / ph=写真有無。備考や写真の中身は含めない）
+    if (_ts) map[name].ev.push({ t: _ts, cb: kind, ph: hasPhoto ? 1 : 0 });
   }
   return map;
 }
@@ -321,10 +339,13 @@ function rejectSubmission(name, ts, token) {
 }
 
 // 承認ページ用: 未承認（pending）の報告を、写真・備考・送信ID付きで公園ごとに返す（要token）
+// 承認済みの公園でも「最終承認(approvedAt)より後」に届いた報告があれば
+// 「更新報告(update:true)」として返す（承認するとマップの票数・写真が更新される）。
 function adminPendingList_() {
   const approvedRes = getApprovedParks();
   const approvedNames = {};
   approvedRes.parks.forEach(function (p) { approvedNames[String(p.name).trim()] = true; });
+  const approvedAt = approvedAtMap_();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName(SHEET_NAME);
   if (!sheet) return [];
@@ -338,8 +359,14 @@ function adminPendingList_() {
     const tms = (row[0] instanceof Date) ? row[0].getTime() : (row[0] ? new Date(row[0]).getTime() : NaN);
     if (!isNaN(tms) && rejected[String(tms)]) continue;
     const name = String(row[c.name] || '').trim();
-    if (!name || approvedNames[name]) continue;
-    if (!map[name]) map[name] = { name: name, yes: 0, no: 0, unknown: 0, notes: [], photos: [], tsList: [], lat: 0, lng: 0 };
+    if (!name) continue;
+    const isUpdate = !!approvedNames[name];
+    // 承認済みの公園は、最終承認より後の報告だけを「更新報告」として拾う
+    if (isUpdate) {
+      const since = approvedAt[name] || 0;
+      if (isNaN(tms) || tms <= since) continue;
+    }
+    if (!map[name]) map[name] = { name: name, yes: 0, no: 0, unknown: 0, notes: [], photos: [], tsList: [], lat: 0, lng: 0, update: isUpdate, since: isUpdate ? (approvedAt[name] || 0) : 0 };
     const cb = String(row[c.cb] || '').trim();
     if (cb.indexOf(ANSWER_YES) >= 0 && cb.indexOf(ANSWER_NO) < 0) map[name].yes++;
     else if (cb.indexOf(ANSWER_NO) >= 0) map[name].no++;
@@ -351,6 +378,45 @@ function adminPendingList_() {
     if (c.lat >= 0 && c.lng >= 0) { const la = parseFloat(row[c.lat]), ln = parseFloat(row[c.lng]); if (la >= 35 && la <= 37 && ln >= 138 && ln <= 141) { map[name].lat = la; map[name].lng = ln; } }
   }
   return Object.keys(map).map(function (k) { return map[k]; });
+}
+
+// 承認済みデータの name → 最終承認日時(ms)。approvedAt列が無い/空なら0
+function approvedAtMap_() {
+  const m = {};
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sh = ss.getSheetByName(APPROVED_SHEET_NAME);
+  if (!sh) return m;
+  const d = sh.getDataRange().getValues();
+  let atCol = -1;
+  (d[0] || []).forEach(function (h, i) { if (String(h) === 'approvedAt') atCol = i; });
+  for (let i = 1; i < d.length; i++) {
+    const n = String(d[i][1] || '').trim();
+    if (!n) continue;
+    m[n] = (atCol >= 0) ? (Number(_tsMs_(d[i][atCol])) || 0) : 0;
+  }
+  return m;
+}
+
+// 承認ページ用: 指定公園の「最終承認より後」の報告だけをまとめて却下（公開中の情報は変えない）
+function rejectNewer_(name, after, token) {
+  if (token !== APPROVE_TOKEN) return { ok: false, error: '合言葉が違います' };
+  name = String(name || '').trim();
+  if (!name) return { ok: false, error: '公園名がありません' };
+  const afterMs = Number(after) || 0;
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(SHEET_NAME);
+  const data = sheet.getDataRange().getValues();
+  const c = detectCols_(data[0]);
+  let n = 0;
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    if (String(row[c.name] || '').trim() !== name) continue;
+    const tms = (row[0] instanceof Date) ? row[0].getTime() : (row[0] ? new Date(row[0]).getTime() : NaN);
+    if (isNaN(tms) || tms <= afterMs) continue;
+    const r = rejectSubmission(name, String(tms), token);
+    if (r && r.ok) n++;
+  }
+  return { ok: true, name: name, count: n };
 }
 
 // 承認ページ用: 指定公園の未承認の報告をすべて却下
