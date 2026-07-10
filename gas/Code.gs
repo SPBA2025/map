@@ -319,11 +319,12 @@ function rejectSubmission(name, ts, token) {
   if (!ts) return { ok: false, error: '投稿IDがありません（古い通知の可能性）' };
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let rj = ss.getSheetByName('却下ログ');
-  if (!rj) { rj = ss.insertSheet('却下ログ'); rj.getRange(1, 1, 1, 5).setValues([['submissionId', 'name', 'キャッチボール', '備考', 'rejectedAt']]); }
+  if (!rj) { rj = ss.insertSheet('却下ログ'); rj.getRange(1, 1, 1, 6).setValues([['submissionId', 'name', 'キャッチボール', '備考', 'rejectedAt', '写真']]); }
+  if (String(rj.getRange(1, 6).getValue()) === '') rj.getRange(1, 6).setValue('写真');
   const d = rj.getDataRange().getValues();
   for (let i = 1; i < d.length; i++) { if (String(d[i][0]) === ts) return { ok: true, name }; }  // 重複は無視
-  // 却下した投稿の中身（できた/できない・備考）も記録して、後から判断できるようにする
-  let cbVal = '', noteVal = '';
+  // 却下した投稿の中身（できた/できない・備考・写真）も記録して、後から判断できるようにする
+  let cbVal = '', noteVal = '', photoVal = '';
   try {
     const sheet = ss.getSheetByName(SHEET_NAME);
     const sdata = sheet.getDataRange().getValues();
@@ -331,10 +332,14 @@ function rejectSubmission(name, ts, token) {
     for (let i = 1; i < sdata.length; i++) {
       const r = sdata[i];
       const t = (r[0] instanceof Date) ? r[0].getTime() : (r[0] ? new Date(r[0]).getTime() : NaN);
-      if (String(t) === ts) { cbVal = String(r[c.cb] || ''); noteVal = String(r[c.note] || ''); break; }
+      if (String(t) === ts) {
+        cbVal = String(r[c.cb] || ''); noteVal = String(r[c.note] || '');
+        if (c.photo >= 0) photoVal = String(r[c.photo] || '');
+        break;
+      }
     }
   } catch (e) {}
-  rj.appendRow([ts, name, cbVal, noteVal, new Date()]);
+  rj.appendRow([ts, name, cbVal, noteVal, new Date(), photoVal]);
   return { ok: true, name };
 }
 
@@ -473,7 +478,8 @@ function adminHistory_() {
     for (let i = 1; i < d.length; i++) {
       const r = d[i];
       if (r[0] === '' || r[0] == null) continue;
-      rejected.push({ ts: String(r[0]), name: String(r[1] || ''), cb: String(r[2] || ''), note: String(r[3] || ''), rejectedAt: _tsMs_(r[4]) });
+      const photos = String(r[5] || '').split('|').map(function (s) { return s.trim(); }).filter(function (u) { return /^https?:\/\//.test(u); });
+      rejected.push({ ts: String(r[0]), name: String(r[1] || ''), cb: String(r[2] || ''), note: String(r[3] || ''), rejectedAt: _tsMs_(r[4]), photos: photos });
     }
     rejected.sort(function (a, b) { return (b.rejectedAt || 0) - (a.rejectedAt || 0); });
   }
@@ -534,12 +540,14 @@ function rejectSelectedResponse() {
   const res = ui.alert('この報告を却下しますか？', '「' + name + '」のこの報告1件を集計から除外します（非破壊。あとで「却下を取り消す」で戻せます）。', ui.ButtonSet.OK_CANCEL);
   if (res !== ui.Button.OK) return;
   let rj = ss.getSheetByName('却下ログ');
-  if (!rj) { rj = ss.insertSheet('却下ログ'); rj.getRange(1, 1, 1, 5).setValues([['submissionId', 'name', 'キャッチボール', '備考', 'rejectedAt']]); }
+  if (!rj) { rj = ss.insertSheet('却下ログ'); rj.getRange(1, 1, 1, 6).setValues([['submissionId', 'name', 'キャッチボール', '備考', 'rejectedAt', '写真']]); }
+  if (String(rj.getRange(1, 6).getValue()) === '') rj.getRange(1, 6).setValue('写真');
   const d = rj.getDataRange().getValues();
   for (let i = 1; i < d.length; i++) { if (String(d[i][0]) === ts) { ui.alert('この報告は既に却下済みです。'); return; } }
   const cbVal = String(sh.getRange(row, c.cb + 1).getValue() || '');
   const noteVal = (c.note >= 0) ? String(sh.getRange(row, c.note + 1).getValue() || '') : '';
-  rj.appendRow([ts, name, cbVal, noteVal, new Date()]);
+  const photoVal = (c.photo >= 0) ? String(sh.getRange(row, c.photo + 1).getValue() || '') : '';
+  rj.appendRow([ts, name, cbVal, noteVal, new Date(), photoVal]);
   ui.alert('「' + name + '」の報告を却下しました。次回マップ読み込みで集計から外れます。');
 }
 
