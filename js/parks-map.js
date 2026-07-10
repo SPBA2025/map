@@ -206,6 +206,8 @@ async function loadGasData() {
     }
     // 確認中（未承認）の報告を即時表示
     renderPendingParks(Array.isArray(json.pending) ? json.pending : []);
+    // サイドバー「最近の更新」
+    renderRecentUpdates(json);
     if (json.updated) {
       gasUpdated = new Date(json.updated);
       updateLastUpdated();
@@ -213,6 +215,42 @@ async function loadGasData() {
   } catch(e) {
     console.warn('GASデータ取得エラー（parks-data.jsのみ使用）:', e);
   }
+}
+
+/* ── サイドバー「最近の更新」（承認済み・確認中の新着報告を新しい順に最大5件） ── */
+function renderRecentUpdates(json) {
+  const box = document.getElementById('recent-updates');
+  const ul  = document.getElementById('recent-updates-list');
+  if (!box || !ul) return;
+  const items = [];
+  (json.parks   || []).forEach(p => { if (p && p.name && p.updated) items.push({ t: Number(p.updated) || 0, pending: false, obj: p }); });
+  (json.pending || []).forEach(p => { if (p && p.name && p.updated) items.push({ t: Number(p.updated) || 0, pending: true,  obj: p }); });
+  items.sort((a, b) => b.t - a.t);
+  const top = items.slice(0, 5);
+  if (!top.length) { box.style.display = 'none'; return; }
+  ul.innerHTML = top.map((it, i) => {
+    const d = it.t ? new Date(it.t) : null;
+    const ds = d ? `${d.getMonth() + 1}/${d.getDate()}` : '';
+    const chip = it.pending
+      ? '<span style="flex-shrink:0;font-size:9px;font-weight:700;color:#c45500;background:rgba(196,85,0,0.1);border-radius:8px;padding:2px 7px">確認中</span>'
+      : '<span style="flex-shrink:0;font-size:9px;font-weight:700;color:#00a854;background:rgba(0,168,84,0.1);border-radius:8px;padding:2px 7px">更新</span>';
+    return `<li data-ru="${i}" style="display:flex;align-items:center;gap:7px;padding:7px 14px;border-bottom:1px solid var(--border);cursor:pointer;font-size:12px;line-height:1.4">
+      <span style="flex-shrink:0;color:var(--ink-3);font-size:11px">${ds}</span>
+      <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600">${escHtml(it.obj.name)}</span>
+      ${chip}</li>`;
+  }).join('');
+  ul.querySelectorAll('li[data-ru]').forEach(li => {
+    li.addEventListener('click', () => {
+      const it = top[Number(li.dataset.ru)];
+      if (!it) return;
+      if (it.obj.lat && it.obj.lng && typeof map !== 'undefined' && map) {
+        map.panTo({ lat: it.obj.lat, lng: it.obj.lng });
+        if (map.getZoom() < 14) map.setZoom(14);
+      }
+      showParkModal(it.obj);
+    });
+  });
+  box.style.display = '';
 }
 
 /* ── 確認中(pending)の報告 ── */
@@ -530,6 +568,16 @@ function escHtml(v) {
   return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
+// 更新履歴イベント（GAS live の events: {t:ms, cb:'yes'|'no'|'', ph:0|1}）→ 表示ラベル
+function eventLabel(ev) {
+  const t = Number(ev && ev.t) || 0;
+  const d = t ? new Date(t) : null;
+  const ds = d ? `${d.getMonth() + 1}/${d.getDate()}` : '';
+  let what = ev.cb === 'yes' ? '「できる」の報告' : ev.cb === 'no' ? '「できない」の報告' : '報告';
+  if (ev.ph) what += '・写真あり';
+  return `${ds} ${what}`;
+}
+
 function renderModalContent(park, toilet, parking) {
   const toiletHtml  = toilet  !== null ? `<div class="park-row"><span class="park-row-label">トイレ</span><span class="park-row-value">${toilet  ? 'あり' : 'なし'}</span></div>` : '';
   const parkingHtml = parking !== null ? `<div class="park-row"><span class="park-row-label">駐車場</span><span class="park-row-value">${parking ? 'あり' : 'なし'}</span></div>` : '';
@@ -560,6 +608,7 @@ function renderModalContent(park, toilet, parking) {
     ${parkingHtml}
     ${park.notes ? `<div class="park-row"><span class="park-row-label">備考</span><span class="park-row-value">${escHtml(park.notes)}</span></div>` : ''}
     ${park.updated ? `<div class="park-row"><span class="park-row-label">最終更新</span><span class="park-row-value">${new Date(park.updated).toLocaleDateString('ja-JP')}</span></div>` : ''}
+    ${Array.isArray(park.events) && park.events.length ? `<div class="park-row"><span class="park-row-label">更新履歴</span><span class="park-row-value" style="line-height:1.7">${park.events.map(eventLabel).join('<br>')}</span></div>` : ''}
     ${park.photo ? `<div style="margin-top:12px;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px">${String(park.photo).split('|').map(s=>s.trim()).filter(u=>/^https?:\/\//.test(u)).map(u=>`<img src="${escHtml(cloudinaryThumb(u,300))}" alt="${escHtml(park.name)}の写真" loading="lazy" data-photo-url="${escHtml(u)}" onclick="openPhotoLightbox(this.dataset.photoUrl)" style="height:150px;flex:0 0 auto;border-radius:8px;cursor:zoom-in;display:block" title="タップで拡大">`).join('')}</div>` : ''}
     <div style="margin-top:16px;border:1px solid var(--border);border-radius:12px;overflow:hidden">
       <div style="padding:9px 14px;font-size:11px;line-height:1.55;color:var(--ink-2);background:rgba(0,168,84,0.07);border-bottom:1px solid var(--border)">
@@ -611,6 +660,7 @@ async function showParkModal(park) {
         reports: g.reports, yes_count: g.yes_count, no_count: g.no_count,
         unknown_count: g.unknown_count, notes: park.notes || g.notes || '',
         photo: g.photo || park.photo, updated: g.updated || park.updated,
+        events: g.events || park.events,
         // 可否は手動登録(park.catchball)があれば不変。未登録(null/undefined)のときだけGAS承認の可否を採用。
         catchball: (park.catchball == null ? g.catchball : park.catchball)
       });

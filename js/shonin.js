@@ -219,6 +219,7 @@
     var name = p.name || '';
     var nameEsc = esc(name);
     var nameAttr = esc(name).replace(/'/g, '&#39;');
+    var isUpdate = !!p.update;
 
     var votes =
       '<div class="pc-votes">' +
@@ -242,19 +243,27 @@
       }).join('') + '</div>';
     }
 
+    var badge = isUpdate
+      ? '<span class="pc-badge tc-type-edit"><span class="msi">update</span>更新報告</span>'
+      : '<span class="pc-badge"><span class="msi">hourglass_top</span>承認待ち</span>';
+    var updateHint = isUpdate
+      ? '<div class="pc-notes"><div class="pc-note"><span class="msi">info</span><span>公開済みの公園に新しい報告が届いています。「承認して更新」で票数・写真・備考がマップに反映されます。</span></div></div>'
+      : '';
+    var approveBtn = isUpdate
+      ? '<button class="pc-btn btn-approve" type="button" onclick="window.__adminApprove(\'' + nameAttr + '\',this)"><span class="msi">check</span>承認して更新</button>'
+      : '<button class="pc-btn btn-approve" type="button" onclick="window.__adminApprove(\'' + nameAttr + '\',this)"><span class="msi">check</span>承認して公開</button>';
+    var rejectBtn = isUpdate
+      ? '<button class="pc-btn btn-reject" type="button" onclick="window.__adminRejectNewer(\'' + nameAttr + '\',' + (parseInt(p.since, 10) || 0) + ',this)"><span class="msi">block</span>新着のみ却下</button>'
+      : '<button class="pc-btn btn-reject" type="button" onclick="window.__adminReject(\'' + nameAttr + '\',this)"><span class="msi">block</span>却下</button>';
+
     return '' +
       '<div class="park-card" data-name="' + nameEsc + '">' +
         '<div class="pc-head">' +
           '<div class="pc-name">' + nameEsc + '</div>' +
-          '<span class="pc-badge"><span class="msi">hourglass_top</span>承認待ち</span>' +
+          badge +
         '</div>' +
-        votes + notes + photos +
-        '<div class="pc-actions">' +
-          '<button class="pc-btn btn-approve" type="button" onclick="window.__adminApprove(\'' + nameAttr + '\',this)">' +
-            '<span class="msi">check</span>承認して公開</button>' +
-          '<button class="pc-btn btn-reject" type="button" onclick="window.__adminReject(\'' + nameAttr + '\',this)">' +
-            '<span class="msi">block</span>却下</button>' +
-        '</div>' +
+        updateHint + votes + notes + photos +
+        '<div class="pc-actions">' + approveBtn + rejectBtn + '</div>' +
       '</div>';
   }
 
@@ -272,6 +281,16 @@
     lockCard(btn, '却下中…');
     postAction(GAS_URL, { action: 'rejectPark', name: name, token: token });
     setStatus('「' + name + '」を却下しました。反映を確認しています…', true);
+    setTimeout(loadList, 1200);
+  };
+
+  // 更新報告の却下: 最終承認より後の報告だけを却下（公開中の情報は変えない）
+  window.__adminRejectNewer = function (name, since, btn) {
+    if (!token) { showGate(); return; }
+    if (!confirm('「' + name + '」の新しい報告（未反映分）をすべて却下します。\n公開中のマップ情報は変わりません。よろしいですか？')) return;
+    lockCard(btn, '却下中…');
+    postAction(GAS_URL, { action: 'rejectNewer', name: name, after: since, token: token });
+    setStatus('「' + name + '」の新着報告を却下しました。反映を確認しています…', true);
     setTimeout(loadList, 1200);
   };
 
