@@ -459,3 +459,24 @@ input:focus-visible{outline-offset:0}
 
 /* ── SEARCH INPUT (index.html 統一) ── */
 #hdr-search-input:focus{border-color:var(--ink);width:220px;box-shadow:0 0 0 2px rgba(34,34,34,0.08);background:var(--surface-1)}
+
+/* ── 起動時「最近の更新」カード（update-splash） ── */
+#update-splash{position:fixed;left:12px;bottom:12px;z-index:2000;width:min(330px,calc(100vw - 24px));background:var(--surface-1);border:1px solid var(--border);border-radius:14px;box-shadow:0 6px 24px rgba(27,40,66,.18);overflow:hidden;opacity:0;transform:translateY(10px);transition:opacity .25s ease,transform .25s ease}
+#update-splash.on{opacity:1;transform:none}
+#update-splash .us-head{display:flex;align-items:center;gap:6px;padding:9px 12px;background:var(--spba-navy);color:var(--spba-cream);font-size:12px;font-weight:700}
+#update-splash .us-head .msi{font-size:16px}
+#update-splash .us-close{margin-left:auto;background:none;border:none;color:var(--spba-cream);font-size:18px;line-height:1;cursor:pointer;padding:2px 4px;opacity:.85;font-family:inherit}
+#update-splash .us-close:hover{opacity:1}
+#update-splash .us-list{list-style:none;margin:0;padding:0}
+#update-splash .us-list li{display:flex;align-items:center;gap:7px;padding:9px 12px;border-bottom:1px solid var(--border);cursor:pointer;font-size:12px;line-height:1.4}
+#update-splash .us-list li:last-child{border-bottom:none}
+#update-splash .us-list li:hover{background:var(--surface-2)}
+#update-splash .us-date{flex-shrink:0;color:var(--ink-3);font-size:11px}
+#update-splash .us-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+#update-splash .us-chip{flex-shrink:0;display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;border-radius:8px;padding:2px 7px}
+#update-splash .us-chip .msi{font-size:12px}
+#update-splash .us-chip-ok{color:#00a854;background:rgba(0,168,84,.1)}
+#update-splash .us-chip-ng{color:#ff385c;background:rgba(255,56,92,.1)}
+#update-splash .us-chip-pending{color:#c45500;background:rgba(196,85,0,.1)}
+#update-splash .us-chip-photo{color:#1a6ab0;background:rgba(26,106,176,.1)}
+@media(max-width:768px){#update-splash{bottom:calc(76px + env(safe-area-inset-bottom))}}

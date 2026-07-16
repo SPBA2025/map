@@ -206,8 +206,10 @@ async function loadGasData() {
     }
     // 確認中（未承認）の報告を即時表示
     renderPendingParks(Array.isArray(json.pending) ? json.pending : []);
-    // サイドバー「最近の更新」
-    renderRecentUpdates(json);
+    // 「最近の更新」（サイドバー＋起動時カード）
+    const ru = collectRecentUpdates(json);
+    renderRecentUpdates(ru);
+    renderUpdateSplash(ru);
     if (json.updated) {
       gasUpdated = new Date(json.updated);
       updateLastUpdated();
@@ -217,15 +219,29 @@ async function loadGasData() {
   }
 }
 
-/* ── サイドバー「最近の更新」（承認済み・確認中の新着報告を新しい順に最大5件） ── */
-function renderRecentUpdates(json) {
-  const box = document.getElementById('recent-updates');
-  const ul  = document.getElementById('recent-updates-list');
-  if (!box || !ul) return;
+/* ── 「最近の更新」の収集（承認済み・確認中の新着報告を新しい順に） ── */
+function collectRecentUpdates(json) {
   const items = [];
   (json.parks   || []).forEach(p => { if (p && p.name && p.updated) items.push({ t: Number(p.updated) || 0, pending: false, obj: p }); });
   (json.pending || []).forEach(p => { if (p && p.name && p.updated) items.push({ t: Number(p.updated) || 0, pending: true,  obj: p }); });
   items.sort((a, b) => b.t - a.t);
+  return items;
+}
+
+/* 更新項目をタップ → 地図を寄せてモーダルを開く（サイドバー・起動時カード共通） */
+function ruOpenItem(it) {
+  if (it.obj.lat && it.obj.lng && typeof map !== 'undefined' && map) {
+    map.panTo({ lat: it.obj.lat, lng: it.obj.lng });
+    if (map.getZoom() < 14) map.setZoom(14);
+  }
+  showParkModal(it.obj);
+}
+
+/* ── サイドバー「最近の更新」（最大5件） ── */
+function renderRecentUpdates(items) {
+  const box = document.getElementById('recent-updates');
+  const ul  = document.getElementById('recent-updates-list');
+  if (!box || !ul) return;
   const top = items.slice(0, 5);
   if (!top.length) { box.style.display = 'none'; return; }
   ul.innerHTML = top.map((it, i) => {
@@ -242,15 +258,58 @@ function renderRecentUpdates(json) {
   ul.querySelectorAll('li[data-ru]').forEach(li => {
     li.addEventListener('click', () => {
       const it = top[Number(li.dataset.ru)];
-      if (!it) return;
-      if (it.obj.lat && it.obj.lng && typeof map !== 'undefined' && map) {
-        map.panTo({ lat: it.obj.lat, lng: it.obj.lng });
-        if (map.getZoom() < 14) map.setZoom(14);
-      }
-      showParkModal(it.obj);
+      if (it) ruOpenItem(it);
     });
   });
   box.style.display = '';
+}
+
+/* ── 起動時「最近の更新」カード ──
+   ページを開いた直後、地図の上に直近3件を表示。
+   「キャッチボール可とわかった」「写真が追加された」をチップで明示。
+   × か項目タップで閉じ、閉じた時点より新しい更新が来るまで再表示しない（localStorage）。 */
+const RU_SEEN_KEY = 'ru_seen';
+function renderUpdateSplash(items) {
+  const top = items.slice(0, 3);
+  if (!top.length) return;
+  const newest = top[0].t || 0;
+  let seen = 0;
+  try { seen = Number(localStorage.getItem(RU_SEEN_KEY)) || 0; } catch (e) {}
+  if (newest <= seen) return;   // 前回閉じてから新しい更新なし
+  const old = document.getElementById('update-splash');
+  if (old) old.remove();
+  const box = document.createElement('div');
+  box.id = 'update-splash';
+  const rows = top.map((it, i) => {
+    const d = it.t ? new Date(it.t) : null;
+    const ds = d ? `${d.getMonth() + 1}/${d.getDate()}` : '';
+    const chips = [];
+    if (it.pending) chips.push('<span class="us-chip us-chip-pending"><span class="msi">schedule</span>確認中</span>');
+    else if (it.obj.catchball === true)  chips.push('<span class="us-chip us-chip-ok"><span class="msi">sports_baseball</span>キャッチボール可</span>');
+    else if (it.obj.catchball === false) chips.push('<span class="us-chip us-chip-ng"><span class="msi">block</span>不可</span>');
+    const evs = Array.isArray(it.obj.events) ? it.obj.events : [];
+    if (evs.some(ev => ev && ev.ph)) chips.push('<span class="us-chip us-chip-photo"><span class="msi">photo_camera</span>写真</span>');
+    return `<li data-us="${i}"><span class="us-date">${ds}</span><span class="us-name">${escHtml(it.obj.name)}</span>${chips.join('')}</li>`;
+  }).join('');
+  box.innerHTML = `
+    <div class="us-head"><span class="msi">campaign</span>最近の更新<button type="button" class="us-close" aria-label="お知らせを閉じる">×</button></div>
+    <ul class="us-list">${rows}</ul>`;
+  document.body.appendChild(box);
+  const dismiss = () => {
+    try { localStorage.setItem(RU_SEEN_KEY, String(newest)); } catch (e) {}
+    box.classList.remove('on');
+    setTimeout(() => box.remove(), 250);
+  };
+  box.querySelector('.us-close').addEventListener('click', dismiss);
+  box.querySelectorAll('li[data-us]').forEach(li => {
+    li.addEventListener('click', () => {
+      const it = top[Number(li.dataset.us)];
+      dismiss();
+      if (it) ruOpenItem(it);
+    });
+  });
+  // rAFはタブ非表示や描画停止中に発火しないため setTimeout で確実に表示する
+  setTimeout(() => box.classList.add('on'), 30);
 }
 
 /* ── 確認中(pending)の報告 ── */
