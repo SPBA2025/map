@@ -468,11 +468,12 @@ input:focus-visible{outline-offset:0}
 #update-splash .us-close{margin-left:auto;background:none;border:none;color:var(--spba-cream);font-size:18px;line-height:1;cursor:pointer;padding:2px 4px;opacity:.85;font-family:inherit}
 #update-splash .us-close:hover{opacity:1}
 #update-splash .us-list{list-style:none;margin:0;padding:0}
-#update-splash .us-list li{display:flex;align-items:center;gap:7px;padding:9px 12px;border-bottom:1px solid var(--border);cursor:pointer;font-size:12px;line-height:1.4}
+#update-splash .us-list li{display:flex;align-items:flex-start;gap:7px;padding:9px 12px;border-bottom:1px solid var(--border);cursor:pointer;font-size:12px;line-height:1.4}
 #update-splash .us-list li:last-child{border-bottom:none}
 #update-splash .us-list li:hover{background:var(--surface-2)}
-#update-splash .us-date{flex-shrink:0;color:var(--ink-3);font-size:11px}
-#update-splash .us-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+#update-splash .us-date{flex-shrink:0;color:var(--ink-3);font-size:11px;margin-top:1px}
+#update-splash .us-name{flex:1;min-width:0;font-weight:600;word-break:break-word}
+#update-splash .us-chip{margin-top:1px}
 #update-splash .us-chip{flex-shrink:0;display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;border-radius:8px;padding:2px 7px}
 #update-splash .us-chip .msi{font-size:12px}
 #update-splash .us-chip-ok{color:#00a854;background:rgba(0,168,84,.1)}

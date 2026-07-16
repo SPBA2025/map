@@ -261,9 +261,9 @@ function renderRecentUpdates(items) {
       ? '<span style="flex-shrink:0;font-size:9px;font-weight:700;color:#c45500;background:rgba(196,85,0,0.1);border-radius:8px;padding:2px 7px">確認中</span>'
       : '<span style="flex-shrink:0;font-size:9px;font-weight:700;color:#00a854;background:rgba(0,168,84,0.1);border-radius:8px;padding:2px 7px">更新</span>';
     const label = it.news ? it.obj.title : it.obj.name;
-    return `<li data-ru="${i}" style="display:flex;align-items:center;gap:7px;padding:7px 14px;border-bottom:1px solid var(--border);cursor:pointer;font-size:12px;line-height:1.4">
-      <span style="flex-shrink:0;color:var(--ink-3);font-size:11px">${ds}</span>
-      <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600">${escHtml(label)}</span>
+    return `<li data-ru="${i}" style="display:flex;align-items:flex-start;gap:7px;padding:7px 14px;border-bottom:1px solid var(--border);cursor:pointer;font-size:12px;line-height:1.4">
+      <span style="flex-shrink:0;color:var(--ink-3);font-size:11px;margin-top:1px">${ds}</span>
+      <span style="flex:1;min-width:0;font-weight:600;word-break:break-word">${escHtml(label)}</span>
       ${chip}</li>`;
   }).join('');
   ul.querySelectorAll('li[data-ru]').forEach(li => {
