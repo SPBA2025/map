@@ -480,3 +480,4 @@ input:focus-visible{outline-offset:0}
 #update-splash .us-chip-pending{color:#c45500;background:rgba(196,85,0,.1)}
 #update-splash .us-chip-photo{color:#1a6ab0;background:rgba(26,106,176,.1)}
 @media(max-width:768px){#update-splash{bottom:calc(76px + env(safe-area-inset-bottom))}}
+#update-splash .us-chip-official{color:#1d9bf0;background:rgba(29,155,240,.1)}

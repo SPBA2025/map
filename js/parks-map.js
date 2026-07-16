@@ -219,11 +219,18 @@ async function loadGasData() {
   }
 }
 
-/* ── 「最近の更新」の収集（承認済み・確認中の新着報告を新しい順に） ── */
+/* ── 「最近の更新」の収集（承認済み・確認中の新着報告＋運営お知らせを新しい順に） ── */
 function collectRecentUpdates(json) {
   const items = [];
   (json.parks   || []).forEach(p => { if (p && p.name && p.updated) items.push({ t: Number(p.updated) || 0, pending: false, obj: p }); });
   (json.pending || []).forEach(p => { if (p && p.name && p.updated) items.push({ t: Number(p.updated) || 0, pending: true,  obj: p }); });
+  // 運営お知らせ（parks-data.js の parkNews。公式情報の反映など）
+  if (typeof parkNews !== 'undefined' && Array.isArray(parkNews)) {
+    parkNews.forEach(n => {
+      const t = n && n.date ? new Date(n.date + 'T12:00:00+09:00').getTime() : NaN;
+      if (!isNaN(t) && n.title) items.push({ t, news: true, obj: n });
+    });
+  }
   items.sort((a, b) => b.t - a.t);
   return items;
 }
@@ -232,9 +239,10 @@ function collectRecentUpdates(json) {
 function ruOpenItem(it) {
   if (it.obj.lat && it.obj.lng && typeof map !== 'undefined' && map) {
     map.panTo({ lat: it.obj.lat, lng: it.obj.lng });
-    if (map.getZoom() < 14) map.setZoom(14);
+    const z = it.news ? (it.obj.zoom || 14) : 14;
+    if (map.getZoom() < z) map.setZoom(z);
   }
-  showParkModal(it.obj);
+  if (!it.news) showParkModal(it.obj);   // お知らせは該当エリアへの移動のみ
 }
 
 /* ── サイドバー「最近の更新」（最大5件） ── */
@@ -247,12 +255,15 @@ function renderRecentUpdates(items) {
   ul.innerHTML = top.map((it, i) => {
     const d = it.t ? new Date(it.t) : null;
     const ds = d ? `${d.getMonth() + 1}/${d.getDate()}` : '';
-    const chip = it.pending
+    const chip = it.news
+      ? '<span style="flex-shrink:0;font-size:9px;font-weight:700;color:#1d9bf0;background:rgba(29,155,240,0.1);border-radius:8px;padding:2px 7px">公式</span>'
+      : it.pending
       ? '<span style="flex-shrink:0;font-size:9px;font-weight:700;color:#c45500;background:rgba(196,85,0,0.1);border-radius:8px;padding:2px 7px">確認中</span>'
       : '<span style="flex-shrink:0;font-size:9px;font-weight:700;color:#00a854;background:rgba(0,168,84,0.1);border-radius:8px;padding:2px 7px">更新</span>';
+    const label = it.news ? it.obj.title : it.obj.name;
     return `<li data-ru="${i}" style="display:flex;align-items:center;gap:7px;padding:7px 14px;border-bottom:1px solid var(--border);cursor:pointer;font-size:12px;line-height:1.4">
       <span style="flex-shrink:0;color:var(--ink-3);font-size:11px">${ds}</span>
-      <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600">${escHtml(it.obj.name)}</span>
+      <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600">${escHtml(label)}</span>
       ${chip}</li>`;
   }).join('');
   ul.querySelectorAll('li[data-ru]').forEach(li => {
@@ -284,12 +295,19 @@ function renderUpdateSplash(items) {
     const d = it.t ? new Date(it.t) : null;
     const ds = d ? `${d.getMonth() + 1}/${d.getDate()}` : '';
     const chips = [];
-    if (it.pending) chips.push('<span class="us-chip us-chip-pending"><span class="msi">schedule</span>確認中</span>');
-    else if (it.obj.catchball === true)  chips.push('<span class="us-chip us-chip-ok"><span class="msi">sports_baseball</span>キャッチボール可</span>');
-    else if (it.obj.catchball === false) chips.push('<span class="us-chip us-chip-ng"><span class="msi">block</span>不可</span>');
-    const evs = Array.isArray(it.obj.events) ? it.obj.events : [];
+    if (it.news) {
+      chips.push('<span class="us-chip us-chip-official"><span class="msi">verified</span>公式</span>');
+    } else if (it.pending) {
+      chips.push('<span class="us-chip us-chip-pending"><span class="msi">schedule</span>確認中</span>');
+    } else if (it.obj.catchball === true) {
+      chips.push('<span class="us-chip us-chip-ok"><span class="msi">sports_baseball</span>キャッチボール可</span>');
+    } else if (it.obj.catchball === false) {
+      chips.push('<span class="us-chip us-chip-ng"><span class="msi">block</span>不可</span>');
+    }
+    const evs = (!it.news && Array.isArray(it.obj.events)) ? it.obj.events : [];
     if (evs.some(ev => ev && ev.ph)) chips.push('<span class="us-chip us-chip-photo"><span class="msi">photo_camera</span>写真</span>');
-    return `<li data-us="${i}"><span class="us-date">${ds}</span><span class="us-name">${escHtml(it.obj.name)}</span>${chips.join('')}</li>`;
+    const label = it.news ? it.obj.title : it.obj.name;
+    return `<li data-us="${i}"><span class="us-date">${ds}</span><span class="us-name">${escHtml(label)}</span>${chips.join('')}</li>`;
   }).join('');
   box.innerHTML = `
     <div class="us-head"><span class="msi">campaign</span>最近の更新<button type="button" class="us-close" aria-label="お知らせを閉じる">×</button></div>
@@ -468,9 +486,9 @@ function makeMarkerHtml(catchball, hasPhoto, official) {
   const photoBadge = hasPhoto
     ? `<div style="position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:#fff;border:1px solid rgba(0,0,0,0.12);box-shadow:0 1px 2px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center"><span class="msi" style="font-size:11px;color:${bg}">photo_camera</span></div>`
     : '';
-  // 自治体公認バッジ（紺丸＋verified）。市の公式情報に基づく公園であることを示す
+  // 自治体公認バッジ（認証ブルー＋verified）。市の公式情報に基づく公園であることを示す
   const officialBadge = official
-    ? `<div style="position:absolute;top:-4px;left:-4px;width:16px;height:16px;border-radius:50%;background:#1b2842;border:1px solid #fff;box-shadow:0 1px 2px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center"><span class="msi" style="font-size:11px;color:#f8f2e6">verified</span></div>`
+    ? `<div style="position:absolute;top:-6px;left:-6px;width:18px;height:18px;border-radius:50%;background:#1d9bf0;border:1.5px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center"><span class="msi" style="font-size:13px;color:#fff">verified</span></div>`
     : '';
   return `
     <div style="position:relative;width:32px;height:42px;filter:drop-shadow(0 2px 6px ${shadow});cursor:pointer">
@@ -661,8 +679,8 @@ function renderModalContent(park, toilet, parking) {
   // 自治体公認ブロック（市提供の公式情報に基づく公園）
   const of = park.official;
   const officialHtml = of ? `
-    <div style="border:1.5px solid #1b2842;border-radius:10px;margin-bottom:14px;overflow:hidden">
-      <div style="display:flex;align-items:center;gap:7px;padding:9px 13px;background:#1b2842;color:#f8f2e6">
+    <div style="border:1.5px solid #1d9bf0;border-radius:10px;margin-bottom:14px;overflow:hidden">
+      <div style="display:flex;align-items:center;gap:7px;padding:9px 13px;background:#1d9bf0;color:#fff">
         <span class="msi" style="font-size:18px">verified</span>
         <span style="font-weight:700;font-size:12.5px">${escHtml(of.city)}公認・キャッチボールができる公園</span>
       </div>
