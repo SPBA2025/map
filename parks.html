@@ -55,7 +55,7 @@
 <!-- MarkerClusterer for Google Maps -->
 <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
 <!-- 公園データ（parks-data.js に追記してデータ更新）-->
-<script src="data/parks-data.js?v=20260618c"></script>
+<script src="data/parks-data.js?v=20260716"></script>
 <!-- 未登録公園データ（OSM由来・グレーピン用。© OpenStreetMap contributors）-->
 <script src="data/parks-osm.js?v=20260618" defer></script>
 <!-- 自治体コード→名称（さいたま市は区まで）。未登録公園の住所をタップ時に取得する用 -->
@@ -328,6 +328,10 @@
         <div class="leg-dot" style="background:#717171"></div>
         <div class="leg-label">情報未登録</div>
       </div>
+      <div class="leg-item">
+        <div class="leg-dot" style="background:#1b2842;display:inline-flex;align-items:center;justify-content:center"><span class="msi" style="font-size:9px;color:#f8f2e6">verified</span></div>
+        <div class="leg-label">自治体公認（市の公式情報）</div>
+      </div>
     </div>
 
     <!-- 報告（控えめな補助導線）-->
@@ -376,7 +380,7 @@
   </div>
 </div>
 
-<script src="js/parks-map.js?v=20260711"></script>
+<script src="js/parks-map.js?v=20260716"></script>
 
 <!-- モバイルボトムナビ -->
 <div id="parks-bnav">

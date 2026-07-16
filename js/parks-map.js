@@ -440,7 +440,7 @@ function addRegisteredParkToMap(place, parkEntry) {
 ═══════════════════════════════════════════════ */
 function createMarker(lat, lng, parkInfo) {
   const wrapper = document.createElement('div');
-  wrapper.innerHTML = makeMarkerHtml(parkInfo.catchball, hasParkPhoto(parkInfo));
+  wrapper.innerHTML = makeMarkerHtml(parkInfo.catchball, hasParkPhoto(parkInfo), !!parkInfo.official);
   const content = wrapper.firstElementChild;
   content.style.cursor = 'pointer';
   content.addEventListener('click', (e) => {
@@ -457,8 +457,8 @@ function createMarker(lat, lng, parkInfo) {
   return marker;
 }
 
-/* Airbnb 風ピン HTML（hasPhoto=true で右上に小さなカメラバッジを重ねる） */
-function makeMarkerHtml(catchball, hasPhoto) {
+/* Airbnb 風ピン HTML（hasPhoto=true で右上にカメラ、official=true で左上に公認チェックのバッジを重ねる） */
+function makeMarkerHtml(catchball, hasPhoto, official) {
   let bg, shadow, icon;
   if (catchball === true)       { bg='#00a854'; shadow='rgba(0,168,84,0.4)';  icon='sports_baseball'; }
   else if (catchball === false) { bg='#ff385c'; shadow='rgba(255,56,92,0.4)'; icon='close'; }
@@ -468,11 +468,16 @@ function makeMarkerHtml(catchball, hasPhoto) {
   const photoBadge = hasPhoto
     ? `<div style="position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:#fff;border:1px solid rgba(0,0,0,0.12);box-shadow:0 1px 2px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center"><span class="msi" style="font-size:11px;color:${bg}">photo_camera</span></div>`
     : '';
+  // 自治体公認バッジ（紺丸＋verified）。市の公式情報に基づく公園であることを示す
+  const officialBadge = official
+    ? `<div style="position:absolute;top:-4px;left:-4px;width:16px;height:16px;border-radius:50%;background:#1b2842;border:1px solid #fff;box-shadow:0 1px 2px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center"><span class="msi" style="font-size:11px;color:#f8f2e6">verified</span></div>`
+    : '';
   return `
     <div style="position:relative;width:32px;height:42px;filter:drop-shadow(0 2px 6px ${shadow});cursor:pointer">
       <div style="position:absolute;top:0;left:0;width:32px;height:32px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:${bg};border:2px solid #fff"></div>
       <div style="position:absolute;top:0;left:0;width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:#fff"><span class="msi" style="font-size:16px">${icon}</span></div>
       ${photoBadge}
+      ${officialBadge}
     </div>`;
 }
 
@@ -653,7 +658,25 @@ function renderModalContent(park, toilet, parking) {
   else if (park.catchball === null)  { cbStyle='background:rgba(196,85,0,0.1);color:#c45500';  cbText='判定不明（報告あり）';    cbIcon='help'; }
   else                               { cbStyle='background:#f7f7f7;color:#6a6a6a';             cbText='情報未登録';              cbIcon='info'; }
 
+  // 自治体公認ブロック（市提供の公式情報に基づく公園）
+  const of = park.official;
+  const officialHtml = of ? `
+    <div style="border:1.5px solid #1b2842;border-radius:10px;margin-bottom:14px;overflow:hidden">
+      <div style="display:flex;align-items:center;gap:7px;padding:9px 13px;background:#1b2842;color:#f8f2e6">
+        <span class="msi" style="font-size:18px">verified</span>
+        <span style="font-weight:700;font-size:12.5px">${escHtml(of.city)}公認・キャッチボールができる公園</span>
+      </div>
+      <div style="padding:9px 13px;font-size:12px;line-height:1.7;color:var(--ink-2)">
+        ${of.name ? `<div><span style="color:var(--ink-3)">公式名称</span>　${escHtml(of.name)}</div>` : ''}
+        ${of.hours ? `<div><span style="color:var(--ink-3)">利用時間</span>　${escHtml(of.hours)}</div>` : ''}
+        ${of.note ? `<div><span style="color:var(--ink-3)">条件</span>　${escHtml(of.note)}</div>` : ''}
+        <div><span style="color:var(--ink-3)">注意</span>　バッティングは禁止</div>
+        <div style="margin-top:4px;font-size:11px;color:var(--ink-3)">出典: ${escHtml(of.city)}提供の公式情報（${escHtml(of.asOf || '')}時点）</div>
+      </div>
+    </div>` : '';
+
   document.getElementById('modal-park-content').innerHTML = `
+    ${officialHtml}
     <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;margin-bottom:14px;${cbStyle}">
       <span class="msi" style="font-size:22px">${cbIcon}</span>
       <span style="font-weight:700;font-size:13px">${cbText}</span>
