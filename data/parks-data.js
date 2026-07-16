@@ -300,3 +300,11 @@ const parkData = [
   { id:243, name:'かがり火公園',       city:'松伏町', catchball:true, lat:35.9307, lng:139.8187, address:'松伏町大字松伏' },
 
 ];
+
+/**
+ * 運営からのお知らせ（「最近の更新」に表示。新しい順に並ぶよう date を正しく入れる）
+ * { date:'YYYY-MM-DD', title:'…', lat, lng, zoom } — タップで lat/lng へ移動（モーダルは開かない）
+ */
+const parkNews = [
+  { date: '2026-07-16', title: '戸田市公認のキャッチボールができる公園 8か所を掲載', lat: 35.814, lng: 139.668, zoom: 14 },
+];
