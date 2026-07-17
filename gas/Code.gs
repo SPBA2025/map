@@ -112,6 +112,78 @@ function ensureApprovedAtHeader_(sh, HEADERS) {
   if (String(sh.getRange(1, last).getValue()) !== HEADERS[last - 1]) sh.getRange(1, last).setValue(HEADERS[last - 1]);
 }
 
+// ═══ 地域コンテンツ（イベント/チーム・スクール案内/広告）配信 ═══
+// シート「地域コンテンツ」: id / 種別 / タイトル / 説明 / 対象市町村 / 掲載開始日 / 掲載終了日 /
+//   開催日表示 / リンクURL / 画像URL / 提供者名 / 緯度 / 経度 / 優先度 / 掲載 / メモ
+const LOCAL_SHEET_NAME = '地域コンテンツ';
+
+// 10分キャッシュ付き（アクセスが増えてもシート読み取りは10分に1回）
+function getLocalContentCached() {
+  const cache = CacheService.getScriptCache();
+  const hit = cache.get('localContent');
+  if (hit) { try { return JSON.parse(hit); } catch (e) {} }
+  const res = getLocalContent();
+  try { cache.put('localContent', JSON.stringify(res), 600); } catch (e) {}
+  return res;
+}
+
+function getLocalContent() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sh = ss.getSheetByName(LOCAL_SHEET_NAME);
+  if (!sh) return { ok: true, items: [], updated: null };
+  const data = sh.getDataRange().getValues();
+  if (data.length <= 1) return { ok: true, items: [], updated: null };
+  const H = {}; data[0].forEach(function (h, i) { H[String(h).trim()] = i; });
+  const gi = function (k, def) { return (H[k] == null ? (def == null ? -1 : def) : H[k]); };
+  const idx = {
+    id: gi('id', 0), kind: gi('種別', 1), title: gi('タイトル', 2), desc: gi('説明', 3),
+    cities: gi('対象市町村', 4), start: gi('掲載開始日', 5), end: gi('掲載終了日', 6),
+    dateText: gi('開催日表示', 7), url: gi('リンクURL', 8), img: gi('画像URL', 9),
+    sponsor: gi('提供者名', 10), lat: gi('緯度', 11), lng: gi('経度', 12),
+    priority: gi('優先度', 13), on: gi('掲載', 14)
+  };
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const toDay = function (v) {
+    const t = (v instanceof Date) ? new Date(v) : (v ? new Date(v) : null);
+    if (!t || isNaN(t.getTime())) return null;
+    t.setHours(0, 0, 0, 0); return t;
+  };
+  const KIND = { 'イベント': 'event', 'チーム・スクール': 'school', 'チーム': 'school', 'スクール': 'school', '広告': 'ad' };
+  const items = [];
+  for (let i = 1; i < data.length; i++) {
+    const r = data[i];
+    const title = String(r[idx.title] || '').trim();
+    if (!title) continue;
+    const on = r[idx.on];
+    if (!(on === true || on === 'TRUE')) continue;                    // 掲載チェックOFFは配信しない
+    const s = toDay(r[idx.start]), e = toDay(r[idx.end]);
+    if (s && today < s) continue;                                     // 掲載開始前
+    if (e && today > e) continue;                                     // 掲載終了後
+    const kind = KIND[String(r[idx.kind] || '').trim()] || 'event';
+    const sponsor = String(r[idx.sponsor] || '').trim();
+    if (kind === 'ad' && !sponsor) continue;                          // 広告は提供者名必須（PR明示のため配信しない）
+    const cities = String(r[idx.cities] || '').split(/[,、]/).map(function (c) { return c.trim(); }).filter(String);
+    const lat = parseFloat(r[idx.lat]), lng = parseFloat(r[idx.lng]);
+    items.push({
+      id: String(r[idx.id] || i),
+      kind: kind,
+      title: title,
+      desc: String(r[idx.desc] || '').trim(),
+      cities: cities.length ? cities : ['全県'],
+      dateText: String(r[idx.dateText] || '').trim(),
+      url: String(r[idx.url] || '').trim(),
+      img: String(r[idx.img] || '').trim(),
+      sponsor: sponsor,
+      lat: isNaN(lat) ? '' : lat,
+      lng: isNaN(lng) ? '' : lng,
+      priority: parseInt(r[idx.priority]) || 0,
+      start: s ? s.getTime() : null
+    });
+  }
+  items.sort(function (a, b) { return b.priority - a.priority; });
+  return { ok: true, items: items, updated: new Date().toISOString() };
+}
+
 // ═══ WebアプリGET ═══
 function doGet(e) {
   const p = (e && e.parameter) || {};
@@ -139,6 +211,10 @@ function doGet(e) {
   if (action === 'adminHistory') {
     if (p.token !== APPROVE_TOKEN) return _json({ ok: false, error: 'token' });
     return _json(adminHistory_());
+  }
+  if (action === 'local') {
+    // 地域コンテンツ（イベント/チーム・スクール案内/広告）の配信。token不要（公開情報）
+    return _json(getLocalContentCached());
   }
 
   let result;

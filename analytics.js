@@ -315,8 +315,48 @@
     });
   }
 
+  /**
+   * 15. local_content_impression — 地域コンテンツ（イベント/スクール/広告）の表示
+   * @param {string} placement 'modal' / 'sidebar' / 'card'
+   * @param {Array} items 表示アイテム [{id, kind, ...}]
+   * @param {string} city 市町村名
+   * 同一 placement×city はセッション内で1回だけ送信（重複インプレッションを防ぐ）
+   */
+  var _lcImpSent = {};
+  function localContentImpression(placement, items, city) {
+    if (!items || !items.length) return;
+    var key = String(placement) + '|' + String(city || '');
+    if (_lcImpSent[key]) return;
+    _lcImpSent[key] = true;
+    sendEvent('local_content_impression', {
+      placement: String(placement || ''),
+      city: String(city || ''),
+      item_ids: items.map(function(i){ return i.id; }).join(','),
+      kinds: items.map(function(i){ return i.kind; }).join(',')
+    });
+  }
+
+  /**
+   * 16. local_content_click — 地域コンテンツのクリック
+   * @param {string} placement 'modal' / 'sidebar' / 'card'
+   * @param {Object} item {id, kind, url}
+   * @param {string} city 市町村名
+   */
+  function localContentClick(placement, item, city) {
+    if (!item) return;
+    sendEvent('local_content_click', {
+      placement: String(placement || ''),
+      city: String(city || ''),
+      item_id: String(item.id || ''),
+      kind: String(item.kind || ''),
+      url: String(item.url || '')
+    });
+  }
+
   // ── 公開 API ────────────────────────────────
   window.Analytics = {
+    localContentImpression: localContentImpression,
+    localContentClick: localContentClick,
     loadAnalytics: loadAnalytics,
     teamPinClick: teamPinClick,
     parkPinClick: parkPinClick,
