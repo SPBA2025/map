@@ -1177,10 +1177,20 @@ function setupModalLinks(park) {
     };
   }
   document.getElementById('park-modal').classList.add('open');
+
+  // 公園を開いた＝その市町村への興味シグナル。地域コンテンツを公園の市町村に同期する
+  // （地図中心の判定を待たずにサイドバーを切替。地域カードはモーダルを閉じた時に表示）
+  if (park.city && park.city !== _lcCurrentCity) {
+    _lcCurrentCity = park.city;
+    if (window.Analytics && window.Analytics.municipalityView) window.Analytics.municipalityView(park.city);
+    renderLocalSidebar(park.city);
+  }
 }
 
 function closeParkModal() {
   document.getElementById('park-modal').classList.remove('open');
+  // 開いていた公園の市町村の地域カードを表示（該当あり＋頻度制御の範囲内のときだけ）
+  if (_lcCurrentCity) setTimeout(() => renderLocalSplash(_lcCurrentCity), 300);
 }
 
 // ── 全モーダル共通: ESCで閉じる ──
