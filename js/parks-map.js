@@ -174,6 +174,12 @@ async function initMap() {
     searchTimeout = setTimeout(() => {
       renderParkList();
     }, 600);
+    // 地域コンテンツ: 見ている市町村の変化を検出（800ms debounce・通過中の市町村では発火しない）
+    clearTimeout(_lcCityTimer);
+    _lcCityTimer = setTimeout(() => {
+      const city = detectCityAtCenter();
+      if (city !== _lcCurrentCity) { _lcCurrentCity = city; onLocalCityChanged(city); }
+    }, 800);
     // アナリティクス: 地図移動完了
     if (window.Analytics) {
       const c = map.getCenter();
@@ -183,6 +189,8 @@ async function initMap() {
 
   // GAS から承認済みデータ取得（バックグラウンド・ノンブロッキング）
   loadGasData();
+  // 地域コンテンツ（イベント/チーム案内/広告）取得（同・ノンブロッキング）
+  loadLocalContent();
   } catch(err) {
     console.error('initMap エラー:', err);
     document.getElementById('map').innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:#6a6a6a;font-size:13px"><span class="msi" style="font-size:36px;color:#c45500">warning</span><div>地図の読み込みに失敗しました</div><div style="font-size:11px;color:#aaa">${escHtml(err.message)}</div></div>`;
@@ -329,6 +337,228 @@ function renderUpdateSplash(items) {
   // rAFはタブ非表示や描画停止中に発火しないため setTimeout で確実に表示する
   setTimeout(() => box.classList.add('on'), 30);
 }
+
+/* ═══════════════════════════════════════════════
+   地域コンテンツ（イベント / チーム・スクール案内 / 広告）
+   スプレッドシート「地域コンテンツ」→ GAS action=local で配信。
+   見ている市町村（geo-cities.js の境界でオフライン判定）に連動して
+   ①公園モーダル下部 ②サイドバー ③左下カード に表示する。
+═══════════════════════════════════════════════ */
+let _lcItems = [];            // 配信中の全アイテム
+let _lcCityTimer = null;      // idle→市町村判定の debounce
+let _lcCurrentCity = null;    // いま見ている市町村名（null=判定不能/広域）
+let _lcCityIndex = null;      // geoDataCity から構築する {name, bbox, rings} 配列
+let _lcSplashCount = 0;       // このセッションで地域カードを出した回数
+
+const LC_KIND = {
+  event:  { label: 'イベント',       cls: 'lc-kind-event',  icon: 'celebration' },
+  school: { label: '体験・スクール', cls: 'lc-kind-school', icon: 'sports_baseball' },
+  ad:     { label: 'PR',             cls: 'lc-kind-ad',     icon: 'campaign' }
+};
+
+/* GASから地域コンテンツを取得（localStorage 60分キャッシュ＋静的フォールバック） */
+async function loadLocalContent() {
+  // キャッシュがあれば即反映（失効していても取得失敗時の保険に使う）
+  let cached = null;
+  try { cached = JSON.parse(localStorage.getItem('lc_cache') || 'null'); } catch (e) {}
+  if (cached && Array.isArray(cached.items)) {
+    _lcItems = cached.items;
+    if (Date.now() - (cached.ts || 0) < 3600e3) { lcRefreshUI(); }
+  }
+  if (!GAS_URL || GAS_URL === 'YOUR_GAS_WEBAPP_URL_HERE') return;
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 5000);
+    const res = await fetch(`${GAS_URL}?action=local`, { signal: controller.signal });
+    clearTimeout(timer);
+    const json = await res.json();
+    if (json && Array.isArray(json.items)) {
+      _lcItems = json.items;
+      try { localStorage.setItem('lc_cache', JSON.stringify({ ts: Date.now(), items: json.items })); } catch (e) {}
+      lcRefreshUI();
+    }
+  } catch (e) {
+    // 取得失敗: キャッシュ→静的フォールバックの順で継続（掲載期間の約束を守る）
+    if (!_lcItems.length && typeof localContentStatic !== 'undefined' && Array.isArray(localContentStatic)) {
+      _lcItems = localContentStatic;
+      lcRefreshUI();
+    }
+    console.warn('地域コンテンツ取得エラー:', e);
+  }
+}
+
+/* データ到着後に現在の表示を更新（市町村が既に判定済みならサイドバー等を再描画） */
+function lcRefreshUI() {
+  if (_lcCurrentCity) onLocalCityChanged(_lcCurrentCity);
+}
+
+/* geoDataCity（境界GeoJSON）→ 判定用インデックス。初回のみ構築 */
+function buildCityIndex() {
+  if (_lcCityIndex) return _lcCityIndex;
+  if (typeof geoDataCity === 'undefined' || !geoDataCity || !geoDataCity.features) return null;
+  _lcCityIndex = [];
+  geoDataCity.features.forEach(f => {
+    const name = f.properties && f.properties.name;
+    if (!name || !f.geometry) return;
+    // Polygon / MultiPolygon の外環のみ（[lng,lat]→[lat,lng] に反転して pointInPolygon 形式へ）
+    const polys = f.geometry.type === 'Polygon' ? [f.geometry.coordinates]
+                : f.geometry.type === 'MultiPolygon' ? f.geometry.coordinates : [];
+    polys.forEach(poly => {
+      const ring = (poly[0] || []).map(c => [c[1], c[0]]);
+      if (ring.length < 3) return;
+      let minLat = 90, maxLat = -90, minLng = 180, maxLng = -180;
+      ring.forEach(([la, ln]) => {
+        if (la < minLat) minLat = la; if (la > maxLat) maxLat = la;
+        if (ln < minLng) minLng = ln; if (ln > maxLng) maxLng = ln;
+      });
+      _lcCityIndex.push({ name, ring, bbox: [minLat, minLng, maxLat, maxLng] });
+    });
+  });
+  return _lcCityIndex;
+}
+
+/* 地図中心 → 市町村名（zoom<12 の広域ビューでは null） */
+function detectCityAtCenter() {
+  if (typeof map === 'undefined' || !map || map.getZoom() < 12) return null;
+  const idx = buildCityIndex();
+  if (!idx) return null;
+  const c = map.getCenter();
+  if (!c) return null;
+  const lat = c.lat(), lng = c.lng();
+  for (const e of idx) {
+    if (lat < e.bbox[0] || lat > e.bbox[2] || lng < e.bbox[1] || lng > e.bbox[3]) continue;
+    if (pointInPolygon(lat, lng, e.ring)) return e.name;
+  }
+  return null;
+}
+
+/* アイテムが市町村に該当するか（'全県'は常に該当。「さいたま市」指定は区名にも前方一致） */
+function lcCityMatch(item, cityName) {
+  if (!item || !Array.isArray(item.cities)) return false;
+  return item.cities.some(c => c === '全県' || c === cityName || (cityName && cityName.indexOf(c) === 0));
+}
+
+/* 市町村に該当するアイテム（優先度順・広告は maxAds 件まで） */
+function lcItemsForCity(cityName, limit, maxAds) {
+  if (!cityName || !_lcItems.length) return [];
+  const out = [];
+  let ads = 0;
+  for (const it of _lcItems) {
+    if (!lcCityMatch(it, cityName)) continue;
+    if (it.kind === 'ad') { if (ads >= (maxAds == null ? 1 : maxAds)) continue; ads++; }
+    out.push(it);
+    if (out.length >= (limit || 3)) break;
+  }
+  return out;
+}
+
+/* カードHTML（モーダル/サイドバー/地域カード共通） */
+function lcCardHtml(item, placement) {
+  const k = LC_KIND[item.kind] || LC_KIND.event;
+  const img = item.img && /^https?:\/\//.test(item.img)
+    ? `<img class="lc-img" src="${escHtml(cloudinaryThumb(item.img, 300))}" alt="" loading="lazy">` : '';
+  const sponsor = item.kind === 'ad' && item.sponsor
+    ? `<div class="lc-sponsor">提供: ${escHtml(item.sponsor)}</div>` : '';
+  const dateText = item.dateText ? `<div class="lc-date"><span class="msi">event</span>${escHtml(item.dateText)}</div>` : '';
+  const inner = `
+    ${img}
+    <div class="lc-body">
+      <div class="lc-head"><span class="lc-kind ${k.cls}"><span class="msi">${k.icon}</span>${k.label}</span></div>
+      <div class="lc-title">${escHtml(item.title)}</div>
+      ${item.desc ? `<div class="lc-desc">${escHtml(item.desc)}</div>` : ''}
+      ${dateText}
+      ${sponsor}
+    </div>`;
+  const rel = item.kind === 'ad' ? 'sponsored noopener' : 'noopener';
+  return item.url
+    ? `<a class="lc-card" href="${escHtml(item.url)}" target="_blank" rel="${rel}" data-lc-id="${escHtml(item.id)}" data-lc-kind="${escHtml(item.kind)}" data-lc-placement="${escHtml(placement)}">${inner}</a>`
+    : `<div class="lc-card" data-lc-id="${escHtml(item.id)}" data-lc-kind="${escHtml(item.kind)}" data-lc-placement="${escHtml(placement)}">${inner}</div>`;
+}
+
+/* モーダル下部「この地域の情報」ブロック（park.city ベース＝市町村判定不要） */
+function lcModalBlockHtml(park) {
+  const city = (park && park.city) || _lcCurrentCity;
+  if (!city) return '';
+  const items = lcItemsForCity(city, 3, 1);
+  if (!items.length) return '';
+  if (window.Analytics && window.Analytics.localContentImpression) window.Analytics.localContentImpression('modal', items, city);
+  return `
+    <div class="lc-block">
+      <div class="lc-block-title"><span class="msi">location_on</span>この地域の情報（${escHtml(city)}）</div>
+      ${items.map(it => lcCardHtml(it, 'modal')).join('')}
+    </div>`;
+}
+
+/* サイドバー「この地域の情報」枠 */
+function renderLocalSidebar(city) {
+  const box = document.getElementById('local-content');
+  const list = document.getElementById('local-content-list');
+  if (!box || !list) return;
+  const items = city ? lcItemsForCity(city, 3, 1) : [];
+  if (!items.length) { box.style.display = 'none'; list.innerHTML = ''; return; }
+  const title = document.getElementById('local-content-title');
+  if (title) title.textContent = `この地域の情報（${city}）`;
+  list.innerHTML = items.map(it => lcCardHtml(it, 'sidebar')).join('');
+  box.style.display = '';
+  if (window.Analytics && window.Analytics.localContentImpression) window.Analytics.localContentImpression('sidebar', items, city);
+}
+
+/* 見ている市町村が変わった時の処理（idle 800ms debounce / #city-select 選択から呼ばれる） */
+function onLocalCityChanged(city) {
+  if (window.Analytics && window.Analytics.municipalityView && city) window.Analytics.municipalityView(city);
+  renderLocalSidebar(city);
+  renderLocalSplash(city);
+}
+
+/* 左下の地域カード（#update-splash と同パターン・頻度制御つき） */
+function renderLocalSplash(city) {
+  if (!city) return;
+  const items = lcItemsForCity(city, 2, 1);
+  if (!items.length) return;
+  // 頻度制御: ①同一市町村はセッション1回 ②セッション合計2回まで
+  let shown = [];
+  try { shown = JSON.parse(sessionStorage.getItem('lc_shown_cities') || '[]'); } catch (e) {}
+  if (shown.indexOf(city) >= 0 || _lcSplashCount >= 2) return;
+  // ③×で閉じた後は、その市町村に新しいアイテムが出るまで再表示しない
+  const newest = Math.max.apply(null, items.map(it => Number(it.start) || 0));
+  let seen = 0;
+  try { seen = Number(localStorage.getItem('lc_seen_' + city)) || 0; } catch (e) {}
+  if (newest && newest <= seen) return;
+  // ④「最近の更新」カード表示中・モーダル表示中は出さない（競合回避）
+  if (document.getElementById('update-splash')) return;
+  const pm = document.getElementById('park-modal');
+  if (pm && pm.classList.contains('open')) return;
+
+  const old = document.getElementById('local-splash');
+  if (old) old.remove();
+  const box = document.createElement('div');
+  box.id = 'local-splash';
+  box.innerHTML = `
+    <div class="us-head"><span class="msi">location_on</span>${escHtml(city)}エリアの情報<button type="button" class="us-close" aria-label="閉じる">×</button></div>
+    <div class="lc-splash-list">${items.map(it => lcCardHtml(it, 'card')).join('')}</div>`;
+  document.body.appendChild(box);
+  _lcSplashCount++;
+  try { shown.push(city); sessionStorage.setItem('lc_shown_cities', JSON.stringify(shown)); } catch (e) {}
+  if (window.Analytics && window.Analytics.localContentImpression) window.Analytics.localContentImpression('card', items, city);
+  const dismiss = () => {
+    try { localStorage.setItem('lc_seen_' + city, String(newest || Date.now())); } catch (e) {}
+    box.classList.remove('on');
+    setTimeout(() => box.remove(), 250);
+  };
+  box.querySelector('.us-close').addEventListener('click', dismiss);
+  // カード内リンクをタップしたら閉じる（クリック計測は文書レベルの委譲ハンドラが拾う）
+  box.addEventListener('click', e => { if (e.target.closest('.lc-card')) dismiss(); });
+  setTimeout(() => box.classList.add('on'), 30);
+}
+
+/* クリック計測（全 placement 共通・委譲） */
+document.addEventListener('click', e => {
+  const card = e.target.closest('.lc-card[data-lc-id]');
+  if (!card || !window.Analytics) return;
+  const item = { id: card.dataset.lcId, kind: card.dataset.lcKind, url: card.href || '' };
+  if (window.Analytics.localContentClick) window.Analytics.localContentClick(card.dataset.lcPlacement, item, _lcCurrentCity);
+  if (item.url && window.Analytics.externalLink) window.Analytics.externalLink(item.url, 'local_' + item.kind);
+});
 
 /* ── 確認中(pending)の報告 ── */
 let pendingByName = {};
@@ -710,6 +940,7 @@ function renderModalContent(park, toilet, parking) {
     ${park.updated ? `<div class="park-row"><span class="park-row-label">最終更新</span><span class="park-row-value">${new Date(park.updated).toLocaleDateString('ja-JP')}</span></div>` : ''}
     ${Array.isArray(park.events) && park.events.length ? `<div class="park-row"><span class="park-row-label">更新履歴</span><span class="park-row-value" style="line-height:1.7">${park.events.map(eventLabel).join('<br>')}</span></div>` : ''}
     ${park.photo ? `<div style="margin-top:12px;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px">${String(park.photo).split('|').map(s=>s.trim()).filter(u=>/^https?:\/\//.test(u)).map(u=>`<img src="${escHtml(cloudinaryThumb(u,300))}" alt="${escHtml(park.name)}の写真" loading="lazy" data-photo-url="${escHtml(u)}" onclick="openPhotoLightbox(this.dataset.photoUrl)" style="height:150px;flex:0 0 auto;border-radius:8px;cursor:zoom-in;display:block" title="タップで拡大">`).join('')}</div>` : ''}
+    ${lcModalBlockHtml(park)}
     <div style="margin-top:16px;border:1px solid var(--border);border-radius:12px;overflow:hidden">
       <div style="padding:9px 14px;font-size:11px;line-height:1.55;color:var(--ink-2);background:rgba(0,168,84,0.07);border-bottom:1px solid var(--border)">
         <span class="msi" style="font-size:14px;vertical-align:-2px">campaign</span> <b>みんなでつくる、キャッチボールマップ。</b><br>公園のルールや状況は変わります。実際に訪れた方の情報で、もっと正確に。気づいたことを教えてください。
@@ -1299,6 +1530,8 @@ function setupEventListeners() {
     map.setCenter({ lat, lng });
     map.setZoom(zoom);
     showCityBoundary(cityName);
+    // 明示的な地域選択は強い意図シグナル → debounce なしで地域コンテンツを即連動
+    if (_lcCurrentCity !== cityName) { _lcCurrentCity = cityName; onLocalCityChanged(cityName); }
   });
 
   // 現在地ボタン

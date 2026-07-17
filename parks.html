@@ -58,6 +58,10 @@
 <script src="data/parks-data.js?v=20260716b"></script>
 <!-- 未登録公園データ（OSM由来・グレーピン用。© OpenStreetMap contributors）-->
 <script src="data/parks-osm.js?v=20260618" defer></script>
+<!-- 市町村境界（地域コンテンツの「見ている市町村」判定用。team.html と共用） -->
+<script src="data/geo-cities.js?v=20260716" defer></script>
+<!-- 地域コンテンツの静的フォールバック（通常はGAS action=local から配信） -->
+<script src="data/local-content.js?v=20260716" defer></script>
 <!-- 自治体コード→名称（さいたま市は区まで）。未登録公園の住所をタップ時に取得する用 -->
 <script src="data/saitama-muni.js?v=20260618"></script>
 <script>
@@ -89,7 +93,7 @@
 </script>
 <link rel="stylesheet" href="css/tokens.css?v=20260612">
 <link rel="stylesheet" href="css/common.css?v=20260613b">
-<link rel="stylesheet" href="css/parks-map.css?v=20260716c">
+<link rel="stylesheet" href="css/parks-map.css?v=20260717">
 </head>
 <body data-page="park">
 
@@ -348,6 +352,12 @@
       <ul id="recent-updates-list" style="list-style:none;margin:0;padding:0"></ul>
     </div>
 
+    <!-- この地域の情報（イベント/チーム・スクール案内/広告。該当なしなら非表示） -->
+    <div class="s-section" id="local-content" style="display:none">
+      <div class="s-title" id="local-content-title">この地域の情報</div>
+      <div id="local-content-list"></div>
+    </div>
+
     <!-- PARK LIST -->
     <div class="s-section" style="flex:1;overflow-y:auto;padding:0">
       <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px">
@@ -380,7 +390,7 @@
   </div>
 </div>
 
-<script src="js/parks-map.js?v=20260716c"></script>
+<script src="js/parks-map.js?v=20260717"></script>
 
 <!-- モバイルボトムナビ -->
 <div id="parks-bnav">
@@ -442,7 +452,7 @@
 
 <!-- 設定ファイルとアナリティクス基盤の読み込み -->
 <script src="config.js?v=20260618b"></script>
-<script src="analytics.js?v=20260612"></script>
+<script src="analytics.js?v=20260717"></script>
 <script src="cookie-consent.js?v=20260612"></script>
 <script src="toast.js?v=20260612"></script>
 <script src="onboarding.js?v=20260612"></script>

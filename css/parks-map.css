@@ -482,3 +482,38 @@ input:focus-visible{outline-offset:0}
 #update-splash .us-chip-photo{color:#1a6ab0;background:rgba(26,106,176,.1)}
 @media(max-width:768px){#update-splash{bottom:calc(76px + env(safe-area-inset-bottom))}}
 #update-splash .us-chip-official{color:#1d9bf0;background:rgba(29,155,240,.1)}
+
+/* ── 地域コンテンツ（イベント/チーム・スクール案内/広告）カード ── */
+.lc-card{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--border);border-radius:10px;padding:9px 10px;margin:0 0 8px;background:var(--surface-1);text-decoration:none;color:var(--ink);transition:background-color .15s;cursor:pointer}
+.lc-card:hover{background:var(--surface-2)}
+.lc-card:last-child{margin-bottom:0}
+.lc-img{width:56px;height:56px;flex-shrink:0;border-radius:8px;object-fit:cover;background:var(--surface-2);border:1px solid var(--border)}
+.lc-body{flex:1;min-width:0}
+.lc-head{margin-bottom:3px}
+.lc-kind{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;border-radius:8px;padding:2px 7px}
+.lc-kind .msi{font-size:11px}
+.lc-kind-event{color:#1a6ab0;background:rgba(26,106,176,.1)}
+.lc-kind-school{color:#00a854;background:rgba(0,168,84,.1)}
+.lc-kind-ad{color:var(--ink-3);background:var(--surface-2);border:1px solid var(--border)}
+.lc-title{font-size:12.5px;font-weight:700;line-height:1.45;word-break:break-word}
+.lc-desc{font-size:11.5px;color:var(--ink-2);line-height:1.5;margin-top:2px;word-break:break-word}
+.lc-date{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--ink-3);margin-top:3px}
+.lc-date .msi{font-size:13px}
+.lc-sponsor{font-size:10px;color:var(--ink-3);margin-top:3px}
+/* モーダル内ブロック */
+.lc-block{margin-top:16px;border:1px solid var(--border);border-radius:12px;padding:12px 14px;background:var(--surface)}
+.lc-block-title{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--ink);margin-bottom:9px}
+.lc-block-title .msi{font-size:15px;color:var(--ink-3)}
+/* サイドバー枠 */
+#local-content{padding-left:14px;padding-right:14px}
+/* 左下の地域カード（#update-splash と同骨格） */
+#local-splash{position:fixed;left:12px;bottom:12px;z-index:2000;width:min(330px,calc(100vw - 24px));background:var(--surface-1);border:1px solid var(--border);border-radius:14px;box-shadow:0 6px 24px rgba(27,40,66,.18);overflow:hidden;opacity:0;transform:translateY(10px);transition:opacity .25s ease,transform .25s ease}
+#local-splash.on{opacity:1;transform:none}
+#local-splash .us-head{display:flex;align-items:center;gap:6px;padding:9px 12px;background:var(--spba-navy);color:var(--spba-cream);font-size:12px;font-weight:700}
+#local-splash .us-head .msi{font-size:16px}
+#local-splash .us-close{margin-left:auto;background:none;border:none;color:var(--spba-cream);font-size:18px;line-height:1;cursor:pointer;padding:2px 4px;opacity:.85;font-family:inherit}
+#local-splash .us-close:hover{opacity:1}
+#local-splash .lc-splash-list{padding:10px 12px}
+#local-splash .lc-card{border:none;border-bottom:1px solid var(--border);border-radius:0;padding:8px 0;margin:0}
+#local-splash .lc-card:last-child{border-bottom:none}
+@media(max-width:768px){#local-splash{bottom:calc(76px + env(safe-area-inset-bottom))}}
