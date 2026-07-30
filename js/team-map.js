@@ -3544,7 +3544,7 @@ window.initMap = function() {
   (function handleTeamDeepLink() {
     let q = null;
     try { q = new URLSearchParams(location.search); } catch (e) { return; }
-    const name = q.get('team'), city = q.get('city') || '', ll = q.get('ll');
+    const name = q.get('team'), city = q.get('tcity') || '', ll = q.get('ll');  // cityは共有機能の既存パラメータと衝突するためtcity
     if (!name && !ll) return;
     const norm = s => String(s || '').normalize('NFKC').replace(/[\s　]+/g, '').toLowerCase();
     let tries = 0;
