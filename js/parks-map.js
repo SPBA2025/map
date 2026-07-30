@@ -284,12 +284,12 @@ function ruOpenItem(it) {
   if (!it.news) showParkModal(it.obj);   // お知らせは該当エリアへの移動のみ
 }
 
-/* ── サイドバー「最近の更新」（最大5件） ── */
+/* ── サイドバー「最近の更新」（最大15件・6件目以降はスクロール） ── */
 function renderRecentUpdates(items) {
   const box = document.getElementById('recent-updates');
   const ul  = document.getElementById('recent-updates-list');
   if (!box || !ul) return;
-  const top = items.slice(0, 5);
+  const top = items.slice(0, 15);
   if (!top.length) { box.style.display = 'none'; return; }
   ul.innerHTML = top.map((it, i) => {
     const d = it.t ? new Date(it.t) : null;
@@ -320,7 +320,7 @@ function renderRecentUpdates(items) {
    × か項目タップで閉じ、閉じた時点より新しい更新が来るまで再表示しない（localStorage）。 */
 const RU_SEEN_KEY = 'ru_seen';
 function renderUpdateSplash(items) {
-  const top = items.slice(0, 3);
+  const top = items.slice(0, 8);   // 4件目以降はカード内スクロールで見られる
   if (!top.length) return;
   const newest = top[0].t || 0;
   let seen = 0;
