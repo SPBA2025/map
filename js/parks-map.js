@@ -191,10 +191,41 @@ async function initMap() {
   loadGasData();
   // 地域コンテンツ（イベント/チーム案内/広告）取得（同・ノンブロッキング）
   loadLocalContent();
+  // ディープリンク: ?park=名前 でその公園のモーダルを開く（承認ページ「マップで確認」用）
+  handleParkDeepLink();
   } catch(err) {
     console.error('initMap エラー:', err);
     document.getElementById('map').innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:#6a6a6a;font-size:13px"><span class="msi" style="font-size:36px;color:#c45500">warning</span><div>地図の読み込みに失敗しました</div><div style="font-size:11px;color:#aaa">${escHtml(err.message)}</div></div>`;
   }
+}
+
+/* ── ディープリンク: ?park=名前 → 該当公園へ移動してモーダルを開く ──
+   対象は 登録済みピン / 確認中(pending) / GAS承認済み。データの非同期取得を
+   待つ必要があるため、見つかるまで最大約10秒ポーリングする。 */
+function handleParkDeepLink() {
+  let name = '';
+  try { name = new URLSearchParams(location.search).get('park') || ''; } catch (e) {}
+  if (!name) return;
+  let tries = 0;
+  const attempt = () => {
+    tries++;
+    let info = null;
+    for (const m of Object.values(placesMarkers)) {
+      if (m._parkInfo && m._parkInfo.name === name) { info = m._parkInfo; break; }
+    }
+    if (!info && typeof pendingByName !== 'undefined' && pendingByName[name]) info = pendingByName[name];
+    if (!info && typeof curated !== 'undefined' && curated[name] && curated[name].lat) info = curated[name];
+    if (info) {
+      if (info.lat && info.lng && typeof map !== 'undefined' && map) {
+        map.panTo({ lat: info.lat, lng: info.lng });
+        if (map.getZoom() < 15) map.setZoom(15);
+      }
+      showParkModal(info);
+      return;
+    }
+    if (tries < 14) setTimeout(attempt, 700);
+  };
+  setTimeout(attempt, 600);
 }
 
 /* ═══════════════════════════════════════════════
