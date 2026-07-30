@@ -484,7 +484,7 @@
     if (p.type === 'new') {
       if (p.lat !== '' && p.lat != null && p.lng !== '' && p.lng != null) href = 'team.html?ll=' + p.lat + ',' + p.lng;
     } else if (p.name) {
-      href = 'team.html?team=' + encodeURIComponent(p.name) + (p.city ? '&city=' + encodeURIComponent(p.city) : '');
+      href = 'team.html?team=' + encodeURIComponent(p.name) + (p.city ? '&tcity=' + encodeURIComponent(p.city) : '');
     }
     if (!href) return '';
     return '<div class="pc-muni"><span class="msi">location_on</span><span class="pc-muni-txt">' + esc(p.city || '') + '</span>' +
@@ -494,7 +494,7 @@
   // 履歴カード用: リンクのみ（承認済みチームはマップに反映済みなのでチーム名で開ける）
   function teamMapRowLink(p) {
     if (!p || !p.name) return '';
-    var href = 'team.html?team=' + encodeURIComponent(p.name) + (p.city ? '&city=' + encodeURIComponent(p.city) : '');
+    var href = 'team.html?team=' + encodeURIComponent(p.name) + (p.city ? '&tcity=' + encodeURIComponent(p.city) : '');
     return '<a class="pc-maplink" href="' + href + '" target="_blank" rel="noopener"><span class="msi">map</span>マップで確認</a>';
   }
 
