@@ -154,6 +154,8 @@ window.onerror=function(msg,src,line,col,err){
   return false;
 };
 window.initMap = function() {
+  // ディープリンク（initMap外のhandleTeamDeepLink）から参照するため公開（関数宣言は巻き上げ済み）
+  window.__teamPopupHTML = teamPopupHTML;
   // ─── InfoWindow 排他制御 ───
   // 同時に複数のポップアップが表示されないよう、 すべての InfoWindow を追跡し
   // 新しい open() が呼ばれたら他を自動的に close する
@@ -392,7 +394,7 @@ window.initMap = function() {
       }
     }
   } catch(e) {}
-  const map = new google.maps.Map(document.getElementById('map'), {
+  const map = window.__gmap = new google.maps.Map(document.getElementById('map'), {
     center: initialCenter,
     zoom: initialZoom,
     mapId: 'DEMO_MAP_ID',
@@ -3507,6 +3509,60 @@ window.initMap = function() {
         }
       })
       .catch(function(e){ console.warn('teamOverrides', e); });
+  })();
+
+  // ══════════════════════════════════════════
+  // ディープリンク（承認ページ「マップで確認」用）
+  //   ?team=名前&city=市区町村 → 該当チームのポップアップを開く
+  //   ?ll=緯度,経度            → その地点へ移動（新規チーム提案の位置確認）
+  // ══════════════════════════════════════════
+  function openTeamOnMap(t) {
+    const map = window.__gmap;                 // initMap内で公開された地図本体
+    if (!map || !window.__teamPopupHTML) return false;
+    const pin = teamPinLayers.find(l => l._teamName === t.name);
+    if (pin) {
+      map.setCenter(pin.position); map.setZoom(15);
+      setTimeout(() => {
+        const _iw = new google.maps.InfoWindow({ content: window.__teamPopupHTML(t) });
+        _iw.open({ map, anchor: pin });
+      }, 350);
+      return true;
+    }
+    const ce = (useWardView ? [...wardData, ...cityData.filter(x => x.city !== 'さいたま市')] : cityData)
+      .find(x => x.city === t.city);
+    if (ce) {
+      map.setCenter({ lat: ce.lat, lng: ce.lng }); map.setZoom(13);
+      setTimeout(() => {
+        const _iw = new google.maps.InfoWindow({ content: window.__teamPopupHTML(t) });
+        _iw.setPosition(new google.maps.LatLng(ce.lat, ce.lng));
+        _iw.open(map);
+      }, 350);
+      return true;
+    }
+    return false;
+  }
+  (function handleTeamDeepLink() {
+    let q = null;
+    try { q = new URLSearchParams(location.search); } catch (e) { return; }
+    const name = q.get('team'), city = q.get('city') || '', ll = q.get('ll');
+    if (!name && !ll) return;
+    const norm = s => String(s || '').normalize('NFKC').replace(/[\s　]+/g, '').toLowerCase();
+    let tries = 0;
+    const attempt = () => {
+      tries++;
+      if (!name && ll) {
+        const map = window.__gmap;
+        const p = ll.split(',').map(Number);
+        if (map && isFinite(p[0]) && isFinite(p[1])) { map.setCenter({ lat: p[0], lng: p[1] }); map.setZoom(16); }
+        else if (!map && tries < 10) setTimeout(attempt, 700);
+        return;
+      }
+      const t = teamData.find(x => norm(x.name) === norm(name) && (!city || norm(x.city) === norm(city)))
+             || teamData.find(x => norm(x.name) === norm(name));
+      if (t && openTeamOnMap(t)) return;
+      if (tries < 10) setTimeout(attempt, 700);   // 差分オーバーレイの取得待ち
+    };
+    setTimeout(attempt, 900);
   })();
 
   // ── アナリティクス: 外部SNSリンク・チームリスト項目クリックを捕捉 ──

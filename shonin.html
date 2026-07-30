@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#1b2842">
-<title>公園マップ 承認ページ（事務局用）</title>
+<title>マップ承認ページ（公園・チーム／事務局用）</title>
 <!-- Material Symbols (Rounded) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -97,6 +97,16 @@
   .btn-reject{color:var(--spba-red);background:var(--surface-1);border-color:#f3c4c9}
   .btn-reject:hover:not(:disabled){background:#fdecee}
 
+
+  /* ── 市区町村＋マップで確認 ── */
+  .pc-muni{display:flex;align-items:center;gap:6px;padding:0 16px 12px;font-size:12px;color:var(--ink-3)}
+  .pc-muni>.msi{font-size:15px}
+  .pc-muni-txt{font-weight:600;color:var(--ink-2)}
+  .pc-maplink{margin-left:auto;display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:var(--action);text-decoration:none;border:1px solid var(--border);border-radius:8px;padding:4px 10px;background:var(--surface-1)}
+  .pc-maplink:hover{background:var(--surface-2)}
+  .pc-maplink .msi{font-size:14px}
+  .hist-meta .pc-maplink{margin-left:10px}
+
   /* ── 画像ライトボックス ── */
   #lightbox{position:fixed;inset:0;background:rgba(0,0,0,0.86);z-index:9999;display:none;align-items:center;justify-content:center;padding:20px;cursor:zoom-out}
   #lightbox.open{display:flex}
@@ -159,7 +169,7 @@
 <header id="admin-header">
   <span class="ah-logo"><span class="msi">verified_user</span></span>
   <div>
-    <div class="ah-title">公園マップ 承認ページ <span class="ah-sub">事務局用</span></div>
+    <div class="ah-title">マップ承認ページ <span class="ah-sub">公園・チーム／事務局用</span></div>
   </div>
   <span class="ah-spacer"></span>
   <button class="ah-refresh" id="refresh-btn" type="button" style="display:none">
@@ -207,6 +217,7 @@
 <!-- 画像ライトボックス -->
 <div id="lightbox"><img src="" alt="拡大写真"></div>
 
-<script src="js/shonin.js?v=20260710b"></script>
+<script src="data/saitama-muni.js?v=20260618"></script>
+<script src="js/shonin.js?v=20260721"></script>
 </body>
 </html>

@@ -213,6 +213,7 @@
     $('empty-state').style.display = 'none';
     setStatus('公園 承認待ち ' + items.length + ' 件', false);
     list.innerHTML = items.map(renderParkCard).join('');
+    fillMunis();
   }
 
   function renderParkCard(p) {
@@ -256,15 +257,44 @@
       ? '<button class="pc-btn btn-reject" type="button" onclick="window.__adminRejectNewer(\'' + nameAttr + '\',' + (parseInt(p.since, 10) || 0) + ',this)"><span class="msi">block</span>新着のみ却下</button>'
       : '<button class="pc-btn btn-reject" type="button" onclick="window.__adminReject(\'' + nameAttr + '\',this)"><span class="msi">block</span>却下</button>';
 
+    var hasLL = (p.lat && p.lng);
+    var mapRow =
+      '<div class="pc-muni"><span class="msi">location_on</span>' +
+        '<span class="pc-muni-txt"' + (hasLL ? ' data-ll="' + p.lat + ',' + p.lng + '"' : '') + '>' + (hasLL ? '市区町村を取得中…' : '位置情報なし') + '</span>' +
+        '<a class="pc-maplink" href="parks.html?park=' + encodeURIComponent(name) + '" target="_blank" rel="noopener"><span class="msi">map</span>マップで確認</a>' +
+      '</div>';
+
     return '' +
       '<div class="park-card" data-name="' + nameEsc + '">' +
         '<div class="pc-head">' +
           '<div class="pc-name">' + nameEsc + '</div>' +
           badge +
         '</div>' +
-        updateHint + votes + notes + photos +
+        updateHint + votes + notes + photos + mapRow +
         '<div class="pc-actions">' + approveBtn + rejectBtn + '</div>' +
       '</div>';
+  }
+
+  // ── 市区町村の解決（GSI逆ジオコーディング → SAITAMA_MUNI。承認カード用） ──
+  var _muniCache = {};
+  function fillMunis() {
+    document.querySelectorAll('.pc-muni-txt[data-ll]').forEach(function (el) {
+      var ll = el.getAttribute('data-ll');
+      el.removeAttribute('data-ll');
+      if (_muniCache[ll]) { el.textContent = _muniCache[ll]; return; }
+      var parts = ll.split(',');
+      var lat = parseFloat(parts[0]), lng = parseFloat(parts[1]);
+      if (!isFinite(lat) || !lat) { el.textContent = '位置情報なし'; return; }
+      fetch('https://mreversegeocoder.gsi.go.jp/reverse-geocoder/LonLatToAddress?lat=' + lat + '&lon=' + lng)
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          var cd = j && j.results && j.results.muniCd;
+          var name = (window.SAITAMA_MUNI && window.SAITAMA_MUNI[cd]) || '';
+          el.textContent = name || '市区町村不明';
+          if (name) _muniCache[ll] = name;
+        })
+        .catch(function () { el.textContent = '市区町村不明'; });
+    });
   }
 
   window.__adminApprove = function (name, btn) {
@@ -358,7 +388,8 @@
       }).join('') + '</div>';
     }
     var when = fmtDate(p.approvedAt);
-    var meta = '<div class="hist-meta"><span class="msi">event</span>' + (when ? '承認: ' + when : '承認日時の記録なし（履歴機能の追加前）') + '</div>';
+    var meta = '<div class="hist-meta"><span class="msi">event</span>' + (when ? '承認: ' + when : '承認日時の記録なし（履歴機能の追加前）') +
+      '<a class="pc-maplink" href="parks.html?park=' + encodeURIComponent(p.name || '') + '" target="_blank" rel="noopener"><span class="msi">map</span>マップで確認</a></div>';
     return '' +
       '<div class="park-card">' +
         '<div class="pc-head">' +
@@ -447,6 +478,26 @@
     list.innerHTML = items.map(renderTeamCard).join('');
   }
 
+  // チームカードの「マップで確認」行（修正=チーム名で検索して開く／新規=座標へ移動）
+  function teamMapRow(p) {
+    var href = '';
+    if (p.type === 'new') {
+      if (p.lat !== '' && p.lat != null && p.lng !== '' && p.lng != null) href = 'team.html?ll=' + p.lat + ',' + p.lng;
+    } else if (p.name) {
+      href = 'team.html?team=' + encodeURIComponent(p.name) + (p.city ? '&city=' + encodeURIComponent(p.city) : '');
+    }
+    if (!href) return '';
+    return '<div class="pc-muni"><span class="msi">location_on</span><span class="pc-muni-txt">' + esc(p.city || '') + '</span>' +
+      '<a class="pc-maplink" href="' + href + '" target="_blank" rel="noopener"><span class="msi">map</span>マップで確認</a></div>';
+  }
+
+  // 履歴カード用: リンクのみ（承認済みチームはマップに反映済みなのでチーム名で開ける）
+  function teamMapRowLink(p) {
+    if (!p || !p.name) return '';
+    var href = 'team.html?team=' + encodeURIComponent(p.name) + (p.city ? '&city=' + encodeURIComponent(p.city) : '');
+    return '<a class="pc-maplink" href="' + href + '" target="_blank" rel="noopener"><span class="msi">map</span>マップで確認</a>';
+  }
+
   function teamRow(label, val) {
     if (val == null || val === '') return '';
     return '<div class="tc-row"><span class="tc-k">' + esc(label) + '</span><span class="tc-v">' + esc(val) + '</span></div>';
@@ -514,6 +565,7 @@
         snsRow +
         coordBlock +
         submitterBlock +
+        teamMapRow(p) +
         '<div class="pc-actions">' +
           '<button class="pc-btn btn-approve" type="button" onclick="window.__teamApprove(\'' + ts + '\',this)">' +
             '<span class="msi">check</span>承認して反映</button>' +
@@ -630,7 +682,7 @@
         '</div>' +
         (fields ? '<div class="tc-fields">' + fields + '</div>' : '') +
         snsRow +
-        '<div class="hist-meta"><span class="msi">event</span>' + (when ? '承認: ' + when : '承認日時なし') + '</div>' +
+        '<div class="hist-meta"><span class="msi">event</span>' + (when ? '承認: ' + when : '承認日時なし') + teamMapRowLink(p) + '</div>' +
       '</div>';
   }
 
