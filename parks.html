@@ -93,7 +93,7 @@
 </script>
 <link rel="stylesheet" href="css/tokens.css?v=20260612">
 <link rel="stylesheet" href="css/common.css?v=20260613b">
-<link rel="stylesheet" href="css/parks-map.css?v=20260717">
+<link rel="stylesheet" href="css/parks-map.css?v=20260722">
 </head>
 <body data-page="park">
 
@@ -349,7 +349,7 @@
     <!-- 最近の更新（GAS liveデータから。無ければ非表示） -->
     <div class="s-section" id="recent-updates" style="display:none;padding-left:0;padding-right:0">
       <div class="s-title" style="padding:0 14px">最近の更新</div>
-      <ul id="recent-updates-list" style="list-style:none;margin:0;padding:0"></ul>
+      <ul id="recent-updates-list" style="list-style:none;margin:0;padding:0;max-height:240px;overflow-y:auto;overscroll-behavior:contain"></ul>
     </div>
 
     <!-- この地域の情報（イベント/チーム・スクール案内/広告。該当なしなら非表示） -->
@@ -390,7 +390,7 @@
   </div>
 </div>
 
-<script src="js/parks-map.js?v=20260721"></script>
+<script src="js/parks-map.js?v=20260722"></script>
 
 <!-- モバイルボトムナビ -->
 <div id="parks-bnav">
