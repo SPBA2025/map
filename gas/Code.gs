@@ -53,12 +53,13 @@ function doPost(e) {
       if (c.lng >= 0 && d.lng) row[c.lng] = d.lng;
       sheet.appendRow(row);
       _publishVoteState(name);   // しきい値を満たせば自動で承認済みデータへ反映
+      invalidateLiveCache_();
       return _json({ ok: true });
     }
-    if (d.action === 'approve') { return _json(approveByName(d.name, d.token)); }
-    if (d.action === 'reject') { return _json(rejectSubmission(d.name, d.ts, d.token)); }
-    if (d.action === 'rejectPark') { return _json(rejectAllPending_(d.name, d.token)); }
-    if (d.action === 'rejectNewer') { return _json(rejectNewer_(d.name, d.after, d.token)); }
+    if (d.action === 'approve') { const r = approveByName(d.name, d.token); invalidateLiveCache_(); return _json(r); }
+    if (d.action === 'reject') { const r = rejectSubmission(d.name, d.ts, d.token); invalidateLiveCache_(); return _json(r); }
+    if (d.action === 'rejectPark') { const r = rejectAllPending_(d.name, d.token); invalidateLiveCache_(); return _json(r); }
+    if (d.action === 'rejectNewer') { const r = rejectNewer_(d.name, d.after, d.token); invalidateLiveCache_(); return _json(r); }
     return _json({ ok: false, error: 'unknown action' });
   } catch (err) {
     return _json({ ok: false, error: String(err) });
@@ -219,7 +220,7 @@ function doGet(e) {
 
   let result;
   if (action === 'live' || action === 'aggregate') {
-    result = getLiveParks();         // 公開済＋確認中
+    result = getLiveParksCached();   // 公開済＋確認中（60秒キャッシュ。同時アクセス集中時のシート読み取り積み上がり防止）
   } else {
     result = getApprovedParks();     // 'approved' / デフォルト（従来互換）
   }
@@ -252,6 +253,17 @@ function getApprovedParks() {
   }
   return { parks, pending: [], updated: new Date().toISOString() };
 }
+
+// ═══ live のキャッシュ（60秒）。投票/承認/却下の書き込み直後は invalidateLiveCache_() で即時無効化 ═══
+function getLiveParksCached() {
+  const cache = CacheService.getScriptCache();
+  const hit = cache.get('liveParks');
+  if (hit) { try { return JSON.parse(hit); } catch (e) {} }
+  const res = getLiveParks();
+  try { cache.put('liveParks', JSON.stringify(res), 60); } catch (e) {}   // 100KB超等で失敗しても配信は継続
+  return res;
+}
+function invalidateLiveCache_() { try { CacheService.getScriptCache().remove('liveParks'); } catch (e) {} }
 
 // ═══ 公開済＋確認中(pending) を返す（リアルタイム反映の中核）═══
 function getLiveParks() {
