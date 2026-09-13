@@ -193,6 +193,18 @@ async function initMap() {
   loadLocalContent();
   // ディープリンク: ?park=名前 でその公園のモーダルを開く（承認ページ「マップで確認」用）
   handleParkDeepLink();
+  // ヘッダーの「チームマップ」リンク: 押した瞬間の地図中心を ?ll= で引き継ぐ（県全域表示のときは素のリンク）
+  const _siteCross = document.getElementById('site-cross');
+  if (_siteCross) {
+    const _carryCenter = () => {
+      try {
+        const c = map.getCenter();
+        if (c && map.getZoom() >= 11) _siteCross.href = 'team.html?ll=' + c.lat().toFixed(5) + ',' + c.lng().toFixed(5) + '&z=' + Math.min(map.getZoom(), 15);
+      } catch (e) {}
+    };
+    _siteCross.addEventListener('pointerdown', _carryCenter);
+    _siteCross.addEventListener('keydown', _carryCenter);
+  }
   } catch(err) {
     console.error('initMap エラー:', err);
     document.getElementById('map').innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:#6a6a6a;font-size:13px"><span class="msi" style="font-size:36px;color:#c45500">warning</span><div>地図の読み込みに失敗しました</div><div style="font-size:11px;color:#aaa">${escHtml(err.message)}</div></div>`;
@@ -203,8 +215,19 @@ async function initMap() {
    対象は 登録済みピン / 確認中(pending) / GAS承認済み。データの非同期取得を
    待つ必要があるため、見つかるまで最大約10秒ポーリングする。 */
 function handleParkDeepLink() {
-  let name = '';
-  try { name = new URLSearchParams(location.search).get('park') || ''; } catch (e) {}
+  let q = null;
+  try { q = new URLSearchParams(location.search); } catch (e) { return; }
+  const name = q.get('park') || '';
+  const ll = q.get('ll');
+  if (!name && ll) {
+    const pt = ll.split(',').map(Number);
+    const z = parseInt(q.get('z'), 10);
+    if (isFinite(pt[0]) && isFinite(pt[1]) && typeof map !== 'undefined' && map) {
+      map.setCenter({ lat: pt[0], lng: pt[1] });
+      map.setZoom(z >= 8 && z <= 19 ? z : 14);
+    }
+    return;
+  }
   if (!name) return;
   let tries = 0;
   const attempt = () => {
@@ -545,16 +568,23 @@ function onLocalCityChanged(city) {
 function renderLocalSplash(city) {
   if (!city) return;
   const items = lcItemsForCity(city, 2, 1);
-  if (!items.length) return;
+  const teamRow = splashTeamRowHtml(city);
+  if (!items.length && !teamRow) return;
   // 頻度制御: ①同一市町村はセッション1回 ②セッション合計2回まで
   let shown = [];
   try { shown = JSON.parse(sessionStorage.getItem('lc_shown_cities') || '[]'); } catch (e) {}
   if (shown.indexOf(city) >= 0 || _lcSplashCount >= 2) return;
   // ③×で閉じた後は、その市町村に新しいアイテムが出るまで再表示しない
-  const newest = Math.max.apply(null, items.map(it => Number(it.start) || 0));
-  let seen = 0;
-  try { seen = Number(localStorage.getItem('lc_seen_' + city)) || 0; } catch (e) {}
-  if (newest && newest <= seen) return;
+  const newest = items.length ? Math.max.apply(null, items.map(it => Number(it.start) || 0)) : 0;
+  let seen = 0, teamSeen = 0;
+  try {
+    seen = Number(localStorage.getItem('lc_seen_' + city)) || 0;
+    teamSeen = Number(localStorage.getItem('lc_team_seen_' + city)) || 0;
+  } catch (e) {}
+  const itemsOk = items.length > 0 && !(newest && newest <= seen);
+  const teamOk = !!teamRow && !(teamSeen && Date.now() - teamSeen < 7 * 864e5);
+  if (!itemsOk && !teamOk) return;
+  const showItems = itemsOk ? items : [];
   // ④「最近の更新」カード表示中・モーダル表示中は出さない（競合回避）
   if (document.getElementById('update-splash')) return;
   const pm = document.getElementById('park-modal');
@@ -566,13 +596,16 @@ function renderLocalSplash(city) {
   box.id = 'local-splash';
   box.innerHTML = `
     <div class="us-head"><span class="msi">location_on</span>${escHtml(city)}エリアの情報<button type="button" class="us-close" aria-label="閉じる">×</button></div>
-    <div class="lc-splash-list">${items.map(it => lcCardHtml(it, 'card')).join('')}</div>`;
+    <div class="lc-splash-list">${teamOk ? teamRow : ''}${showItems.map(it => lcCardHtml(it, 'card')).join('')}</div>`;
   document.body.appendChild(box);
   _lcSplashCount++;
   try { shown.push(city); sessionStorage.setItem('lc_shown_cities', JSON.stringify(shown)); } catch (e) {}
-  if (window.Analytics && window.Analytics.localContentImpression) window.Analytics.localContentImpression('card', items, city);
+  if (showItems.length && window.Analytics && window.Analytics.localContentImpression) window.Analytics.localContentImpression('card', showItems, city);
   const dismiss = () => {
-    try { localStorage.setItem('lc_seen_' + city, String(newest || Date.now())); } catch (e) {}
+    try {
+      if (itemsOk) localStorage.setItem('lc_seen_' + city, String(newest || Date.now()));
+      if (teamOk) localStorage.setItem('lc_team_seen_' + city, String(Date.now()));
+    } catch (e) {}
     box.classList.remove('on');
     setTimeout(() => box.remove(), 250);
   };
@@ -589,6 +622,99 @@ document.addEventListener('click', e => {
   const item = { id: card.dataset.lcId, kind: card.dataset.lcKind, url: card.href || '' };
   if (window.Analytics.localContentClick) window.Analytics.localContentClick(card.dataset.lcPlacement, item, _lcCurrentCity);
   if (item.url && window.Analytics.externalLink) window.Analytics.externalLink(item.url, 'local_' + item.kind);
+});
+
+/* ═══════════════════════════════════════════════
+   公園 → 少年野球チーム の導線（キャッチボールから野球チームへのファネル）
+   data/teams-lite.js（実グラウンド座標を持つ少年野球チーム）から近隣チームを出す。
+   露出面: 公園モーダル（ティーザー＋ブロック）／投票完了メッセージ／地域カード（自動表示）
+═══════════════════════════════════════════════ */
+const XTEAM_RADIUS_KM = 4;
+
+function xteamKm(lat1, lng1, lat2, lng2) {
+  const R = 6371, dLat = (lat2 - lat1) * Math.PI / 180, dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+/* 地点から半径 radiusKm 以内の少年野球チームを近い順に（TEAMS_LITE 未読込なら空） */
+function nearbyTeams(lat, lng, radiusKm, limit) {
+  if (!Array.isArray(window.TEAMS_LITE) || !lat || !lng) return [];
+  const out = [];
+  for (const r of window.TEAMS_LITE) {
+    const d = xteamKm(lat, lng, r[2], r[3]);
+    if (d <= radiusKm) out.push({ name: r[0], city: r[1], place: r[4], g: r[5], b: r[6], d });
+  }
+  out.sort((a, b) => a.d - b.d);
+  return limit ? out.slice(0, limit) : out;
+}
+
+function xteamDist(d) { return d < 1 ? (Math.round(d * 100) * 10) + 'm' : d.toFixed(1) + 'km'; }
+function xteamHref(t) { return 'team.html?team=' + encodeURIComponent(t.name) + '&tcity=' + encodeURIComponent(t.city); }
+function xteamTags(t) {
+  return (t.g === 'f' ? '<span class="xteam-tag">女子</span>' : t.g === 'x' ? '<span class="xteam-tag">男女混合</span>' : '') +
+         (t.b === 'h' ? '<span class="xteam-tag">硬式</span>' : '');
+}
+
+/* モーダル上部のティーザー（開けば必ず目に入る位置。タップで下のブロックへスクロール） */
+function nearbyTeamsTeaserHtml(park) {
+  if (!park || !park.lat || !park.lng) return '';
+  const n = nearbyTeams(park.lat, park.lng, XTEAM_RADIUS_KM).length;
+  if (!n) return '';
+  return `<a class="xteam-teaser" href="#xteam-block" data-xteam-scroll="1">
+    <span class="msi">sports_baseball</span><span>この公園から${XTEAM_RADIUS_KM}km以内に <b>少年野球チームが${n}チーム</b></span><span class="msi">expand_more</span></a>`;
+}
+
+/* モーダル内「近くの少年野球チーム」ブロック（0件でも周辺を見る導線は残す） */
+function nearbyTeamsBlockHtml(park) {
+  if (!park || !park.lat || !park.lng || !Array.isArray(window.TEAMS_LITE)) return '';
+  const list = nearbyTeams(park.lat, park.lng, XTEAM_RADIUS_KM, 3);
+  const rows = list.map(t => `<a class="xteam-row" href="${escHtml(xteamHref(t))}" data-xteam="modal" data-xteam-name="${escHtml(t.name)}" data-xteam-city="${escHtml(t.city)}">
+      <span class="xteam-name">${escHtml(t.name)}${xteamTags(t)}</span>
+      <span class="xteam-meta">${escHtml(t.place)} ・ ${xteamDist(t.d)}</span>
+    </a>`).join('');
+  const empty = list.length ? '' : `<div class="xteam-empty">${XTEAM_RADIUS_KM}km以内に登録された少年野球チームは見つかりませんでした。</div>`;
+  const moreHref = 'team.html?ll=' + Number(park.lat).toFixed(5) + ',' + Number(park.lng).toFixed(5) + '&z=13';
+  return `<div class="xteam-block" id="xteam-block">
+    <div class="xteam-title"><span class="msi">sports_baseball</span>キャッチボールの次は、野球チームへ</div>
+    <div class="xteam-sub">この公園の近くの少年野球チーム（${XTEAM_RADIUS_KM}km以内）。見学・体験を受け付けているチームもあります。</div>
+    ${rows}${empty}
+    <a class="xteam-more" href="${escHtml(moreHref)}" data-xteam="modal_more">チームマップでこの周辺を見る<span class="msi">arrow_forward</span></a>
+  </div>`;
+}
+
+/* 地域カード（自動表示）用のチーム行。地域コンテンツの掲載がない市でも出る＝全市町村でプッシュ露出 */
+function splashTeamRowHtml(city) {
+  if (!city || !Array.isArray(window.TEAMS_LITE)) return '';
+  const inCity = window.TEAMS_LITE.filter(r => r[1] === city || r[1].indexOf(city) === 0);
+  if (!inCity.length) return '';
+  let nearest = null;
+  try {
+    const c = map.getCenter();
+    inCity.forEach(r => { const d = xteamKm(c.lat(), c.lng(), r[2], r[3]); if (!nearest || d < nearest.d) nearest = { name: r[0], d }; });
+  } catch (e) {}
+  const href = 'team.html?city=' + encodeURIComponent(city);
+  return `<a class="lc-card xteam-card" href="${escHtml(href)}" data-xteam="splash" data-xteam-city="${escHtml(city)}">
+    <div class="lc-body">
+      <div class="lc-head"><span class="lc-kind lc-kind-school"><span class="msi">sports_baseball</span>野球をはじめよう</span></div>
+      <div class="lc-title">${escHtml(city)}の少年野球チーム ${inCity.length}チーム</div>
+      <div class="lc-desc">${nearest ? '近く：' + escHtml(nearest.name) + '（' + xteamDist(nearest.d) + '）。' : ''}見学・体験を受け付けているチームもあります</div>
+    </div></a>`;
+}
+
+/* ファネル導線のクリック: ティーザーはブロックへスクロール、それ以外は計測（placement = modal / modal_more / vote / splash） */
+document.addEventListener('click', e => {
+  const teaser = e.target.closest('[data-xteam-scroll]');
+  if (teaser) {
+    e.preventDefault();
+    const b = document.getElementById('xteam-block');
+    if (b) b.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (window.Analytics && window.Analytics.listItemClick) window.Analytics.listItemClick('xteam_teaser', { id: '', name: '' });
+    return;
+  }
+  const a = e.target.closest('[data-xteam]');
+  if (!a || !window.Analytics || !window.Analytics.listItemClick) return;
+  window.Analytics.listItemClick('xteam_' + a.dataset.xteam, { id: '', name: a.dataset.xteamName || '', city: a.dataset.xteamCity || '' });
 });
 
 /* ── 確認中(pending)の報告 ── */
@@ -879,6 +1005,13 @@ window.parkQuickVote = function (vote) {
   if (window.Analytics) window.Analytics.infoMissingReport('park_vote:' + vote, 'quick_vote');
   if (row) row.querySelectorAll('button').forEach(function (b) { b.disabled = true; b.style.opacity = '0.5'; b.style.cursor = 'default'; });
   if (msg) { msg.style.display = 'block'; msg.style.color = '#00a854'; msg.innerHTML = '<span class="msi" style="font-size:13px;vertical-align:-2px">check_circle</span> 投票ありがとうございます！数件集まると地図に反映されます。'; }
+  try {
+    const nt = (park.lat && park.lng) ? nearbyTeams(park.lat, park.lng, 6, 1)[0] : null;
+    if (msg && nt) {
+      msg.insertAdjacentHTML('beforeend', `<a class="xteam-vote" href="${escHtml(xteamHref(nt))}" data-xteam="vote" data-xteam-name="${escHtml(nt.name)}" data-xteam-city="${escHtml(nt.city)}">
+        <span class="msi">sports_baseball</span><span>キャッチボールの次は野球チームへ！近くの少年野球チーム：<b>${escHtml(nt.name)}</b>（${xteamDist(nt.d)}）</span><span class="msi">arrow_forward</span></a>`);
+    }
+  } catch (e) {}
   if (window.Toast) Toast.show('投票ありがとうございます！', { type: 'success' });
 };
 function uploadToCloudinary(file) {
@@ -960,6 +1093,7 @@ function renderModalContent(park, toilet, parking) {
       <span class="msi" style="font-size:22px">${cbIcon}</span>
       <span style="font-weight:700;font-size:13px">${cbText}</span>
     </div>
+    ${nearbyTeamsTeaserHtml(park)}
     <div class="park-row">
       <span class="park-row-label">住所</span>
       <span class="park-row-value" id="modal-addr"><a href="${escHtml(gmapUrl)}" target="_blank" style="color:var(--action);text-decoration:none">${escHtml(park.address || park.city || '地図で見る')} ↗</a></span>
@@ -971,6 +1105,7 @@ function renderModalContent(park, toilet, parking) {
     ${park.updated ? `<div class="park-row"><span class="park-row-label">最終更新</span><span class="park-row-value">${new Date(park.updated).toLocaleDateString('ja-JP')}</span></div>` : ''}
     ${Array.isArray(park.events) && park.events.length ? `<div class="park-row"><span class="park-row-label">更新履歴</span><span class="park-row-value" style="line-height:1.7">${park.events.map(eventLabel).join('<br>')}</span></div>` : ''}
     ${park.photo ? `<div style="margin-top:12px;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px">${String(park.photo).split('|').map(s=>s.trim()).filter(u=>/^https?:\/\//.test(u)).map(u=>`<img src="${escHtml(cloudinaryThumb(u,300))}" alt="${escHtml(park.name)}の写真" loading="lazy" data-photo-url="${escHtml(u)}" onclick="openPhotoLightbox(this.dataset.photoUrl)" style="height:150px;flex:0 0 auto;border-radius:8px;cursor:zoom-in;display:block" title="タップで拡大">`).join('')}</div>` : ''}
+    ${nearbyTeamsBlockHtml(park)}
     ${lcModalBlockHtml(park)}
     <div style="margin-top:16px;border:1px solid var(--border);border-radius:12px;overflow:hidden">
       <div style="padding:9px 14px;font-size:11px;line-height:1.55;color:var(--ink-2);background:rgba(0,168,84,0.07);border-bottom:1px solid var(--border)">
