@@ -704,6 +704,7 @@ window.initMap = function() {
   update();
   // 初期表示を埼玉県全域にフィット（サイドバー幅考慮）
   const _fitSaitama = () => {
+    if (window.__deepLinkView) return;   // ?team= / ?ll= で開いた場合は指定位置を優先（上書きしない）
     const sidebarW = !isMobile() ? 280 : 0;
     map.fitBounds(SAITAMA_BOUNDS, {
       left: sidebarW + 10, top: 10, right: 10, bottom: 10
@@ -1589,6 +1590,29 @@ window.initMap = function() {
   function _escHtml(v){
     return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
+  // チーム → 近くのキャッチボールできる公園。活動場所の実座標（PLACE_COORDS）があるチームだけ出す
+  // （市中心の代表座標から「近く」を出すと別地域の公園を案内してしまうため）
+  function _nearbyParksHtml(t){
+    try {
+      if (typeof parkData === 'undefined' || !t || !t.place) return '';
+      const pc = window.PLACE_COORDS && window.PLACE_COORDS[t.place];
+      if (!pc) return '';
+      const km = (a, b, c, d) => {
+        const R = 6371, x = (c - a) * Math.PI / 180, y = (d - b) * Math.PI / 180;
+        const h = Math.sin(x / 2) ** 2 + Math.cos(a * Math.PI / 180) * Math.cos(c * Math.PI / 180) * Math.sin(y / 2) ** 2;
+        return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+      };
+      const list = parkData.filter(p => p.catchball === true && p.lat && p.lng)
+        .map(p => ({ p, d: km(pc[0], pc[1], p.lat, p.lng) }))
+        .filter(x => x.d <= 3).sort((a, b) => a.d - b.d).slice(0, 2);
+      if (!list.length) return '';
+      const e = _escHtml;
+      return `<div class="pu-parks" style="margin:8px 0 2px;padding:8px 10px;border-radius:9px;background:rgba(0,168,84,0.07);border:1px solid rgba(0,168,84,0.25)">
+        <div style="font-size:11px;font-weight:700;color:#00854a;margin-bottom:4px;display:flex;align-items:center;gap:4px"><span class="msi" style="font-size:14px">park</span>近くのキャッチボールできる公園</div>
+        ${list.map(x => `<a href="parks.html?park=${encodeURIComponent(x.p.name)}" data-xpark="${e(x.p.name)}" style="display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--ink);text-decoration:none;padding:3px 0"><span style="font-weight:600">${e(x.p.name)}</span><span style="color:var(--ink-3);white-space:nowrap">${x.d < 1 ? Math.round(x.d * 100) * 10 + 'm' : x.d.toFixed(1) + 'km'}</span></a>`).join('')}
+      </div>`;
+    } catch (err) { return ''; }
+  }
   function teamPopupHTML(t){
     // 空欄判定: '-', '', null, undefined はすべて非表示
     // 空欄・システム内部メモは非表示
@@ -1642,6 +1666,7 @@ window.initMap = function() {
       </div>`:''}
       ${snsLinks ? `<div class="pu-sns-row">${snsLinks}</div>` : ''}
       ${hasNote  ? `<div class="team-popup-note">${e(t.note)}</div>` : ''}
+      ${_nearbyParksHtml(t)}
       <div class="pu-foot">
         <a href="javascript:void(0)" class="pu-report" data-team-name="${e(t.name)}" data-city="${e(t.city)}" data-lat="${t.lat||''}" data-lng="${t.lng||''}" onclick="window.reportTeamInfo && window.reportTeamInfo(this.dataset.teamName, this.dataset.city, this.dataset.lat, this.dataset.lng)">
           <span class="msi" style="font-size:12px;vertical-align:-2px">edit_note</span>情報の修正を提案
@@ -3546,24 +3571,48 @@ window.initMap = function() {
     try { q = new URLSearchParams(location.search); } catch (e) { return; }
     const name = q.get('team'), city = q.get('tcity') || '', ll = q.get('ll');  // cityは共有機能の既存パラメータと衝突するためtcity
     if (!name && !ll) return;
+    window.__deepLinkView = true;   // 初期の県全域フィットを抑止（initMap の _fitSaitama が参照）
     const norm = s => String(s || '').normalize('NFKC').replace(/[\s　]+/g, '').toLowerCase();
+    const MAX_TRIES = 25;           // 遅い回線・端末でも地図とデータの準備を待つ（約17秒）
+    const giveUp = () => { window.__deepLinkView = false; if (window.resetMapView) window.resetMapView(); };
     let tries = 0;
     const attempt = () => {
       tries++;
       if (!name && ll) {
         const map = window.__gmap;
         const p = ll.split(',').map(Number);
-        if (map && isFinite(p[0]) && isFinite(p[1])) { map.setCenter({ lat: p[0], lng: p[1] }); map.setZoom(16); }
-        else if (!map && tries < 10) setTimeout(attempt, 700);
+        const z = parseInt(q.get('z'), 10);
+        if (map && isFinite(p[0]) && isFinite(p[1])) { map.setCenter({ lat: p[0], lng: p[1] }); map.setZoom(z >= 8 && z <= 19 ? z : 16); }
+        else if (!map && tries < MAX_TRIES) setTimeout(attempt, 700);
+        else giveUp();
         return;
       }
       const t = teamData.find(x => norm(x.name) === norm(name) && (!city || norm(x.city) === norm(city)))
              || teamData.find(x => norm(x.name) === norm(name));
       if (t && openTeamOnMap(t)) return;
-      if (tries < 10) setTimeout(attempt, 700);   // 差分オーバーレイの取得待ち
+      if (tries < MAX_TRIES) setTimeout(attempt, 700);   // 地図・差分オーバーレイの準備待ち
+      else giveUp();
     };
     setTimeout(attempt, 900);
   })();
+
+  (function carryCenterToParks() {
+    const sc = document.getElementById('site-cross');
+    if (!sc) return;
+    const upd = () => {
+      try {
+        const m = window.__gmap;
+        const c = m && m.getCenter();
+        if (c && m.getZoom() >= 11) sc.href = 'parks.html?ll=' + c.lat().toFixed(5) + ',' + c.lng().toFixed(5) + '&z=' + Math.min(m.getZoom(), 15);
+      } catch (e) {}
+    };
+    sc.addEventListener('pointerdown', upd);
+    sc.addEventListener('keydown', upd);
+  })();
+  document.addEventListener('click', function(e) {
+    const a = e.target.closest('[data-xpark]');
+    if (a && window.Analytics && window.Analytics.listItemClick) window.Analytics.listItemClick('xpark_popup', { id: '', name: a.dataset.xpark || '' });
+  });
 
   // ── アナリティクス: 外部SNSリンク・チームリスト項目クリックを捕捉 ──
   document.addEventListener('click', function(e) {
