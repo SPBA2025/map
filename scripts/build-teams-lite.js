@@ -39,8 +39,8 @@ function loadPlaceCoords() {
   return new Function('return (' + m[1] + ');')();
 }
 
-// さいたま市の区は市単位にそろえる
-const muniOf = city => String(city || '').replace(/^(さいたま市).*$/, '$1');
+// さいたま市の区は市単位にそろえる。teams-data.js の旧名「白岡町」（2012年市制）は白岡市として扱う
+const muniOf = city => String(city || '').replace(/^(さいたま市).*$/, '$1').replace(/^白岡町$/, '白岡市');
 
 // 活動場所名から設置自治体を取り出す（「戸田市立喜沢小学校」→「戸田市」。なければ null）
 function placeMuni(place) {
