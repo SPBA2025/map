@@ -24,7 +24,7 @@ const cityData = [
   {city:'入間市',lat:35.854,lng:139.391,region:'西部',children:6246,elem_m:122,elem_f:6,jhs_m:220,jhs_f:6,hs_m:152,hs_f:13,univ_m:0,univ_f:0,club_m:182,club_f:0},
   {city:'狭山市',lat:35.853,lng:139.412,region:'西部',children:5959,elem_m:266,elem_f:22,jhs_m:277,jhs_f:2,hs_m:137,hs_f:15,univ_m:0,univ_f:0,club_m:696,club_f:2},
   {city:'飯能市',lat:35.856,lng:139.33,region:'西部',children:3486,elem_m:202,elem_f:7,jhs_m:97,jhs_f:2,hs_m:118,hs_f:6,univ_m:0,univ_f:0,club_m:128,club_f:0},
-  {city:'日高市',lat:35.907,lng:139.32,region:'西部',children:1695,elem_m:0,elem_f:0,jhs_m:85,jhs_f:2,hs_m:4,hs_f:0,univ_m:0,univ_f:0,club_m:24,club_f:1},
+  {city:'日高市',lat:35.907,lng:139.32,region:'西部',children:2215,elem_m:0,elem_f:0,jhs_m:85,jhs_f:2,hs_m:4,hs_f:0,univ_m:0,univ_f:0,club_m:24,club_f:1},
   {city:'毛呂山町',lat:35.933,lng:139.31,region:'西部',children:1012,elem_m:24,elem_f:2,jhs_m:73,jhs_f:2,hs_m:44,hs_f:2,univ_m:0,univ_f:0,club_m:14,club_f:0},
   {city:'越生町',lat:35.96,lng:139.291,region:'西部',children:320,elem_m:4,elem_f:0,jhs_m:11,jhs_f:0,hs_m:79,hs_f:5,univ_m:0,univ_f:0,club_m:45,club_f:0},
   {city:'鶴ヶ島市',lat:35.937,lng:139.391,region:'西部',children:2935,elem_m:0,elem_f:0,jhs_m:81,jhs_f:4,hs_m:33,hs_f:3,univ_m:0,univ_f:0,club_m:86,club_f:0},
@@ -37,7 +37,7 @@ const cityData = [
   {city:'川島町',lat:36.003,lng:139.474,region:'西部',children:651,elem_m:49,elem_f:7,jhs_m:0,jhs_f:0,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
   {city:'吉見町',lat:36.046,lng:139.454,region:'西部',children:568,elem_m:26,elem_f:0,jhs_m:16,jhs_f:0,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
   {city:'鳩山町',lat:35.99,lng:139.34,region:'西部',children:396,elem_m:5,elem_f:0,jhs_m:11,jhs_f:2,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
-  {city:'春日部市',lat:35.975,lng:139.753,region:'東部',children:9225,elem_m:299,elem_f:43,jhs_m:330,jhs_f:8,hs_m:248,hs_f:19,univ_m:136,univ_f:4,club_m:594,club_f:1},
+  {city:'春日部市',lat:35.975,lng:139.753,region:'東部',children:9349,elem_m:299,elem_f:43,jhs_m:330,jhs_f:8,hs_m:248,hs_f:19,univ_m:136,univ_f:4,club_m:594,club_f:1},
   {city:'久喜市',lat:36.063,lng:139.668,region:'東部',children:6619,elem_m:200,elem_f:22,jhs_m:191,jhs_f:6,hs_m:99,hs_f:9,univ_m:0,univ_f:0,club_m:362,club_f:0},
   {city:'幸手市',lat:36.081,lng:139.727,region:'東部',children:1791,elem_m:64,elem_f:8,jhs_m:34,jhs_f:1,hs_m:4,hs_f:0,univ_m:0,univ_f:0,club_m:136,club_f:5},
   {city:'白岡市',lat:36.02,lng:139.674,region:'東部',children:2622,elem_m:88,elem_f:4,jhs_m:41,jhs_f:2,hs_m:21,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
@@ -339,7 +339,7 @@ window.initMap = function() {
         <div class="pu-row pu-row-sub"><span>　女子</span><span>${fem}人</span></div>`:''}
         <div class="pu-cat-grid">${catGrid}</div>
         <div class="pu-row pu-row-sub" style="font-size:10px;border-top:1px solid rgba(15,30,58,0.06);padding-top:4px;">
-          <span>児童数（公立小学校在籍）</span><span style="color:#999;">${childStr}</span>
+          <span>児童数（公立小学校・義務教育学校1〜6年）</span><span style="color:#999;">${childStr}</span>
         </div>
         ${thisRate !== null ? `
         <div class="pu-rate-cmp">
@@ -2563,7 +2563,7 @@ window.initMap = function() {
     rateArea.innerHTML = rate !== null
       ? `<div class="chart-rate-box">
            <div class="chart-rate-num">${rate.toFixed(1)}%</div>
-           <div class="chart-rate-label">小学生参加率<br><span style="font-size:9px;">児童数 ${d.children.toLocaleString()}人（令和7年度学校便覧）</span></div>
+           <div class="chart-rate-label">小学生参加率<br><span style="font-size:9px;">児童数 ${d.children.toLocaleString()}人（令和7年度学校便覧・義務教育学校1〜6年を含む）</span></div>
          </div>` : '';
     const total = CHART_CATS.reduce((s,c)=>(s+(d[c+'_m']||0)+(d[c+'_f']||0)), 0);
     document.getElementById('chart-sub').textContent = `合計 ${total}人`;
