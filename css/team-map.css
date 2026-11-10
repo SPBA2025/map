@@ -178,6 +178,10 @@ input:focus-visible{outline-offset:0}
 .rank-item.top3-item .rank-bar-fill{background:var(--action)}
 .rank-cmp-btn{background:none;border:none;font-size:13px;cursor:pointer;padding:0 2px;opacity:.4;transition:.15s;flex-shrink:0}
 .rank-cmp-btn:hover{opacity:1}
+/* ランキング下の「登録チームなし」一覧（行の部品は .rank-item を流用） */
+#rank-noteam{margin-top:6px;border-top:1px solid var(--border)}
+.rank-noteam-title{font-size:10px;color:var(--ink-3);font-weight:600;padding:8px 10px 2px}
+.rank-val.rank-noteam-val{font-size:10px;font-weight:400;color:var(--ink-3)}
 
 /* ── TEAM FILTER ── */
 .team-filter-row{display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:11px;color:var(--ink-2)}

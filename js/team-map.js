@@ -2,90 +2,97 @@
 // 依存: data/teams-data.js, data/geo-cities.js, data/geo-wards.js（先に読み込まれていること）
 // ── データ（カテゴリ×性別）──────────────────────
 const cityData = [
-  {city:'さいたま市',lat:35.861,lng:139.645,region:'南部',children:68557,elem_m:2344,elem_f:142,jhs_m:1776,jhs_f:58,hs_m:1015,hs_f:118,univ_m:0,univ_f:0,club_m:1997,club_f:27},
-  {city:'川口市',lat:35.806,lng:139.724,region:'南部',children:28152,elem_m:714,elem_f:50,jhs_m:533,jhs_f:13,hs_m:200,hs_f:10,univ_m:0,univ_f:0,club_m:831,club_f:9},
-  {city:'草加市',lat:35.826,lng:139.807,region:'南部',children:11002,elem_m:431,elem_f:59,jhs_m:242,jhs_f:1,hs_m:88,hs_f:18,univ_m:0,univ_f:0,club_m:196,club_f:1},
-  {city:'越谷市',lat:35.889,lng:139.79,region:'南部',children:16949,elem_m:647,elem_f:69,jhs_m:539,jhs_f:11,hs_m:262,hs_f:39,univ_m:0,univ_f:0,club_m:1314,club_f:3},
-  {city:'八潮市',lat:35.82,lng:139.84,region:'南部',children:4267,elem_m:115,elem_f:16,jhs_m:100,jhs_f:2,hs_m:19,hs_f:3,univ_m:0,univ_f:0,club_m:73,club_f:0},
-  {city:'三郷市',lat:35.834,lng:139.877,region:'南部',children:7341,elem_m:82,elem_f:9,jhs_m:127,jhs_f:6,hs_m:35,hs_f:0,univ_m:0,univ_f:0,club_m:109,club_f:1},
-  {city:'吉川市',lat:35.892,lng:139.842,region:'南部',children:3896,elem_m:124,elem_f:17,jhs_m:79,jhs_f:1,hs_m:3,hs_f:0,univ_m:0,univ_f:0,club_m:284,club_f:0},
-  {city:'松伏町',lat:35.928,lng:139.834,region:'南部',children:1127,elem_m:38,elem_f:2,jhs_m:38,jhs_f:3,hs_m:1,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
-  {city:'蕨市',lat:35.826,lng:139.68,region:'南部',children:3168,elem_m:72,elem_f:4,jhs_m:88,jhs_f:0,hs_m:83,hs_f:10,univ_m:0,univ_f:0,club_m:23,club_f:0},
-  {city:'戸田市',lat:35.817,lng:139.677,region:'南部',children:7664,elem_m:228,elem_f:18,jhs_m:202,jhs_f:4,hs_m:30,hs_f:5,univ_m:0,univ_f:0,club_m:1135,club_f:15},
-  {city:'朝霞市',lat:35.794,lng:139.594,region:'南部',children:7703,elem_m:212,elem_f:13,jhs_m:108,jhs_f:4,hs_m:54,hs_f:6,univ_m:0,univ_f:0,club_m:846,club_f:6},
-  {city:'志木市',lat:35.834,lng:139.575,region:'南部',children:4086,elem_m:123,elem_f:7,jhs_m:73,jhs_f:40,hs_m:151,hs_f:2,univ_m:0,univ_f:0,club_m:39,club_f:0},
-  {city:'新座市',lat:35.794,lng:139.563,region:'南部',children:8288,elem_m:180,elem_f:20,jhs_m:220,jhs_f:5,hs_m:161,hs_f:15,univ_m:134,univ_f:8,club_m:239,club_f:4},
-  {city:'和光市',lat:35.78,lng:139.606,region:'南部',children:4257,elem_m:226,elem_f:23,jhs_m:126,jhs_f:9,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:160,club_f:1},
-  {city:'富士見市',lat:35.858,lng:139.549,region:'南部',children:5493,elem_m:38,elem_f:4,jhs_m:182,jhs_f:1,hs_m:21,hs_f:2,univ_m:0,univ_f:0,club_m:61,club_f:24},
-  {city:'ふじみ野市',lat:35.881,lng:139.521,region:'南部',children:5772,elem_m:19,elem_f:0,jhs_m:127,jhs_f:0,hs_m:32,hs_f:0,univ_m:0,univ_f:0,club_m:529,club_f:23},
-  {city:'三芳町',lat:35.851,lng:139.525,region:'南部',children:1738,elem_m:32,elem_f:2,jhs_m:35,jhs_f:2,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:20,club_f:0},
-  {city:'川越市',lat:35.925,lng:139.486,region:'西部',children:16490,elem_m:111,elem_f:4,jhs_m:575,jhs_f:9,hs_m:622,hs_f:32,univ_m:90,univ_f:29,club_m:136,club_f:3},
-  {city:'所沢市',lat:35.799,lng:139.469,region:'西部',children:15174,elem_m:117,elem_f:6,jhs_m:357,jhs_f:3,hs_m:121,hs_f:16,univ_m:0,univ_f:0,club_m:129,club_f:1},
-  {city:'入間市',lat:35.854,lng:139.391,region:'西部',children:6246,elem_m:122,elem_f:6,jhs_m:220,jhs_f:6,hs_m:152,hs_f:13,univ_m:0,univ_f:0,club_m:182,club_f:0},
-  {city:'狭山市',lat:35.853,lng:139.412,region:'西部',children:5959,elem_m:266,elem_f:22,jhs_m:277,jhs_f:2,hs_m:137,hs_f:15,univ_m:0,univ_f:0,club_m:696,club_f:2},
-  {city:'飯能市',lat:35.856,lng:139.33,region:'西部',children:3486,elem_m:202,elem_f:7,jhs_m:97,jhs_f:2,hs_m:118,hs_f:6,univ_m:0,univ_f:0,club_m:128,club_f:0},
-  {city:'日高市',lat:35.907,lng:139.32,region:'西部',children:2215,elem_m:0,elem_f:0,jhs_m:85,jhs_f:2,hs_m:4,hs_f:0,univ_m:0,univ_f:0,club_m:24,club_f:1},
-  {city:'毛呂山町',lat:35.933,lng:139.31,region:'西部',children:1012,elem_m:24,elem_f:2,jhs_m:73,jhs_f:2,hs_m:44,hs_f:2,univ_m:0,univ_f:0,club_m:14,club_f:0},
-  {city:'越生町',lat:35.96,lng:139.291,region:'西部',children:320,elem_m:4,elem_f:0,jhs_m:11,jhs_f:0,hs_m:79,hs_f:5,univ_m:0,univ_f:0,club_m:45,club_f:0},
-  {city:'鶴ヶ島市',lat:35.937,lng:139.391,region:'西部',children:2935,elem_m:0,elem_f:0,jhs_m:81,jhs_f:4,hs_m:33,hs_f:3,univ_m:0,univ_f:0,club_m:86,club_f:0},
-  {city:'坂戸市',lat:35.957,lng:139.402,region:'西部',children:4307,elem_m:97,elem_f:3,jhs_m:122,jhs_f:2,hs_m:124,hs_f:10,univ_m:107,univ_f:0,club_m:117,club_f:0},
-  {city:'東松山市',lat:36.042,lng:139.401,region:'西部',children:4355,elem_m:168,elem_f:6,jhs_m:161,jhs_f:4,hs_m:161,hs_f:1,univ_m:0,univ_f:0,club_m:125,club_f:0},
-  {city:'滑川町',lat:36.063,lng:139.411,region:'西部',children:1291,elem_m:30,elem_f:5,jhs_m:38,jhs_f:2,hs_m:59,hs_f:6,univ_m:0,univ_f:0,club_m:0,club_f:0},
-  {city:'嵐山町',lat:36.061,lng:139.327,region:'西部',children:654,elem_m:18,elem_f:3,jhs_m:73,jhs_f:1,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
-  {city:'小川町',lat:36.055,lng:139.262,region:'西部',children:822,elem_m:25,elem_f:3,jhs_m:25,jhs_f:2,hs_m:4,hs_f:1,univ_m:0,univ_f:0,club_m:0,club_f:0},
-  {city:'ときがわ町',lat:36.023,lng:139.276,region:'西部',children:339,elem_m:12,elem_f:1,jhs_m:30,jhs_f:1,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:41,club_f:3},
-  {city:'川島町',lat:36.003,lng:139.474,region:'西部',children:651,elem_m:49,elem_f:7,jhs_m:0,jhs_f:0,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
-  {city:'吉見町',lat:36.046,lng:139.454,region:'西部',children:568,elem_m:26,elem_f:0,jhs_m:16,jhs_f:0,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
-  {city:'鳩山町',lat:35.99,lng:139.34,region:'西部',children:396,elem_m:5,elem_f:0,jhs_m:11,jhs_f:2,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
-  {city:'春日部市',lat:35.975,lng:139.753,region:'東部',children:9349,elem_m:299,elem_f:43,jhs_m:330,jhs_f:8,hs_m:248,hs_f:19,univ_m:136,univ_f:4,club_m:594,club_f:1},
-  {city:'久喜市',lat:36.063,lng:139.668,region:'東部',children:6619,elem_m:200,elem_f:22,jhs_m:191,jhs_f:6,hs_m:99,hs_f:9,univ_m:0,univ_f:0,club_m:362,club_f:0},
-  {city:'幸手市',lat:36.081,lng:139.727,region:'東部',children:1791,elem_m:64,elem_f:8,jhs_m:34,jhs_f:1,hs_m:4,hs_f:0,univ_m:0,univ_f:0,club_m:136,club_f:5},
-  {city:'白岡市',lat:36.02,lng:139.674,region:'東部',children:2622,elem_m:88,elem_f:4,jhs_m:41,jhs_f:2,hs_m:21,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
-  {city:'宮代町',lat:36.02,lng:139.728,region:'東部',children:1534,elem_m:55,elem_f:6,jhs_m:18,jhs_f:0,hs_m:13,hs_f:4,univ_m:0,univ_f:0,club_m:40,club_f:0},
-  {city:'杉戸町',lat:36.025,lng:139.769,region:'東部',children:1718,elem_m:109,elem_f:14,jhs_m:8,jhs_f:1,hs_m:101,hs_f:10,univ_m:0,univ_f:0,club_m:0,club_f:0},
-  {city:'蓮田市',lat:35.994,lng:139.658,region:'東部',children:2584,elem_m:76,elem_f:18,jhs_m:56,jhs_f:3,hs_m:19,hs_f:0,univ_m:0,univ_f:0,club_m:410,club_f:2},
-  {city:'上尾市',lat:35.977,lng:139.595,region:'東部',children:10705,elem_m:350,elem_f:37,jhs_m:259,jhs_f:7,hs_m:130,hs_f:10,univ_m:0,univ_f:0,club_m:23,club_f:0},
-  {city:'伊奈町',lat:35.99,lng:139.625,region:'東部',children:2217,elem_m:88,elem_f:16,jhs_m:31,jhs_f:2,hs_m:147,hs_f:12,univ_m:0,univ_f:0,club_m:0,club_f:0},
-  {city:'桶川市',lat:36.002,lng:139.554,region:'東部',children:3364,elem_m:96,elem_f:10,jhs_m:56,jhs_f:2,hs_m:26,hs_f:1,univ_m:0,univ_f:0,club_m:36,club_f:0},
-  {city:'北本市',lat:36.026,lng:139.527,region:'東部',children:2524,elem_m:124,elem_f:10,jhs_m:51,jhs_f:14,hs_m:21,hs_f:2,univ_m:0,univ_f:0,club_m:70,club_f:0},
-  {city:'鴻巣市',lat:36.066,lng:139.521,region:'東部',children:5241,elem_m:219,elem_f:18,jhs_m:201,jhs_f:6,hs_m:28,hs_f:2,univ_m:0,univ_f:0,club_m:125,club_f:1},
-  {city:'加須市',lat:36.131,lng:139.601,region:'東部',children:4820,elem_m:179,elem_f:33,jhs_m:117,jhs_f:20,hs_m:184,hs_f:36,univ_m:73,univ_f:27,club_m:361,club_f:38},
-  {city:'羽生市',lat:36.175,lng:139.548,region:'東部',children:2296,elem_m:104,elem_f:7,jhs_m:40,jhs_f:0,hs_m:3,hs_f:3,univ_m:0,univ_f:0,club_m:31,club_f:0},
-  {city:'行田市',lat:36.138,lng:139.455,region:'東部',children:3138,elem_m:104,elem_f:8,jhs_m:131,jhs_f:3,hs_m:15,hs_f:1,univ_m:0,univ_f:0,club_m:445,club_f:6},
-  {city:'熊谷市',lat:36.147,lng:139.389,region:'北部',children:8351,elem_m:226,elem_f:14,jhs_m:325,jhs_f:16,hs_m:203,hs_f:12,univ_m:84,univ_f:4,club_m:666,club_f:3},
-  {city:'深谷市',lat:36.198,lng:139.28,region:'北部',children:6437,elem_m:245,elem_f:18,jhs_m:126,jhs_f:11,hs_m:129,hs_f:22,univ_m:0,univ_f:0,club_m:546,club_f:4},
-  {city:'本庄市',lat:36.241,lng:139.189,region:'北部',children:3462,elem_m:164,elem_f:28,jhs_m:136,jhs_f:8,hs_m:178,hs_f:12,univ_m:0,univ_f:0,club_m:341,club_f:5},
-  {city:'美里町',lat:36.198,lng:139.387,region:'北部',children:459,elem_m:9,elem_f:6,jhs_m:14,jhs_f:0,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
-  {city:'神川町',lat:36.233,lng:139.109,region:'北部',children:479,elem_m:16,elem_f:4,jhs_m:12,jhs_f:0,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
-  {city:'上里町',lat:36.244,lng:139.218,region:'北部',children:1326,elem_m:39,elem_f:6,jhs_m:54,jhs_f:2,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
-  {city:'寄居町',lat:36.119,lng:139.196,region:'北部',children:1201,elem_m:104,elem_f:10,jhs_m:13,jhs_f:0,hs_m:5,hs_f:4,univ_m:0,univ_f:0,club_m:98,club_f:0},
-  {city:'秩父市',lat:35.991,lng:139.086,region:'秩父',children:2429,elem_m:99,elem_f:5,jhs_m:87,jhs_f:0,hs_m:31,hs_f:4,univ_m:0,univ_f:0,club_m:180,club_f:4},
-  {city:'横瀬町',lat:35.993,lng:139.115,region:'秩父',children:307,elem_m:34,elem_f:1,jhs_m:21,jhs_f:1,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
-  {city:'皆野町',lat:36.072,lng:139.111,region:'秩父',children:343,elem_m:15,elem_f:0,jhs_m:18,jhs_f:0,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
-  {city:'長瀞町',lat:36.108,lng:139.119,region:'秩父',children:226,elem_m:13,elem_f:1,jhs_m:13,jhs_f:0,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
-  {city:'小鹿野町',lat:36.021,lng:139.027,region:'秩父',children:303,elem_m:21,elem_f:2,jhs_m:24,jhs_f:0,hs_m:10,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
-  {city:'東秩父村',lat:36.068,lng:139.183,region:'秩父',children:57,elem_m:0,elem_f:0,jhs_m:0,jhs_f:0,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
+  {city:'さいたま市',lat:35.861,lng:139.645,region:'南部',children:68557,students:31401,elem_m:2344,elem_f:142,jhs_m:1776,jhs_f:58,hs_m:1015,hs_f:118,univ_m:0,univ_f:0,club_m:1997,club_f:27},
+  {city:'川口市',lat:35.806,lng:139.724,region:'南部',children:28152,students:13538,elem_m:714,elem_f:50,jhs_m:533,jhs_f:13,hs_m:200,hs_f:10,univ_m:0,univ_f:0,club_m:831,club_f:9},
+  {city:'草加市',lat:35.826,lng:139.807,region:'南部',children:11002,students:5563,elem_m:431,elem_f:59,jhs_m:242,jhs_f:1,hs_m:88,hs_f:18,univ_m:0,univ_f:0,club_m:196,club_f:1},
+  {city:'越谷市',lat:35.889,lng:139.79,region:'南部',children:16949,students:8293,elem_m:647,elem_f:69,jhs_m:539,jhs_f:11,hs_m:262,hs_f:39,univ_m:0,univ_f:0,club_m:1314,club_f:3},
+  {city:'八潮市',lat:35.82,lng:139.84,region:'南部',children:4267,students:2058,elem_m:115,elem_f:16,jhs_m:100,jhs_f:2,hs_m:19,hs_f:3,univ_m:0,univ_f:0,club_m:73,club_f:0},
+  {city:'三郷市',lat:35.834,lng:139.877,region:'南部',children:7341,students:3256,elem_m:82,elem_f:9,jhs_m:127,jhs_f:6,hs_m:35,hs_f:0,univ_m:0,univ_f:0,club_m:109,club_f:1},
+  {city:'吉川市',lat:35.892,lng:139.842,region:'南部',children:3896,students:2010,elem_m:124,elem_f:17,jhs_m:79,jhs_f:1,hs_m:3,hs_f:0,univ_m:0,univ_f:0,club_m:284,club_f:0},
+  {city:'松伏町',lat:35.928,lng:139.834,region:'南部',children:1127,students:669,elem_m:38,elem_f:2,jhs_m:38,jhs_f:3,hs_m:1,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
+  {city:'蕨市',lat:35.826,lng:139.68,region:'南部',children:3168,students:1451,elem_m:72,elem_f:4,jhs_m:88,jhs_f:0,hs_m:83,hs_f:10,univ_m:0,univ_f:0,club_m:23,club_f:0},
+  {city:'戸田市',lat:35.817,lng:139.677,region:'南部',children:7664,students:3696,elem_m:228,elem_f:18,jhs_m:202,jhs_f:4,hs_m:30,hs_f:5,univ_m:0,univ_f:0,club_m:1135,club_f:15},
+  {city:'朝霞市',lat:35.794,lng:139.594,region:'南部',children:7703,students:3453,elem_m:212,elem_f:13,jhs_m:108,jhs_f:4,hs_m:54,hs_f:6,univ_m:0,univ_f:0,club_m:846,club_f:6},
+  {city:'志木市',lat:35.834,lng:139.575,region:'南部',children:4086,students:1802,elem_m:123,elem_f:7,jhs_m:73,jhs_f:40,hs_m:151,hs_f:2,univ_m:0,univ_f:0,club_m:39,club_f:0},
+  {city:'新座市',lat:35.794,lng:139.563,region:'南部',children:8288,students:4153,elem_m:180,elem_f:20,jhs_m:220,jhs_f:5,hs_m:161,hs_f:15,univ_m:134,univ_f:8,club_m:239,club_f:4},
+  {city:'和光市',lat:35.78,lng:139.606,region:'南部',children:4257,students:1895,elem_m:226,elem_f:23,jhs_m:126,jhs_f:9,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:160,club_f:1},
+  {city:'富士見市',lat:35.858,lng:139.549,region:'南部',children:5493,students:2711,elem_m:38,elem_f:4,jhs_m:182,jhs_f:1,hs_m:21,hs_f:2,univ_m:0,univ_f:0,club_m:61,club_f:24},
+  {city:'ふじみ野市',lat:35.881,lng:139.521,region:'南部',children:5772,students:2938,elem_m:19,elem_f:0,jhs_m:127,jhs_f:0,hs_m:32,hs_f:0,univ_m:0,univ_f:0,club_m:529,club_f:23},
+  {city:'三芳町',lat:35.851,lng:139.525,region:'南部',children:1738,students:946,elem_m:32,elem_f:2,jhs_m:35,jhs_f:2,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:20,club_f:0},
+  {city:'川越市',lat:35.925,lng:139.486,region:'西部',children:16490,students:8610,elem_m:111,elem_f:4,jhs_m:575,jhs_f:9,hs_m:622,hs_f:32,univ_m:90,univ_f:29,club_m:136,club_f:3},
+  {city:'所沢市',lat:35.799,lng:139.469,region:'西部',children:15174,students:7356,elem_m:117,elem_f:6,jhs_m:357,jhs_f:3,hs_m:121,hs_f:16,univ_m:0,univ_f:0,club_m:129,club_f:1},
+  {city:'入間市',lat:35.854,lng:139.391,region:'西部',children:6246,students:3302,elem_m:122,elem_f:6,jhs_m:220,jhs_f:6,hs_m:152,hs_f:13,univ_m:0,univ_f:0,club_m:182,club_f:0},
+  {city:'狭山市',lat:35.853,lng:139.412,region:'西部',children:5959,students:3208,elem_m:266,elem_f:22,jhs_m:277,jhs_f:2,hs_m:137,hs_f:15,univ_m:0,univ_f:0,club_m:696,club_f:2},
+  {city:'飯能市',lat:35.856,lng:139.33,region:'西部',children:3486,students:1658,elem_m:202,elem_f:7,jhs_m:97,jhs_f:2,hs_m:118,hs_f:6,univ_m:0,univ_f:0,club_m:128,club_f:0},
+  {city:'日高市',lat:35.907,lng:139.32,region:'西部',children:2215,students:1328,elem_m:0,elem_f:0,jhs_m:85,jhs_f:2,hs_m:4,hs_f:0,univ_m:0,univ_f:0,club_m:24,club_f:1},
+  {city:'毛呂山町',lat:35.933,lng:139.31,region:'西部',children:1012,students:606,elem_m:24,elem_f:2,jhs_m:73,jhs_f:2,hs_m:44,hs_f:2,univ_m:0,univ_f:0,club_m:14,club_f:0},
+  {city:'越生町',lat:35.96,lng:139.291,region:'西部',children:320,students:216,elem_m:4,elem_f:0,jhs_m:11,jhs_f:0,hs_m:79,hs_f:5,univ_m:0,univ_f:0,club_m:45,club_f:0},
+  {city:'鶴ヶ島市',lat:35.937,lng:139.391,region:'西部',children:2935,students:1497,elem_m:0,elem_f:0,jhs_m:81,jhs_f:4,hs_m:33,hs_f:3,univ_m:0,univ_f:0,club_m:86,club_f:0},
+  {city:'坂戸市',lat:35.957,lng:139.402,region:'西部',children:4307,students:2457,elem_m:97,elem_f:3,jhs_m:122,jhs_f:2,hs_m:124,hs_f:10,univ_m:107,univ_f:0,club_m:117,club_f:0},
+  {city:'東松山市',lat:36.042,lng:139.401,region:'西部',children:4355,students:2154,elem_m:168,elem_f:6,jhs_m:161,jhs_f:4,hs_m:161,hs_f:1,univ_m:0,univ_f:0,club_m:125,club_f:0},
+  {city:'滑川町',lat:36.063,lng:139.411,region:'西部',children:1291,students:586,elem_m:30,elem_f:5,jhs_m:38,jhs_f:2,hs_m:59,hs_f:6,univ_m:0,univ_f:0,club_m:0,club_f:0},
+  {city:'嵐山町',lat:36.061,lng:139.327,region:'西部',children:654,students:330,elem_m:18,elem_f:3,jhs_m:73,jhs_f:1,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
+  {city:'小川町',lat:36.055,lng:139.262,region:'西部',children:822,students:484,elem_m:25,elem_f:3,jhs_m:25,jhs_f:2,hs_m:4,hs_f:1,univ_m:0,univ_f:0,club_m:0,club_f:0},
+  {city:'ときがわ町',lat:36.023,lng:139.276,region:'西部',children:339,students:204,elem_m:12,elem_f:1,jhs_m:30,jhs_f:1,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:41,club_f:3},
+  {city:'川島町',lat:36.003,lng:139.474,region:'西部',children:651,students:374,elem_m:49,elem_f:7,jhs_m:0,jhs_f:0,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
+  {city:'吉見町',lat:36.046,lng:139.454,region:'西部',children:568,students:328,elem_m:26,elem_f:0,jhs_m:16,jhs_f:0,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
+  {city:'鳩山町',lat:35.99,lng:139.34,region:'西部',children:396,students:202,elem_m:5,elem_f:0,jhs_m:11,jhs_f:2,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
+  {city:'春日部市',lat:35.975,lng:139.753,region:'東部',children:9349,students:5104,elem_m:299,elem_f:43,jhs_m:330,jhs_f:8,hs_m:248,hs_f:19,univ_m:136,univ_f:4,club_m:594,club_f:1},
+  {city:'久喜市',lat:36.063,lng:139.668,region:'東部',children:6619,students:3316,elem_m:200,elem_f:22,jhs_m:191,jhs_f:6,hs_m:99,hs_f:9,univ_m:0,univ_f:0,club_m:362,club_f:0},
+  {city:'幸手市',lat:36.081,lng:139.727,region:'東部',children:1791,students:1081,elem_m:64,elem_f:8,jhs_m:34,jhs_f:1,hs_m:4,hs_f:0,univ_m:0,univ_f:0,club_m:136,club_f:5},
+  {city:'白岡市',lat:36.02,lng:139.674,region:'東部',children:2622,students:1249,elem_m:88,elem_f:4,jhs_m:41,jhs_f:2,hs_m:21,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
+  {city:'宮代町',lat:36.02,lng:139.728,region:'東部',children:1534,students:725,elem_m:55,elem_f:6,jhs_m:18,jhs_f:0,hs_m:13,hs_f:4,univ_m:0,univ_f:0,club_m:40,club_f:0},
+  {city:'杉戸町',lat:36.025,lng:139.769,region:'東部',children:1718,students:960,elem_m:109,elem_f:14,jhs_m:8,jhs_f:1,hs_m:101,hs_f:10,univ_m:0,univ_f:0,club_m:0,club_f:0},
+  {city:'蓮田市',lat:35.994,lng:139.658,region:'東部',children:2584,students:1345,elem_m:76,elem_f:18,jhs_m:56,jhs_f:3,hs_m:19,hs_f:0,univ_m:0,univ_f:0,club_m:410,club_f:2},
+  {city:'上尾市',lat:35.977,lng:139.595,region:'東部',children:10705,students:5218,elem_m:350,elem_f:37,jhs_m:259,jhs_f:7,hs_m:130,hs_f:10,univ_m:0,univ_f:0,club_m:23,club_f:0},
+  {city:'伊奈町',lat:35.99,lng:139.625,region:'東部',children:2217,students:1239,elem_m:88,elem_f:16,jhs_m:31,jhs_f:2,hs_m:147,hs_f:12,univ_m:0,univ_f:0,club_m:0,club_f:0},
+  {city:'桶川市',lat:36.002,lng:139.554,region:'東部',children:3364,students:1748,elem_m:96,elem_f:10,jhs_m:56,jhs_f:2,hs_m:26,hs_f:1,univ_m:0,univ_f:0,club_m:36,club_f:0},
+  {city:'北本市',lat:36.026,lng:139.527,region:'東部',children:2524,students:1312,elem_m:124,elem_f:10,jhs_m:51,jhs_f:14,hs_m:21,hs_f:2,univ_m:0,univ_f:0,club_m:70,club_f:0},
+  {city:'鴻巣市',lat:36.066,lng:139.521,region:'東部',children:5241,students:2672,elem_m:219,elem_f:18,jhs_m:201,jhs_f:6,hs_m:28,hs_f:2,univ_m:0,univ_f:0,club_m:125,club_f:1},
+  {city:'加須市',lat:36.131,lng:139.601,region:'東部',children:4820,students:2656,elem_m:179,elem_f:33,jhs_m:117,jhs_f:20,hs_m:184,hs_f:36,univ_m:73,univ_f:27,club_m:361,club_f:38},
+  {city:'羽生市',lat:36.175,lng:139.548,region:'東部',children:2296,students:1178,elem_m:104,elem_f:7,jhs_m:40,jhs_f:0,hs_m:3,hs_f:3,univ_m:0,univ_f:0,club_m:31,club_f:0},
+  {city:'行田市',lat:36.138,lng:139.455,region:'東部',children:3138,students:1729,elem_m:104,elem_f:8,jhs_m:131,jhs_f:3,hs_m:15,hs_f:1,univ_m:0,univ_f:0,club_m:445,club_f:6},
+  {city:'熊谷市',lat:36.147,lng:139.389,region:'北部',children:8351,students:4324,elem_m:226,elem_f:14,jhs_m:325,jhs_f:16,hs_m:203,hs_f:12,univ_m:84,univ_f:4,club_m:666,club_f:3},
+  {city:'深谷市',lat:36.198,lng:139.28,region:'北部',children:6437,students:3432,elem_m:245,elem_f:18,jhs_m:126,jhs_f:11,hs_m:129,hs_f:22,univ_m:0,univ_f:0,club_m:546,club_f:4},
+  {city:'本庄市',lat:36.241,lng:139.189,region:'北部',children:3462,students:1817,elem_m:164,elem_f:28,jhs_m:136,jhs_f:8,hs_m:178,hs_f:12,univ_m:0,univ_f:0,club_m:341,club_f:5},
+  {city:'美里町',lat:36.198,lng:139.387,region:'北部',children:459,students:248,elem_m:9,elem_f:6,jhs_m:14,jhs_f:0,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
+  {city:'神川町',lat:36.233,lng:139.109,region:'北部',children:479,students:282,elem_m:16,elem_f:4,jhs_m:12,jhs_f:0,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
+  {city:'上里町',lat:36.244,lng:139.218,region:'北部',children:1326,students:730,elem_m:39,elem_f:6,jhs_m:54,jhs_f:2,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
+  {city:'寄居町',lat:36.119,lng:139.196,region:'北部',children:1201,students:648,elem_m:104,elem_f:10,jhs_m:13,jhs_f:0,hs_m:5,hs_f:4,univ_m:0,univ_f:0,club_m:98,club_f:0},
+  {city:'秩父市',lat:35.991,lng:139.086,region:'秩父',children:2429,students:1331,elem_m:99,elem_f:5,jhs_m:87,jhs_f:0,hs_m:31,hs_f:4,univ_m:0,univ_f:0,club_m:180,club_f:4},
+  {city:'横瀬町',lat:35.993,lng:139.115,region:'秩父',children:307,students:172,elem_m:34,elem_f:1,jhs_m:21,jhs_f:1,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
+  {city:'皆野町',lat:36.072,lng:139.111,region:'秩父',children:343,students:211,elem_m:15,elem_f:0,jhs_m:18,jhs_f:0,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
+  {city:'長瀞町',lat:36.108,lng:139.119,region:'秩父',children:226,students:137,elem_m:13,elem_f:1,jhs_m:13,jhs_f:0,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
+  {city:'小鹿野町',lat:36.021,lng:139.027,region:'秩父',children:303,students:226,elem_m:21,elem_f:2,jhs_m:24,jhs_f:0,hs_m:10,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
+  {city:'東秩父村',lat:36.068,lng:139.183,region:'秩父',children:57,students:37,elem_m:0,elem_f:0,jhs_m:0,jhs_f:0,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
 ];
 const wardData = [
-  {city:'さいたま市西区',lat:35.868,lng:139.567,region:'南部',children:4976,elem_m:0,elem_f:0,jhs_m:83,jhs_f:1,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:14},
-  {city:'さいたま市北区',lat:35.908,lng:139.629,region:'南部',children:7130,elem_m:67,elem_f:4,jhs_m:189,jhs_f:39,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
-  {city:'さいたま市大宮区',lat:35.906,lng:139.624,region:'南部',children:6815,elem_m:467,elem_f:16,jhs_m:245,jhs_f:3,hs_m:383,hs_f:51,univ_m:0,univ_f:0,club_m:948,club_f:4},
-  {city:'さいたま市見沼区',lat:35.919,lng:139.658,region:'南部',children:7120,elem_m:75,elem_f:1,jhs_m:236,jhs_f:4,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
-  {city:'さいたま市中央区',lat:35.88,lng:139.622,region:'南部',children:4830,elem_m:184,elem_f:8,jhs_m:72,jhs_f:2,hs_m:65,hs_f:5,univ_m:0,univ_f:0,club_m:221,club_f:0},
-  {city:'さいたま市桜区',lat:35.852,lng:139.596,region:'南部',children:3964,elem_m:159,elem_f:20,jhs_m:93,jhs_f:1,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
-  {city:'さいたま市浦和区',lat:35.858,lng:139.642,region:'南部',children:10291,elem_m:884,elem_f:62,jhs_m:407,jhs_f:0,hs_m:484,hs_f:56,univ_m:0,univ_f:0,club_m:705,club_f:9},
-  {city:'さいたま市南区',lat:35.829,lng:139.64,region:'南部',children:10220,elem_m:196,elem_f:16,jhs_m:166,jhs_f:1,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:36,club_f:0},
-  {city:'さいたま市緑区',lat:35.859,lng:139.686,region:'南部',children:8950,elem_m:180,elem_f:7,jhs_m:151,jhs_f:0,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
-  {city:'さいたま市岩槻区',lat:35.946,lng:139.694,region:'南部',children:4261,elem_m:132,elem_f:8,jhs_m:134,jhs_f:7,hs_m:83,hs_f:6,univ_m:0,univ_f:0,club_m:87,club_f:0},
+  {city:'さいたま市西区',lat:35.868,lng:139.567,region:'南部',children:4976,students:2523,elem_m:0,elem_f:0,jhs_m:83,jhs_f:1,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:14},
+  {city:'さいたま市北区',lat:35.908,lng:139.629,region:'南部',children:7130,students:3750,elem_m:67,elem_f:4,jhs_m:189,jhs_f:39,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
+  {city:'さいたま市大宮区',lat:35.906,lng:139.624,region:'南部',children:6815,students:3053,elem_m:467,elem_f:16,jhs_m:245,jhs_f:3,hs_m:383,hs_f:51,univ_m:0,univ_f:0,club_m:948,club_f:4},
+  {city:'さいたま市見沼区',lat:35.919,lng:139.658,region:'南部',children:7120,students:3096,elem_m:75,elem_f:1,jhs_m:236,jhs_f:4,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
+  {city:'さいたま市中央区',lat:35.88,lng:139.622,region:'南部',children:4830,students:2264,elem_m:184,elem_f:8,jhs_m:72,jhs_f:2,hs_m:65,hs_f:5,univ_m:0,univ_f:0,club_m:221,club_f:0},
+  {city:'さいたま市桜区',lat:35.852,lng:139.596,region:'南部',children:3964,students:2458,elem_m:159,elem_f:20,jhs_m:93,jhs_f:1,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
+  {city:'さいたま市浦和区',lat:35.858,lng:139.642,region:'南部',children:10291,students:3508,elem_m:884,elem_f:62,jhs_m:407,jhs_f:0,hs_m:484,hs_f:56,univ_m:0,univ_f:0,club_m:705,club_f:9},
+  {city:'さいたま市南区',lat:35.829,lng:139.64,region:'南部',children:10220,students:4503,elem_m:196,elem_f:16,jhs_m:166,jhs_f:1,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:36,club_f:0},
+  {city:'さいたま市緑区',lat:35.859,lng:139.686,region:'南部',children:8950,students:3960,elem_m:180,elem_f:7,jhs_m:151,jhs_f:0,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
+  {city:'さいたま市岩槻区',lat:35.946,lng:139.694,region:'南部',children:4261,students:2286,elem_m:132,elem_f:8,jhs_m:134,jhs_f:7,hs_m:83,hs_f:6,univ_m:0,univ_f:0,club_m:87,club_f:0},
 ];
 const cityMap = {};
 cityData.forEach(d=>cityMap[d.city]=d);
 wardData.forEach(d=>cityMap[d.city]=d);
 const CATS = ['elem','jhs','hs','univ','club'];
 const CAT_JP = {elem:'小学生',jhs:'中学生',hs:'高校生',univ:'大学生',club:'企業・クラブ',independent:'独立'};
+// 参加率の対象カテゴリと分母（children=児童数、students=中学生数。いずれも令和7年度埼玉県学校便覧）
+const RATE_CATS = ['elem','jhs'];
+const RATE_BASE = {elem:'children',jhs:'students'};
+const RATE_BASE_JP = {elem:'児童数',jhs:'中学生数'};
+const NO_TEAM_LABEL = '登録チームなし';
+const NO_TEAM_COLOR = '#c9ced6'; // 色分け（参加率）で「登録チームなし」を塗る無彩色
 // ── 状態 ────────────────────────────────────────────
 let currentView     = 'plain';
 let currentIndex    = 'abs';
+let currentRateCat  = 'elem'; // 参加率の対象（elem=小学生 / jhs=中学生）
 let currentGender   = 'all';
 let activeCats      = new Set(['elem','jhs','hs','univ','club','independent']);
 const activeRegions = new Set(['南部','東部','西部','北部','秩父']); // 全地域固定
@@ -147,6 +154,7 @@ let _choroSortedCache = [];
 let _choroRateSortedCache = [];
 let teamData        = [];
 // 小学生参加率（%）= 小学生競技者数 ÷ 児童数
+// 中学生参加率（%）= 中学生競技者数 ÷ 中学生数
 // 現在の表示モード（abs/rate）に応じた値を返す
 // ── Map init ─────────────────────────────────────────
 window.onerror=function(msg,src,line,col,err){
@@ -242,12 +250,39 @@ window.initMap = function() {
   function calcVal(d){
     return calcValForCat(d, 'all');
   }
+  function calcRateFor(d, cat){
+    const base = d[RATE_BASE[cat]];
+    if(!base || base===0) return 0;
+    const n = (currentGender==='all')   ? (d[cat+'_m']||0)+(d[cat+'_f']||0)
+            : (currentGender==='male')  ? (d[cat+'_m']||0)
+            :                             (d[cat+'_f']||0);
+    return n / base * 100;
+  }
   function calcRate(d){
-    if(!d.children || d.children===0) return 0;
-    const elem = (currentGender==='all')   ? (d.elem_m||0)+(d.elem_f||0)
-               : (currentGender==='male')  ? (d.elem_m||0)
-               :                             (d.elem_f||0);
-    return elem / d.children * 100;
+    return calcRateFor(d, currentRateCat);
+  }
+  // 性別フィルターに関係なく全体で出す参加率（詳細グラフ・比較用）。分母がなければ null
+  function rateAll(d, cat){
+    const base = d[RATE_BASE[cat]];
+    return base ? ((d[cat+'_m']||0)+(d[cat+'_f']||0)) / base * 100 : null;
+  }
+  // 登録チームなし = 協議会のデータにそのカテゴリのチームが1件もなく、競技者数も0の市町村
+  // （チームが実際に無いとは限らないので、表示は必ず「登録チームなし」とする）
+  function hasNoTeam(d, cat){
+    if((d[cat+'_m']||0)+(d[cat+'_f']||0) > 0) return false;
+    const src = teamData.length ? teamData : (window.TEAM_DATA_RAW || []);
+    return !src.some(t => t.cat===cat && _cityMatch(t.city, d.city));
+  }
+  // 中学生チームの内訳（部活=中学校体育連盟に登録、クラブ=それ以外）
+  function jhsBreakdown(d){
+    const r = {bu:{n:0,p:0}, club:{n:0,p:0}};
+    teamData.forEach(t => {
+      if(t.cat!=='jhs' || !_cityMatch(t.city, d.city)) return;
+      const k = (t.league||'').includes('中学校体育連盟') ? 'bu' : 'club';
+      r[k].n++;
+      r[k].p += (t.male||0)+(t.female||0);
+    });
+    return r;
   }
   function getDisplayVal(d){
     return currentIndex==='rate' ? calcRate(d) : calcVal(d);
@@ -259,22 +294,30 @@ window.initMap = function() {
     const male=CATS.reduce((s,c)=>s+(activeCats.has(c)?d[c+'_m']||0:0),0);
     const fem =CATS.reduce((s,c)=>s+(activeCats.has(c)?d[c+'_f']||0:0),0);
     const gL=currentGender==='all'?'合計':currentGender==='male'?'男子':'女子';
-    const thisRate = d.children ? calcRate(d) : null;
-    const rateStr  = thisRate !== null ? thisRate.toFixed(1)+'%' : '－';
     const childStr = d.children ? d.children.toLocaleString()+'人' : '－';
-    // 県平均参加率（childrenデータのある市町村のみ）
+    const studentStr = d.students ? d.students.toLocaleString()+'人' : '－';
+    // 参加率（小学生・中学生）: この市町村の率・県平均・比較ゲージをカテゴリごとに求める
     const allBase = useWardView ? [...wardData,...cityData.filter(x=>x.city!=='さいたま市')] : cityData;
-    const withChildren = allBase.filter(x=>x.children>0);
-    const avgRate = withChildren.length
-      ? withChildren.reduce((s,x)=>s+calcRate(x),0)/withChildren.length : 0;
-    // 比較ゲージ用スケール（最大値）
-    const maxRate = Math.max(thisRate||0, avgRate, 1);
-    const thisW   = thisRate !== null ? Math.round(thisRate/maxRate*100) : 0;
-    const avgW    = Math.round(avgRate/maxRate*100);
-    const diff    = thisRate !== null ? (thisRate - avgRate) : null;
-    const diffStr = diff !== null
-      ? (diff>=0?'▲ +':'▼ ')+Math.abs(diff).toFixed(1)+'%（県平均比）' : '';
-    const diffColor = diff===null?'#888':diff>=0?'#059669':'#dc2626';
+    const rateInfo = {};
+    RATE_CATS.forEach(c => {
+      const rate = d[RATE_BASE[c]] ? calcRateFor(d, c) : null;
+      // 県平均参加率（分母データのある市町村のみ）
+      const withBase = allBase.filter(x=>x[RATE_BASE[c]]>0);
+      const avg = withBase.length
+        ? withBase.reduce((s,x)=>s+calcRateFor(x,c),0)/withBase.length : 0;
+      // 比較ゲージ用スケール（最大値）
+      const mx   = Math.max(rate||0, avg, 1);
+      const diff = rate !== null ? (rate - avg) : null;
+      rateInfo[c] = {
+        rate, avg, noTeam: hasNoTeam(d, c),
+        thisW: rate !== null ? Math.round(rate/mx*100) : 0,
+        avgW:  Math.round(avg/mx*100),
+        diffStr: diff !== null
+          ? (diff>=0?'▲ +':'▼ ')+Math.abs(diff).toFixed(1)+'%（県平均比）' : '',
+        diffColor: diff===null?'#888':diff>=0?'#059669':'#dc2626',
+      };
+    });
+    const thisRate = rateInfo[currentRateCat].rate;
     // フィルター連動・県内順位（人数）
     const _filtered = getFiltered();
     const _sortedForRank = [..._filtered].sort((a,b)=>getDisplayVal(b)-getDisplayVal(a));
@@ -284,11 +327,11 @@ window.initMap = function() {
     const _rankColor = _rank===1?'#d4a017':_rank===2?'#8a9aaa':_rank===3?'#b87333':'#555';
     const _rankLabel = _rank ? `第${_rank}位` : '－';
     const _rankMedal = _rank===1?'<span class="rank-medal gold">1</span>':_rank===2?'<span class="rank-medal silver">2</span>':_rank===3?'<span class="rank-medal bronze">3</span>':'';
-    // 参加率順位（小学生・childrenデータあり）
-    const _rateFiltered = _filtered.filter(x=>x.children>0);
+    // 参加率順位（表示中の参加率カテゴリ・分母データあり。登録チームなしの市町村には順位を付けない）
+    const _rateFiltered = _filtered.filter(x=>x[RATE_BASE[currentRateCat]]>0);
     const _rateSorted = [..._rateFiltered].sort((a,b)=>calcRate(b)-calcRate(a));
     const _rateRankIdx = _rateSorted.findIndex(x=>x.city===d.city);
-    const _rateRank = (thisRate!==null && _rateRankIdx>=0) ? _rateRankIdx+1 : null;
+    const _rateRank = (thisRate!==null && !rateInfo[currentRateCat].noTeam && _rateRankIdx>=0) ? _rateRankIdx+1 : null;
     const _rateRankTotal = _rateFiltered.length;
     const _rateRankColor = _rateRank===1?'#d4a017':_rateRank===2?'#8a9aaa':_rateRank===3?'#b87333':'#059669';
     const _rateRankMedal = _rateRank===1?'<span class="rank-medal gold">1</span>':_rateRank===2?'<span class="rank-medal silver">2</span>':_rateRank===3?'<span class="rank-medal bronze">3</span>':'';
@@ -319,17 +362,59 @@ window.initMap = function() {
         <div class="pu-cat-cell-lbl">${CAT_JP[c]} <span style="font-size:8px;color:#999;">▶</span></div>
       </div>`;
     }).join('');
+    // 参加率チップ（小学生・中学生）。登録チームなしは数字の代わりにその旨を出す
+    const RATE_COLORS={elem:'#3b82f6',jhs:'#059669'};
+    const rateChips = RATE_CATS.map(c => {
+      const r = rateInfo[c];
+      if (r.rate === null) return '';
+      return `
+          <div class="pu-rate-chip">
+            <span class="pu-rate-chip-label">${CAT_JP[c]}参加率</span>
+            <span class="pu-rate-chip-val"${r.noTeam?' style="color:var(--ink-3);"':''}>${r.noTeam ? NO_TEAM_LABEL : r.rate.toFixed(1)+'%'}</span>
+          </div>`;
+    }).join('');
+    // 中学生チームの内訳（部活・クラブ）。チームデータと突き合わせられる市町村だけ出す
+    const jb = jhsBreakdown(d);
+    const jhsRows = (jb.bu.n + jb.club.n) ? `
+          <div class="pu-row pu-row-sub" style="font-size:10px;margin-top:4px;"><span>部活（中体連）</span><span>${jb.bu.n}チーム・${jb.bu.p.toLocaleString()}人</span></div>
+          <div class="pu-row pu-row-sub" style="font-size:10px;"><span>クラブ</span><span>${jb.club.n}チーム・${jb.club.p.toLocaleString()}人</span></div>` : '';
+    // 参加率の県平均比較（小学生・中学生）
+    const rateCmp = RATE_CATS.map(c => {
+      const r = rateInfo[c];
+      if (r.rate === null) return '';
+      if (r.noTeam) return `
+        <div class="pu-rate-cmp">
+          <div class="pu-rate-cmp-title">${CAT_JP[c]}参加率</div>
+          <div style="font-size:12px;font-weight:700;color:var(--ink-2);">${NO_TEAM_LABEL}</div>
+          <div style="font-size:9px;color:var(--ink-3);margin-top:2px;line-height:1.5;">埼玉県野球協議会の2025年度データに${CAT_JP[c]}チームの登録がありません</div>
+        </div>`;
+      return `
+        <div class="pu-rate-cmp">
+          <div class="pu-rate-cmp-title">${CAT_JP[c]}参加率 県平均比較</div>
+          <div class="pu-rate-cmp-row">
+            <span class="pu-rate-cmp-lbl">この市町村</span>
+            <div class="pu-rate-cmp-bar">
+              <div class="pu-rate-cmp-fill" style="width:${r.thisW}%;background:${c==='elem'?'var(--action)':RATE_COLORS[c]};"></div>
+            </div>
+            <span class="pu-rate-cmp-val" style="color:${RATE_COLORS[c]};">${r.rate.toFixed(1)}%</span>
+          </div>
+          <div class="pu-rate-cmp-row">
+            <span class="pu-rate-cmp-lbl">県平均</span>
+            <div class="pu-rate-cmp-bar">
+              <div class="pu-rate-cmp-fill" style="width:${r.avgW}%;background:#c0cce0;"></div>
+            </div>
+            <span class="pu-rate-cmp-val" style="color:#999;">${r.avg.toFixed(1)}%</span>
+          </div>
+          <div class="pu-rate-diff" style="color:${r.diffColor};">${r.diffStr}</div>${c==='jhs' ? jhsRows : ''}
+        </div>`;
+    }).join('');
     return `<div class="city-popup-wrap" style="max-height:45vh !important;overflow:hidden !important;display:flex !important;flex-direction:column !important">
       <div class="pu-header">
         <div class="pu-city">${d.city}</div>
         <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:3px;">
           ${_rank ? `<span style="display:inline-flex;align-items:center;gap:2px;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;background:#eff6ff;color:${_rankColor};border:1px solid ${_rankColor}40;">${_rankMedal}人数 ${_rankLabel}<span style="font-size:8px;font-weight:400;color:#999;margin-left:1px;">/${_rankTotal}</span></span>` : ''}
-          ${_rateRank ? `<span style="display:inline-flex;align-items:center;gap:2px;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;background:#ecfdf5;color:${_rateRankColor};border:1px solid ${_rateRankColor}40;">${_rateRankMedal}参加率 第${_rateRank}位<span style="font-size:8px;font-weight:400;color:#999;margin-left:1px;">/${_rateRankTotal}</span></span>` : ''}
-          ${thisRate !== null ? `
-          <div class="pu-rate-chip">
-            <span class="pu-rate-chip-label">小学生参加率</span>
-            <span class="pu-rate-chip-val">${rateStr}</span>
-          </div>` : ''}
+          ${_rateRank ? `<span style="display:inline-flex;align-items:center;gap:2px;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;background:#ecfdf5;color:${_rateRankColor};border:1px solid ${_rateRankColor}40;">${_rateRankMedal}${currentRateCat==='jhs'?'中学生':''}参加率 第${_rateRank}位<span style="font-size:8px;font-weight:400;color:#999;margin-left:1px;">/${_rateRankTotal}</span></span>` : ''}
+          ${rateChips}
         </div>
       </div>
       <div class="pu-body">
@@ -341,25 +426,10 @@ window.initMap = function() {
         <div class="pu-row pu-row-sub" style="font-size:10px;border-top:1px solid rgba(15,30,58,0.06);padding-top:4px;">
           <span>児童数（公立小学校・義務教育学校1〜6年）</span><span style="color:#999;">${childStr}</span>
         </div>
-        ${thisRate !== null ? `
-        <div class="pu-rate-cmp">
-          <div class="pu-rate-cmp-title">小学生参加率 県平均比較</div>
-          <div class="pu-rate-cmp-row">
-            <span class="pu-rate-cmp-lbl">この市町村</span>
-            <div class="pu-rate-cmp-bar">
-              <div class="pu-rate-cmp-fill" style="width:${thisW}%;background:var(--action);"></div>
-            </div>
-            <span class="pu-rate-cmp-val" style="color:#3b82f6;">${thisRate.toFixed(1)}%</span>
-          </div>
-          <div class="pu-rate-cmp-row">
-            <span class="pu-rate-cmp-lbl">県平均</span>
-            <div class="pu-rate-cmp-bar">
-              <div class="pu-rate-cmp-fill" style="width:${avgW}%;background:#c0cce0;"></div>
-            </div>
-            <span class="pu-rate-cmp-val" style="color:#999;">${avgRate.toFixed(1)}%</span>
-          </div>
-          <div class="pu-rate-diff" style="color:${diffColor};">${diffStr}</div>
-        </div>` : ''}
+        <div class="pu-row pu-row-sub" style="font-size:10px;">
+          <span>中学生数（市町村立中学校・義務教育学校7〜9年）</span><span style="color:#999;">${studentStr}</span>
+        </div>
+        ${rateCmp}
         ${teamSection}
       </div>
       <div class="pu-foot">
@@ -455,7 +525,8 @@ window.initMap = function() {
     data.forEach(d=>{
       const v=getDisplayVal(d),r=Math.sqrt(v/mx)*30+4;
       const pct=v/mx;
-      const col=pct>.7?'#ff3300':pct>.45?'#ff8800':pct>.25?'#ffcc00':pct>.12?'#00ee88':'#0088ff';
+      const col=(currentIndex==='rate' && hasNoTeam(d,currentRateCat))?NO_TEAM_COLOR
+        :pct>.7?'#ff3300':pct>.45?'#ff8800':pct>.25?'#ffcc00':pct>.12?'#00ee88':'#0088ff';
       const el=document.createElement('div');
       el.style.cssText=`width:${r*2}px;height:${r*2}px;border-radius:50%;background:${col};opacity:.7;border:1px solid rgba(255,255,255,.35);cursor:pointer`;
       const m=new google.maps.marker.AdvancedMarkerElement({position:{lat:d.lat,lng:d.lng},content:el,title:d.city,map});
@@ -526,6 +597,9 @@ window.initMap = function() {
       // 境界線は市区町村の区切りが分かるよう、はっきりした単色ネイビーで描く
       if(currentView==='plain')
         return {fillColor:'#e8edf5',strokeColor:'#3d4f73',strokeWeight:1.3,fillOpacity:0.45};
+      // 参加率モード: 登録チームなしは 0% の色ではなく無彩色で塗る
+      if(currentIndex==='rate' && hasNoTeam(d, currentRateCat))
+        return {fillColor:NO_TEAM_COLOR,strokeColor:'rgba(255,255,255,0.6)',strokeWeight:1,fillOpacity:0.85};
       const dv = currentIndex==='rate' ? calcRate(d) : calcVal(d);
       const fc = currentIndex==='rate' ? choroColorRate(dv,_choroRateMaxCache) : choroColor(dv,_choroMaxCache);
       return {fillColor:fc,strokeColor:'rgba(255,255,255,0.6)',strokeWeight:1,fillOpacity:0.85};
@@ -623,11 +697,32 @@ window.initMap = function() {
       li.querySelector('.rank-row').appendChild(cmpBtn);
       rl.appendChild(li);
     });
+    // 登録チームなしの市町村（小学生・中学生を選んでいるときだけ、ランキングの下に並べる）
+    const ntEl = document.getElementById('rank-noteam');
+    if (ntEl) {
+      const ntCat = isRate ? currentRateCat : currentRankCat.replace(/_male$|_female$/,'');
+      const ntList = RATE_CATS.includes(ntCat) ? data.filter(d => hasNoTeam(d, ntCat)) : [];
+      ntEl.style.display = ntList.length ? '' : 'none';
+      ntEl.innerHTML = ntList.length
+        ? `<div class="rank-noteam-title">${CAT_JP[ntCat]}の${NO_TEAM_LABEL}（${ntList.length}）</div>` +
+          ntList.map(d => `
+          <div class="rank-item" data-city="${_escHtml(d.city)}">
+            <div class="rank-row">
+              <span class="rank-num">－</span>
+              <span class="rank-city">${_escHtml(d.city)}</span>
+              <span class="rank-val rank-noteam-val">${NO_TEAM_LABEL}</span>
+            </div>
+          </div>`).join('')
+        : '';
+      ntEl.querySelectorAll('.rank-item').forEach(el => {
+        el.onclick = () => { if(window.focusCity) window.focusCity(el.dataset.city); };
+      });
+    }
   }
   // ランキング: カテゴリプルダウン変更
   window._onRankCatChange = function(cat) {
-    // 参加率モードは小学生固定（念のため防衛）
-    if (currentIndex === 'rate') return;
+    // 参加率モードは小学生・中学生のみ（プルダウンで選んだら参加率の対象を切り替える）
+    if (currentIndex === 'rate') { window.setRateCat(cat); return; }
     currentRankCat = cat;
     _updateRankingFromUI();
   };
@@ -1389,6 +1484,7 @@ window.initMap = function() {
     const state = {
       view:   currentView,
       idx:    currentIndex,
+      rcat:   currentRateCat,
       gender: currentGender,
       city:   selectedCity || '',
       area:   areaFilterActive ? '1' : '',
@@ -1404,6 +1500,7 @@ window.initMap = function() {
       };
       setOrDelete('view',   state.view,   'plain');
       setOrDelete('idx',    state.idx,    'abs');
+      setOrDelete('rcat',   state.rcat,   'elem');
       setOrDelete('gender', state.gender, 'all');
       setOrDelete('city',   state.city,   '');
       setOrDelete('area',   state.area,   '');
@@ -1420,10 +1517,11 @@ window.initMap = function() {
     try {
       const url = new URL(window.location.href);
       const params = url.searchParams;
-      if (params.has('view') || params.has('idx') || params.has('gender') || params.has('city') || params.has('area')) {
+      if (params.has('view') || params.has('idx') || params.has('rcat') || params.has('gender') || params.has('city') || params.has('area')) {
         state = {
           view:   params.get('view')   || '',
           idx:    params.get('idx')    || '',
+          rcat:   params.get('rcat')   || '',
           gender: params.get('gender') || '',
           city:   params.get('city')   || '',
           area:   params.get('area')   || '',
@@ -1433,6 +1531,7 @@ window.initMap = function() {
     if (!state) state = history.state;
     if(!state) return;
     if(state.view)   window.setView(state.view);
+    if(state.rcat && state.rcat!==currentRateCat) window.setRateCat(state.rcat);
     if(state.idx)    window.setIndex(state.idx);
     if(state.gender) window.setGender(state.gender);
     if(state.city)   window.applyCityFilter(state.city);
@@ -1454,21 +1553,18 @@ window.initMap = function() {
 
     const sel = document.getElementById('rank-cat-select');
 
-    // 参加率モード: カテゴリは小学生のみ有効、他はdisabled
+    // 参加率モード: カテゴリは小学生・中学生のみ有効、他はdisabled（分母データがあるのはこの2つ）
     if (sel) {
       Array.from(sel.options).forEach(opt => {
-        // 小学生(elem)と全カテゴリは参加率でも有効にしたいが、
-        // calcRateはelemのみ計算 → elem固定にする
-        const isElem = opt.value === 'elem';
-        opt.disabled = isRate && !isElem;
-        opt.style.color = (isRate && !isElem) ? '#bbb' : '';
+        const ok = RATE_CATS.includes(opt.value);
+        opt.disabled = isRate && !ok;
+        opt.style.color = (isRate && !ok) ? '#bbb' : '';
       });
-      // 参加率切替時: 強制的にelemに設定
-      if (isRate) {
-        currentRankCat = 'elem';
-        sel.value = 'elem';
-      }
     }
+    // 参加率の対象（小学生／中学生）の切替ボタン・注記・ランキングのプルダウンを合わせる
+    const rateCatWrap = document.getElementById('rate-cat-wrap');
+    if (rateCatWrap) rateCatWrap.style.display = isRate ? '' : 'none';
+    _syncRateCatUI();
 
     // 参加率モード: 男女ボタンをdisabled + 全体にリセット
     ['male','fem'].forEach(x => {
@@ -1489,6 +1585,30 @@ window.initMap = function() {
     update();
     _pushState();
   };
+  // 参加率の対象（小学生／中学生）を切り替える
+  window.setRateCat=function(cat){
+    if(!RATE_CATS.includes(cat)) return;
+    if (window.Analytics) window.Analytics.filterChange('rate_cat', cat);
+    currentRateCat=cat;
+    _syncRateCatUI();
+    update();
+    _pushState();
+  };
+  function _syncRateCatUI(){
+    RATE_CATS.forEach(c=>{
+      const b=document.getElementById('rc-'+c);
+      if(b) b.classList.toggle('on', c===currentRateCat);
+    });
+    // data-rate-cat を持つ注記・凡例タイトルは、対象カテゴリのものだけ見せる
+    document.querySelectorAll('[data-rate-cat]').forEach(el=>{
+      el.style.display = el.dataset.rateCat===currentRateCat ? '' : 'none';
+    });
+    if(currentIndex==='rate'){
+      currentRankCat = currentRateCat;
+      const sel = document.getElementById('rank-cat-select');
+      if(sel) sel.value = currentRateCat;
+    }
+  }
   window.setView=function(mode){
     if (window.Analytics) window.Analytics.filterChange('view_style', mode);
     currentView=mode;
@@ -2368,11 +2488,14 @@ window.initMap = function() {
     count.textContent = toShow.length + '件';
     body.innerHTML = '';
     if (toShow.length === 0) {
+      // 市町村＋小学生/中学生で絞り込んで0件のとき、協議会データに登録がなければ「登録チームなし」と出す
+      const ntCity = selectedCity ? cityMap[selectedCity] : null;
+      const isNoTeam = !!ntCity && RATE_CATS.includes(tlpActiveCat) && hasNoTeam(ntCity, tlpActiveCat);
       body.innerHTML = `
         <div class="tlp-empty">
           <div class="tlp-empty-icon"><span class="msi">search_off</span></div>
-          <div class="tlp-empty-title">条件に一致するチームがありません</div>
-          <div class="tlp-empty-sub">絞込条件を変えるか、リセットしてもう一度お試しください</div>
+          <div class="tlp-empty-title">${isNoTeam ? _escHtml(selectedCity)+'の'+CAT_JP[tlpActiveCat]+'は'+NO_TEAM_LABEL : '条件に一致するチームがありません'}</div>
+          <div class="tlp-empty-sub">${isNoTeam ? '埼玉県野球協議会の2025年度データに登録がありません' : '絞込条件を変えるか、リセットしてもう一度お試しください'}</div>
           <button class="tlp-empty-btn" onclick="window.clearAllFilters && window.clearAllFilters()">
             <span class="msi" style="font-size:14px;vertical-align:-2px;margin-right:4px">refresh</span>絞込をリセット
           </button>
@@ -2562,13 +2685,18 @@ window.initMap = function() {
     if (window.Analytics) window.Analytics.modalOpen('chart', {city: cityName});
     const modal = document.getElementById('chart-modal');
     document.getElementById('chart-title').textContent = cityName + ' 野球人口詳細';
-    const rate = d.children ? ((d.elem_m||0)+(d.elem_f||0)) / d.children * 100 : null;
+    // 参加率（小学生・中学生）。登録チームなしは数字の代わりにその旨を出す
+    const RATE_SRC = {elem:'令和7年度学校便覧・義務教育学校1〜6年を含む', jhs:'令和7年度学校便覧・市町村立中学校＋義務教育学校7〜9年'};
     const rateArea = document.getElementById('chart-rate-area');
-    rateArea.innerHTML = rate !== null
-      ? `<div class="chart-rate-box">
-           <div class="chart-rate-num">${rate.toFixed(1)}%</div>
-           <div class="chart-rate-label">小学生参加率<br><span style="font-size:9px;">児童数 ${d.children.toLocaleString()}人（令和7年度学校便覧・義務教育学校1〜6年を含む）</span></div>
-         </div>` : '';
+    rateArea.innerHTML = RATE_CATS.map((c,i) => {
+      const rate = rateAll(d, c);
+      if (rate === null) return '';
+      const noTeam = hasNoTeam(d, c);
+      return `<div class="chart-rate-box"${i>0?' style="border-top:1px solid var(--border);border-radius:0;"':''}>
+           <div class="chart-rate-num"${noTeam?' style="font-size:16px;color:var(--ink-3);"':''}>${noTeam ? NO_TEAM_LABEL : rate.toFixed(1)+'%'}</div>
+           <div class="chart-rate-label">${CAT_JP[c]}参加率<br><span style="font-size:9px;">${RATE_BASE_JP[c]} ${d[RATE_BASE[c]].toLocaleString()}人（${RATE_SRC[c]}）</span></div>
+         </div>`;
+    }).join('');
     const total = CHART_CATS.reduce((s,c)=>(s+(d[c+'_m']||0)+(d[c+'_f']||0)), 0);
     document.getElementById('chart-sub').textContent = `合計 ${total}人`;
     const bars = document.getElementById('chart-bars');
@@ -2621,26 +2749,26 @@ window.initMap = function() {
       (CHART_CATS.reduce((s,c)=>(s+(a[c+'_m']||0)+(a[c+'_f']||0)),0))
     );
     const rank = sorted.findIndex(x=>x.city===d.city) + 1;
-    // 参加率順位
-    const withChildren = allCities.filter(x=>x.children>0);
-    const rateSorted = [...withChildren].sort((a,b)=>{
-      const rA = ((a.elem_m||0)+(a.elem_f||0))/a.children;
-      const rB = ((b.elem_m||0)+(b.elem_f||0))/b.children;
-      return rB - rA;
-    });
-    const rateRank = rate!==null ? rateSorted.findIndex(x=>x.city===d.city)+1 : null;
+    // 参加率順位（小学生・中学生。登録チームなしの市町村には順位を付けない）
+    const rateRankHtml = RATE_CATS.map(c => {
+      if (rateAll(d, c) === null || hasNoTeam(d, c)) return '';
+      const withBase = allCities.filter(x=>x[RATE_BASE[c]]>0);
+      const rateSorted = [...withBase].sort((a,b)=>rateAll(b,c)-rateAll(a,c));
+      const rateRank = rateSorted.findIndex(x=>x.city===d.city)+1;
+      return rateRank ? `<div>
+          <span style="font-size:10px;color:#999;">${CAT_JP[c]}参加率</span><br>
+          <span style="font-size:20px;font-weight:700;color:var(--ink);">第 <span style="font-size:28px;">${rateRank}</span> 位</span>
+          <span style="font-size:11px;color:#999;"> / ${withBase.length}</span>
+        </div>` : '';
+    }).join('');
     bars.innerHTML += `<div class="chart-section">県内順位</div>
-      <div style="display:flex;gap:16px;align-items:baseline;padding:6px 0;">
+      <div style="display:flex;gap:16px;align-items:baseline;padding:6px 0;flex-wrap:wrap;">
         <div>
           <span style="font-size:10px;color:#999;">人数</span><br>
           <span style="font-size:20px;font-weight:700;color:var(--ink);">第 <span style="font-size:28px;">${rank}</span> 位</span>
           <span style="font-size:11px;color:#999;"> / ${sorted.length}</span>
         </div>
-        ${rateRank ? `<div>
-          <span style="font-size:10px;color:#999;">小学生参加率</span><br>
-          <span style="font-size:20px;font-weight:700;color:var(--ink);">第 <span style="font-size:28px;">${rateRank}</span> 位</span>
-          <span style="font-size:11px;color:#999;"> / ${withChildren.length}</span>
-        </div>` : ''}
+        ${rateRankHtml}
       </div>`;
     modal.classList.add('open');
     modal.onclick = e => { if (e.target === modal) window.closeChartModal(); };
@@ -2706,8 +2834,13 @@ window.initMap = function() {
 
     const totalA = CMP_CATS.reduce((s,c)=>s+(dA[c+'_m']||0)+(dA[c+'_f']||0),0);
     const totalB = CMP_CATS.reduce((s,c)=>s+(dB[c+'_m']||0)+(dB[c+'_f']||0),0);
-    const rateA  = dA.children ? ((dA.elem_m||0)+(dA.elem_f||0))/dA.children*100 : null;
-    const rateB  = dB.children ? ((dB.elem_m||0)+(dB.elem_f||0))/dB.children*100 : null;
+    // 参加率（小学生・中学生）。登録チームなしは数字の代わりにその旨を出す
+    const rateTxt = (dX, c) => {
+      const r = rateAll(dX, c);
+      return r===null ? '－' : hasNoTeam(dX, c) ? NO_TEAM_LABEL : r.toFixed(1)+'%';
+    };
+    const rateKpi = (dX, c) => hasNoTeam(dX, c) && rateAll(dX, c)!==null
+      ? `<span style="font-size:12px;color:var(--ink-3);">${NO_TEAM_LABEL}</span>` : rateTxt(dX, c);
     const teamsA = teamData.filter(t=>t.city===nameA).length;
     const teamsB = teamData.filter(t=>t.city===nameB).length;
 
@@ -2738,16 +2871,16 @@ window.initMap = function() {
           <div class="cmp-kpi-lbl">競技者数合計</div>
         </div>
       </div>
-      <div class="cmp-kpi-row">
+      ${RATE_CATS.map(c => `<div class="cmp-kpi-row">
         <div class="cmp-kpi">
-          <div class="cmp-kpi-val">${rateA!==null?rateA.toFixed(1)+'%':'－'}</div>
-          <div class="cmp-kpi-lbl">小学生参加率</div>
+          <div class="cmp-kpi-val">${rateKpi(dA, c)}</div>
+          <div class="cmp-kpi-lbl">${CAT_JP[c]}参加率</div>
         </div>
         <div class="cmp-kpi">
-          <div class="cmp-kpi-val">${rateB!==null?rateB.toFixed(1)+'%':'－'}</div>
-          <div class="cmp-kpi-lbl">小学生参加率</div>
+          <div class="cmp-kpi-val">${rateKpi(dB, c)}</div>
+          <div class="cmp-kpi-lbl">${CAT_JP[c]}参加率</div>
         </div>
-      </div>
+      </div>`).join('')}
       <div class="cmp-kpi-row">
         <div class="cmp-kpi">
           <div class="cmp-kpi-val">${teamsA}</div>
@@ -2789,18 +2922,22 @@ window.initMap = function() {
         </div>`;
     });
 
-    // 参加率比較バー
-    if(rateA!==null || rateB!==null){
+    // 参加率比較バー（小学生・中学生）
+    RATE_CATS.forEach(c => {
+      const rateA = rateAll(dA, c), rateB = rateAll(dB, c);
+      if(rateA===null && rateB===null) return;
       const rMax = Math.max(rateA||0, rateB||0, 1);
-      barsHtml += `<div class="cmp-bar-section">小学生参加率</div>
+      // どちらかが登録チームなしのときは勝ち負けを付けない
+      const win = (hasNoTeam(dA, c) || hasNoTeam(dB, c)) ? '' : winner(rateA,rateB);
+      barsHtml += `<div class="cmp-bar-section">${CAT_JP[c]}参加率</div>
         <div class="cmp-bar-wrap">
-          <div class="cmp-bar-label"><span>参加率</span><span>${rateA!==null?rateA.toFixed(1)+'%':'－'} vs ${rateB!==null?rateB.toFixed(1)+'%':'－'} ${winner(rateA,rateB)}</span></div>
+          <div class="cmp-bar-label"><span>参加率</span><span>${rateTxt(dA, c)} vs ${rateTxt(dB, c)} ${win}</span></div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
             <div class="cmp-bar-track"><div class="cmp-bar-fill" style="width:${pct(rateA||0,rMax)}%;background:#2563eb"></div></div>
             <div class="cmp-bar-track"><div class="cmp-bar-fill" style="width:${pct(rateB||0,rMax)}%;background:#d97706"></div></div>
           </div>
         </div>`;
-    }
+    });
 
     body.innerHTML = `
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px">

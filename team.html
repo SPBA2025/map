@@ -106,7 +106,7 @@
 </script>
 <link rel="stylesheet" href="css/tokens.css?v=20260612">
 <link rel="stylesheet" href="css/common.css?v=20260613b">
-<link rel="stylesheet" href="css/team-map.css?v=20260619c">
+<link rel="stylesheet" href="css/team-map.css?v=20261111">
 </head>
 <body data-page="team">
 <!-- SITE HEADER (協議会戻り動線) -->
@@ -249,7 +249,16 @@
       <div class="ctrl-label" style="font-size:9px;color:#999;margin-bottom:3px;">指標</div>
       <div class="idx-btns" style="margin-bottom:8px;">
         <button class="ibtn on" id="idx-abs" onclick="setIndex('abs')">競技者数</button>
-        <button class="ibtn" id="idx-rate" onclick="setIndex('rate')" title="小学生カテゴリのみ対応">参加率<br><span style="font-size:8px;font-weight:400;opacity:0.85;">（小学生のみ）</span></button>
+        <button class="ibtn" id="idx-rate" onclick="setIndex('rate')" title="小学生・中学生カテゴリに対応">参加率<br><span style="font-size:8px;font-weight:400;opacity:0.85;">（小学生・中学生）</span></button>
+      </div>
+
+      <!-- ②' 参加率の対象（参加率を選んだときだけ表示） -->
+      <div id="rate-cat-wrap" style="display:none;margin-bottom:8px;">
+        <div class="ctrl-label" style="font-size:9px;color:#999;margin-bottom:3px;">参加率の対象</div>
+        <div class="gender-btns">
+          <button class="gbtn on" id="rc-elem" onclick="setRateCat('elem')" aria-label="参加率の対象: 小学生">小学生</button>
+          <button class="gbtn" id="rc-jhs" onclick="setRateCat('jhs')" aria-label="参加率の対象: 中学生">中学生</button>
+        </div>
       </div>
 
       <!-- ③ 性別選択 -->
@@ -305,12 +314,25 @@
       <div style="display:flex;justify-content:space-between;font-size:9px;color:#999"><span>少</span><span>多</span></div>
     </div>
     <div class="leg-section" id="leg-rate" style="display:none">
-      <div class="leg-title">▍凡例（参加率：小学生）</div>
+      <div class="leg-title">▍凡例（参加率：<span data-rate-cat="elem">小学生</span><span data-rate-cat="jhs" style="display:none">中学生</span>）</div>
       <div style="width:100%;height:18px;border-radius:6px;background:linear-gradient(90deg,rgb(240,248,255),rgb(80,170,230),rgb(40,160,100),rgb(200,230,60),rgb(255,180,0),rgb(255,80,0),rgb(160,0,0));margin-bottom:4px"></div>
       <div style="display:flex;justify-content:space-between;font-size:9px;color:#999"><span>低</span><span>高</span></div>
+      <div style="display:flex;align-items:center;gap:6px;margin-top:6px;">
+        <div style="width:14px;height:14px;border-radius:3px;background:#c9ced6;border:1px solid rgba(15,30,58,0.12);flex-shrink:0;"></div>
+        <span style="font-size:10px;color:#555;">登録チームなし</span>
+      </div>
       <div id="rate-note" style="display:none;font-size:9px;color:#999;margin-top:4px;line-height:1.6;">
-        <span class="msi" style="font-size:12px;vertical-align:-2px;color:#2563eb">push_pin</span> <strong style="color:#2563eb;">小学生</strong>カテゴリのみ対応<br>
-        小学生競技者数 ÷ 児童数（公立小学校・義務教育学校1〜6年）<br>
+        <div data-rate-cat="elem">
+          <span class="msi" style="font-size:12px;vertical-align:-2px;color:#2563eb">push_pin</span> <strong style="color:#2563eb;">小学生</strong>の参加率<br>
+          小学生競技者数 ÷ 児童数（公立小学校・義務教育学校1〜6年）
+        </div>
+        <div data-rate-cat="jhs" style="display:none">
+          <span class="msi" style="font-size:12px;vertical-align:-2px;color:#059669">push_pin</span> <strong style="color:#059669;">中学生</strong>の参加率<br>
+          中学生競技者数 ÷ 中学生数（公立中学校（市町村立）・義務教育学校7〜9年）<br>
+          私立中学校など（国立・県立・中等教育学校を含む）の部員は学校のある市町村に入る<br>
+          市外のクラブに通う生徒は反映されない
+        </div>
+        「登録チームなし」は協議会のデータに登録がないことを示す<br>
         <span style="color:#aaa;">出典：令和7年度埼玉県学校便覧</span>
       </div>
     </div>
@@ -364,17 +386,22 @@
       </div>
       <!-- 参加率モード時の注記 -->
       <div id="rank-rate-note" style="display:none;font-size:10px;color:#555;margin-bottom:4px;">
-        小学生参加率（児童数比）で順位付け
-        <div style="color:#c07030;font-size:9px;margin-top:2px;display:inline-flex;align-items:center;gap:3px"><span class="msi" style="font-size:11px">warning</span>参加率は小学生カテゴリ・全体のみ（男女別の児童数データが必要なため非対応）</div>
+        <span data-rate-cat="elem">小学生参加率（児童数比）で順位付け</span><span data-rate-cat="jhs" style="display:none">中学生参加率（中学生数比）で順位付け</span>
+        <div style="color:#c07030;font-size:9px;margin-top:2px;display:inline-flex;align-items:center;gap:3px"><span class="msi" style="font-size:11px">warning</span>参加率は小学生・中学生カテゴリの全体のみ（男女別の児童数・中学生数データが必要なため非対応）</div>
       </div>
       <ol id="rank-list"></ol>
+      <!-- 登録チームなしの市町村（小学生・中学生を選んでいるときだけ表示） -->
+      <div id="rank-noteam" style="display:none"></div>
     </div>
     <!-- データ注記 -->
     <div class="s-section" style="font-size:9px;color:#555;line-height:1.6">
       <div style="font-size:10px;color:#2563eb;font-weight:700;margin-bottom:4px;display:inline-flex;align-items:center;gap:3px"><span class="msi" style="font-size:13px">event</span>データ更新: 2025年度（令和7年度）</div>
       競技者数: 埼玉県野球協議会（2025年度）<br>
       チームデータ: 埼玉県野球協議会（2025年度）<br>
-      児童数: 令和7年度埼玉県学校便覧（公立小学校＋義務教育学校1〜6年）
+      児童数: 令和7年度埼玉県学校便覧（公立小学校＋義務教育学校1〜6年）<br>
+      中学生数: 令和7年度埼玉県学校便覧（公立中学校（市町村立）＋義務教育学校7〜9年）<br>
+      中学生参加率の注意: 私立中学校など（国立・県立・中等教育学校を含む）の部員は学校のある市町村に入る。市外のクラブに通う生徒は反映されない<br>
+      「登録チームなし」: 埼玉県野球協議会のデータにチームの登録がない市町村（チームが無いとは限らない）
     </div>
     <div id="sidebar-copyright" style="margin-top:8px;padding-top:8px;border-top:1px solid #dde5ef;font-size:9px;color:#999;text-align:center;line-height:1.8;">
       © 埼玉県野球協議会<br>
@@ -513,7 +540,7 @@
 <!-- 境界 GeoJSON（市町村 / さいたま市の区） -->
 <script src="data/geo-cities.js?v=20260612"></script>
 <script src="data/geo-wards.js?v=20260612"></script>
-<script src="js/team-map.js?v=20261006"></script>
+<script src="js/team-map.js?v=20261111"></script>
 
 <!-- SITE FOOTER -->
 <footer id="site-footer" role="contentinfo">
