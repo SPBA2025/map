@@ -45,7 +45,7 @@ const cityData = [
   {city:'杉戸町',lat:36.025,lng:139.769,region:'東部',children:1718,students:960,elem_m:109,elem_f:14,jhs_m:8,jhs_f:1,hs_m:101,hs_f:10,univ_m:0,univ_f:0,club_m:0,club_f:0},
   {city:'蓮田市',lat:35.994,lng:139.658,region:'東部',children:2584,students:1345,elem_m:76,elem_f:18,jhs_m:56,jhs_f:3,hs_m:19,hs_f:0,univ_m:0,univ_f:0,club_m:410,club_f:2},
   {city:'上尾市',lat:35.977,lng:139.595,region:'東部',children:10705,students:5218,elem_m:350,elem_f:37,jhs_m:259,jhs_f:7,hs_m:130,hs_f:10,univ_m:0,univ_f:0,club_m:23,club_f:0},
-  {city:'伊奈町',lat:35.99,lng:139.625,region:'東部',children:2217,students:1239,elem_m:88,elem_f:16,jhs_m:31,jhs_f:2,hs_m:147,hs_f:12,univ_m:0,univ_f:0,club_m:0,club_f:0},
+  {city:'伊奈町',lat:35.99,lng:139.625,region:'東部',children:2217,students:1478,elem_m:88,elem_f:16,jhs_m:31,jhs_f:2,hs_m:147,hs_f:12,univ_m:0,univ_f:0,club_m:0,club_f:0},
   {city:'桶川市',lat:36.002,lng:139.554,region:'東部',children:3364,students:1748,elem_m:96,elem_f:10,jhs_m:56,jhs_f:2,hs_m:26,hs_f:1,univ_m:0,univ_f:0,club_m:36,club_f:0},
   {city:'北本市',lat:36.026,lng:139.527,region:'東部',children:2524,students:1312,elem_m:124,elem_f:10,jhs_m:51,jhs_f:14,hs_m:21,hs_f:2,univ_m:0,univ_f:0,club_m:70,club_f:0},
   {city:'鴻巣市',lat:36.066,lng:139.521,region:'東部',children:5241,students:2672,elem_m:219,elem_f:18,jhs_m:201,jhs_f:6,hs_m:28,hs_f:2,univ_m:0,univ_f:0,club_m:125,club_f:1},
@@ -427,7 +427,7 @@ window.initMap = function() {
           <span>児童数（公立小学校・義務教育学校1〜6年）</span><span style="color:#999;">${childStr}</span>
         </div>
         <div class="pu-row pu-row-sub" style="font-size:10px;">
-          <span>中学生数（市町村立中学校・義務教育学校7〜9年）</span><span style="color:#999;">${studentStr}</span>
+          <span>中学生数（公立中学校・義務教育学校7〜9年）</span><span style="color:#999;">${studentStr}</span>
         </div>
         ${rateCmp}
         ${teamSection}
