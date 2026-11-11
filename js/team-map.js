@@ -2,7 +2,7 @@
 // 依存: data/teams-data.js, data/geo-cities.js, data/geo-wards.js（先に読み込まれていること）
 // ── データ（カテゴリ×性別）──────────────────────
 const cityData = [
-  {city:'さいたま市',lat:35.861,lng:139.645,region:'南部',children:68557,students:31401,elem_m:2344,elem_f:142,jhs_m:1776,jhs_f:58,hs_m:1015,hs_f:118,univ_m:0,univ_f:0,club_m:1997,club_f:27},
+  {city:'さいたま市',lat:35.861,lng:139.645,region:'南部',children:68557,students:31876,elem_m:2344,elem_f:142,jhs_m:1776,jhs_f:58,hs_m:1015,hs_f:118,univ_m:0,univ_f:0,club_m:1997,club_f:27},
   {city:'川口市',lat:35.806,lng:139.724,region:'南部',children:28152,students:13538,elem_m:714,elem_f:50,jhs_m:533,jhs_f:13,hs_m:200,hs_f:10,univ_m:0,univ_f:0,club_m:831,club_f:9},
   {city:'草加市',lat:35.826,lng:139.807,region:'南部',children:11002,students:5563,elem_m:431,elem_f:59,jhs_m:242,jhs_f:1,hs_m:88,hs_f:18,univ_m:0,univ_f:0,club_m:196,club_f:1},
   {city:'越谷市',lat:35.889,lng:139.79,region:'南部',children:16949,students:8293,elem_m:647,elem_f:69,jhs_m:539,jhs_f:11,hs_m:262,hs_f:39,univ_m:0,univ_f:0,club_m:1314,club_f:3},
@@ -69,7 +69,7 @@ const cityData = [
 const wardData = [
   {city:'さいたま市西区',lat:35.868,lng:139.567,region:'南部',children:4976,students:2523,elem_m:0,elem_f:0,jhs_m:83,jhs_f:1,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:14},
   {city:'さいたま市北区',lat:35.908,lng:139.629,region:'南部',children:7130,students:3750,elem_m:67,elem_f:4,jhs_m:189,jhs_f:39,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
-  {city:'さいたま市大宮区',lat:35.906,lng:139.624,region:'南部',children:6815,students:3053,elem_m:467,elem_f:16,jhs_m:245,jhs_f:3,hs_m:383,hs_f:51,univ_m:0,univ_f:0,club_m:948,club_f:4},
+  {city:'さいたま市大宮区',lat:35.906,lng:139.624,region:'南部',children:6815,students:3528,elem_m:467,elem_f:16,jhs_m:245,jhs_f:3,hs_m:383,hs_f:51,univ_m:0,univ_f:0,club_m:948,club_f:4},
   {city:'さいたま市見沼区',lat:35.919,lng:139.658,region:'南部',children:7120,students:3096,elem_m:75,elem_f:1,jhs_m:236,jhs_f:4,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
   {city:'さいたま市中央区',lat:35.88,lng:139.622,region:'南部',children:4830,students:2264,elem_m:184,elem_f:8,jhs_m:72,jhs_f:2,hs_m:65,hs_f:5,univ_m:0,univ_f:0,club_m:221,club_f:0},
   {city:'さいたま市桜区',lat:35.852,lng:139.596,region:'南部',children:3964,students:2458,elem_m:159,elem_f:20,jhs_m:93,jhs_f:1,hs_m:0,hs_f:0,univ_m:0,univ_f:0,club_m:0,club_f:0},
@@ -427,7 +427,7 @@ window.initMap = function() {
           <span>児童数（公立小学校・義務教育学校1〜6年）</span><span style="color:#999;">${childStr}</span>
         </div>
         <div class="pu-row pu-row-sub" style="font-size:10px;">
-          <span>中学生数（公立中学校・義務教育学校7〜9年）</span><span style="color:#999;">${studentStr}</span>
+          <span>中学生数（公立。義務教育学校7〜9年・中等教育学校前期を含む）</span><span style="color:#999;">${studentStr}</span>
         </div>
         ${rateCmp}
         ${teamSection}
