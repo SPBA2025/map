@@ -19,7 +19,7 @@
 ├── teams-data.js         チームデータ 2143件（index.html から外部化）
 ├── parks-data.js         公園データ
 ├── parks_catchball.csv   公園元データ
-├── gas_aggregate.js      GAS集計（参考。本体はGAS側）
+├── gas/Code.gs           公園マップのGAS（控え。本体はGAS側）
 ├── parks.config.example.js
 ├── admin.html            管理ページ
 ├── sitemap.xml           検索エンジン向けサイトマップ

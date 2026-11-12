@@ -143,10 +143,10 @@ push から **30秒〜2分** で GitHub Pages に反映されます。
 
 ### GAS 再デプロイ手順（コード変更時）
 
-ローカルの `gas_aggregate.js` を修正しただけでは本番には反映されません：
+ローカルの `gas/Code.gs` を修正しただけでは本番には反映されません：
 
 1. Apps Script エディタを開く
-2. `gas_aggregate.js` の最新コードを貼り付け
+2. `gas/Code.gs` の最新コードを貼り付け（設定ブロックの実値は維持）
 3. 「デプロイ」→「デプロイを管理」→ 既存のデプロイを **編集**
 4. バージョンを「新バージョン」にして「デプロイ」
 
@@ -161,7 +161,7 @@ map/
 ├── parks.html             # 公園マップ本体（HTML+CSS+JS全部入り）
 ├── parks-data.js          # 公園データ（233件、うち3件は詳細情報付き）
 ├── parks_catchball.csv    # PARKFUL元データ（編集不要）
-├── gas_aggregate.js       # Google Apps Script（参考用、本体は GAS 側）
+├── gas/Code.gs            # Google Apps Script（控え。本体は GAS 側）
 ├── parks.config.example.js # ローカル開発時のテンプレート（現状未使用）
 ├── admin.html             # 管理ページ（未使用）
 ├── index.html             # 埼玉県野球チームマップ（別マップ）
