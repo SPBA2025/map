@@ -16,7 +16,7 @@
 ├── cookie-consent.js     Cookie同意バナー（SPBAクリーム配色）
 ├── onboarding.js         初回訪問時の3ステップヒントオーバーレイ
 ├── toast.js              ミニトースト通知（info/success/warn/error）
-├── teams-data.js         チームデータ 2143件（index.html から外部化）
+├── teams-data.js         チームデータ 2055件（index.html から外部化）
 ├── parks-data.js         公園データ
 ├── parks_catchball.csv   公園元データ
 ├── gas/Code.gs           公園マップのGAS（控え。本体はGAS側）
